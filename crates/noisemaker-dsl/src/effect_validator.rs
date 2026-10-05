@@ -17,7 +17,7 @@
 use std::sync::OnceLock;
 
 use crate::error::JsError;
-use crate::js::{number_to_string, parse_float};
+use crate::js::{is_finite_number, number_to_string, parse_float};
 use crate::registry::Registry;
 use crate::unparser::jsv::{entries, keys, member, same_value_zero, strict_equals, to_string};
 use crate::value::{Object, Value};
@@ -255,11 +255,6 @@ pub enum Definition<'a> {
 /// `isObj(value)`: a non-null, non-array object.
 fn is_obj(v: &Value) -> bool {
     matches!(v, Value::Object(_))
-}
-
-/// `isFiniteNumber(value)`.
-fn is_finite_number(v: &Value) -> bool {
-    matches!(v, Value::Number(n) if n.is_finite())
 }
 
 /// `typeof v === 'string' && v` (a non-empty string).

@@ -13,7 +13,9 @@ use noisemaker_gpu::frame_export::{ExportedFrame, FrameExportOptions};
 use noisemaker_gpu::host::{CanvasRenderer, CanvasRendererOptions, CompileOptions, cube_export};
 use noisemaker_gpu::png_io::Rgba8Image;
 use noisemaker_gpu::sink::{Sink, SinkDescriptor};
-use noisemaker_gpu::{GpuDevice, Object, Value, WebGpuBackend};
+use noisemaker_gpu::{
+    GpuDevice, Object, Orientation, Presenter, RenderError, Value, WebGpuBackend,
+};
 
 thread_local! {
     static REGISTRY: Rc<Registry> = Rc::new(Registry::with_catalog());
@@ -541,4 +543,121 @@ fn media_dimensions_reach_the_lifecycle_fallback() {
         uniforms.get_or_undefined("imageSize"),
         &Value::from_json("[640, 480]").unwrap()
     );
+}
+
+#[test]
+fn present_blit_shows_the_texture_rows_mirrored() {
+    let device = device();
+    let mut r = renderer(&device, 24);
+    compile(
+        &mut r,
+        "search synth\nnoise(seed: 4, octaves: 2).write(o0)\nrender(o0)",
+    );
+    r.render(0.25).unwrap();
+    let pixels = r.read_output().unwrap();
+    assert_eq!(pixels.data, output(&mut r));
+    let presented = pixels.clone().oriented(Orientation::Presented);
+    assert_eq!(presented, pixels.flip_rows());
+    assert_eq!(
+        presented.flip_rows(),
+        pixels,
+        "flipping twice restores the rows"
+    );
+    assert_ne!(presented, pixels, "the test image is not symmetric");
+
+    // The reference's present(): a same-size canvas samples the nearest
+    // texel, which mirrors the rows.
+    let p = r.pipeline_mut().unwrap();
+    let id = p.surfaces["o0"].read.clone().unwrap();
+    let mut presenter = Presenter::new(&device);
+    let canvas = presenter.capture(&p.backend, &id, 24, 24).unwrap().unwrap();
+    assert_eq!(canvas, presented);
+    // A scaled canvas filters; an unknown texture draws nothing.
+    let scaled = presenter.capture(&p.backend, &id, 48, 30).unwrap().unwrap();
+    assert_eq!((scaled.width, scaled.height), (48, 30));
+    assert!(
+        presenter
+            .capture(&p.backend, "nope", 24, 24)
+            .unwrap()
+            .is_none()
+    );
+    // A bgra8unorm canvas (the preferred canvas format) takes the same blit.
+    let target = device.device.create_texture(&wgpu::TextureDescriptor {
+        label: None,
+        size: wgpu::Extent3d {
+            width: 24,
+            height: 24,
+            depth_or_array_layers: 1,
+        },
+        mip_level_count: 1,
+        sample_count: 1,
+        dimension: wgpu::TextureDimension::D2,
+        format: wgpu::TextureFormat::Bgra8Unorm,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        view_formats: &[],
+    });
+    let view = target.create_view(&Default::default());
+    assert!(presenter.present(
+        &p.backend,
+        &id,
+        &view,
+        wgpu::TextureFormat::Bgra8Unorm,
+        24,
+        24
+    ));
+    assert_eq!(p.backend.device_errors(), 0);
+}
+
+#[test]
+fn compile_errors_keep_the_frontend_error() {
+    let device = device();
+    let mut r = renderer(&device, 8);
+    let source = "search synth\nnoise(\n  .write(o0)\nrender(o0)";
+    let err = r.compile(source, &CompileOptions::default()).unwrap_err();
+    let RenderError::Dsl(js) = &err else {
+        panic!("not a DSL error: {err:?}");
+    };
+    assert_eq!(
+        err.to_string(),
+        "SyntaxError: Unexpected token DOT at line 3 col 3"
+    );
+    assert!(
+        noisemaker_gpu::dsl::error_formatter::format_compile_error(source, js)
+            .contains("^-- error here")
+    );
+    let err = r
+        .compile(
+            "search synth\nnope().write(o0)\nrender(o0)",
+            &CompileOptions::default(),
+        )
+        .unwrap_err();
+    assert_eq!(err.code().as_deref(), Some("ERR_COMPILATION_FAILED"));
+    assert!(err.dsl_error().is_some());
+}
+
+#[test]
+fn demo_host_control_changes_follow_the_page() {
+    let device = device();
+    let r = renderer(&device, 32);
+    let mut host = DemoHost::new(r, DemoHostOptions::default());
+    host.rebuild_pipeline_from_dsl(
+        "search synth, filter\nsolid(color: #000000).text(text: \"Hi\", size: 0.5, color: #ffffff).write(o0)\nrender(o0)",
+        true,
+    )
+    .unwrap();
+    host.settle().unwrap();
+    // A changed text re-draws the text canvas and rewrites the editor DSL.
+    host.set_control_value("step_1", "text", Value::from("Yo"))
+        .unwrap();
+    assert_eq!(host.text_inputs()[&1].params.text, "Yo");
+    assert_eq!(host.text_inputs()[&1].params.size, 0.5);
+    assert!(host.dsl().contains("Yo"), "{}", host.dsl());
+    // Values are validated and coerced as the control's setValue does.
+    host.set_control_value("step_1", "size", Value::from(0.25))
+        .unwrap();
+    assert_eq!(host.text_inputs()[&1].params.size, 0.25);
+    host.settle().unwrap();
+    let r = host.renderer_mut();
+    r.render(0.25).unwrap();
+    assert!(output(r).chunks(4).any(|p| p[0] > 128), "the text is drawn");
 }

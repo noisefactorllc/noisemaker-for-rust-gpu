@@ -12,12 +12,11 @@ use std::rc::Rc;
 use std::sync::{Arc, Mutex, mpsc};
 
 use indexmap::IndexMap;
-use noisemaker_dsl::js::{math_round, parse_float};
+use noisemaker_dsl::js::{math_max, math_min, math_round, parse_float};
 use noisemaker_dsl::{Object, Value};
 use noisemaker_input::globals::{
     EMPTY_NOTE_GRID, InputGlobals, MIDI_NOTE_GRID_HEIGHT, MIDI_NOTE_GRID_WIDTH, NoteGridUpload,
 };
-use noisemaker_input::jsmath::{js_max, js_min};
 
 use crate::automation::{
     AudioInputRequirements, AutomationContext, ExternalState, SharedAudioState, SharedMidiState,
@@ -31,7 +30,7 @@ use crate::hooks::{
     AsyncInitContext, AsyncInitEffect, EffectLifecycle, EffectRegistry, TextureImage, UpdateContext,
 };
 use crate::jsre::JsRegex;
-use crate::jsv::{interpolate, strict_equals, to_js_string, to_number};
+use crate::jsv::{strict_equals, to_js_string, to_number};
 use crate::preflight::{PreflightReport, mrt_format_bytes, preflight_effect};
 use crate::sink::{CUBE_FACE_BASES, CanvasSink, SinkDescriptor, SinkManager};
 
@@ -763,8 +762,8 @@ impl Pipeline {
         }
         let key = format!(
             "{}->{}",
-            interpolate(&Value::Number(value)),
-            interpolate(&Value::Number(clamped))
+            to_js_string(&Value::Number(value)),
+            to_js_string(&Value::Number(clamped))
         );
         self.warned_volume_clamps.insert(key);
         clamped
@@ -1574,7 +1573,7 @@ impl Pipeline {
         uniforms: &Object,
     ) -> Result<f64, RenderError> {
         if let Value::Number(n) = spec {
-            return Ok(js_max(1.0, n.floor()));
+            return Ok(math_max(1.0, n.floor()));
         }
         if matches!(
             spec.as_str(),
@@ -1586,7 +1585,7 @@ impl Pipeline {
             && s.ends_with('%')
         {
             let percent = parse_float(s);
-            return Ok(js_max(1.0, (screen * percent / 100.0).floor()));
+            return Ok(math_max(1.0, (screen * percent / 100.0).floor()));
         }
         if spec.is_null() {
             return Err(RenderError::type_error(
@@ -1621,7 +1620,7 @@ impl Pipeline {
                 {
                     value = spec.get("default").clone();
                 }
-                return Ok(js_max(1.0, to_number(&value).floor()));
+                return Ok(math_max(1.0, to_number(&value).floor()));
             }
             let screen_divide = spec.get("screenDivide");
             if !screen_divide.is_undefined() {
@@ -1633,7 +1632,7 @@ impl Pipeline {
                 } else {
                     Value::Number(1.0)
                 };
-                return Ok(js_max(1.0, math_round(screen / to_number(&divisor))));
+                return Ok(math_max(1.0, math_round(screen / to_number(&divisor))));
             }
             let scale = spec.get("scale");
             if !scale.is_undefined() {
@@ -1641,13 +1640,13 @@ impl Pipeline {
                 let clamp = spec.get("clamp");
                 if clamp.is_truthy() {
                     if !clamp.get("min").is_undefined() {
-                        computed = js_max(to_number(clamp.get("min")), computed);
+                        computed = math_max(to_number(clamp.get("min")), computed);
                     }
                     if !clamp.get("max").is_undefined() {
-                        computed = js_min(to_number(clamp.get("max")), computed);
+                        computed = math_min(to_number(clamp.get("max")), computed);
                     }
                 }
-                return Ok(js_max(1.0, computed));
+                return Ok(math_max(1.0, computed));
             }
         }
         if !spec.is_nullish() {
@@ -2018,7 +2017,7 @@ impl Pipeline {
             return 1.0;
         }
         if let Value::Number(n) = repeat {
-            return js_max(1.0, n.floor());
+            return math_max(1.0, n.floor());
         }
         if let Value::String(name) = repeat {
             let global = self.global_uniforms.get_or_undefined(name);
@@ -2028,7 +2027,7 @@ impl Pipeline {
                 global.clone()
             };
             if let Value::Number(n) = value {
-                return js_max(1.0, n.floor());
+                return math_max(1.0, n.floor());
             }
         }
         1.0

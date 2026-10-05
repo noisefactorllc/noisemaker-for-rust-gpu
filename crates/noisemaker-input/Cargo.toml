@@ -6,8 +6,12 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+keywords = ["noisemaker", "midi", "audio", "analyser", "automation"]
+categories = ["multimedia::audio", "hardware-support"]
 
 [dependencies]
+# The workspace's JavaScript number semantics (noisemaker_dsl::js).
+noisemaker-dsl = { path = "../noisemaker-dsl", version = "0.1.0" }
 indexmap.workspace = true
 serde_json.workspace = true
 # The FFT of Chromium's AnalyserNode. Chromium 153 (the reference host's
@@ -29,3 +33,7 @@ cpal = ["dep:cpal"]
 [[bin]]
 name = "nm-input-dump"
 path = "src/bin/nm-input-dump/main.rs"
+
+[package.metadata.docs.rs]
+# Document the device backends too.
+all-features = true

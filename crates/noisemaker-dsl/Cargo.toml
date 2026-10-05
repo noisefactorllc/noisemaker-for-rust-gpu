@@ -6,6 +6,8 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+keywords = ["noisemaker", "dsl", "shaders", "procedural", "generative"]
+categories = ["parser-implementations", "compilers", "graphics"]
 
 [dependencies]
 indexmap.workspace = true

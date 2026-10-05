@@ -3,9 +3,12 @@
 //! The reference throws three kinds of values from the render path: plain objects
 //! (`{code: 'ERR_PROGRAM_NOT_FOUND', pass, program}`), `ShaderDiagnostic`s from
 //! compilation (`backends/diagnostics.js`), and the `TypeError`/`RangeError`s that
-//! WebIDL conversions and `DataView` accesses raise. [`RenderError`] keeps all three.
+//! WebIDL conversions and `DataView` accesses raise. [`RenderError`] keeps all three,
+//! and keeps what the DSL frontend throws for a program that does not compile as
+//! it was thrown ([`RenderError::Dsl`]), so hosts can format it with
+//! [`noisemaker_dsl::error_formatter`].
 
-use noisemaker_dsl::{Object, Value};
+use noisemaker_dsl::{JsError, Object, Value};
 
 use crate::reflect::CompilationMessage;
 
@@ -35,6 +38,18 @@ pub enum RenderError {
     /// A JavaScript `TypeError` / `RangeError` (message includes the error name).
     #[error("{0}")]
     Js(String),
+    /// A DSL program that does not compile: the frontend's thrown value (a
+    /// `SyntaxError` whose message carries the location, or a
+    /// `{code: 'ERR_COMPILATION_FAILED', diagnostics}` object).
+    #[error("{}", describe_dsl(.0))]
+    Dsl(JsError),
+}
+
+fn describe_dsl(e: &JsError) -> String {
+    match e {
+        JsError::Error { name, message } => format!("{name}: {message}"),
+        JsError::Thrown(v) => describe_thrown(v),
+    }
 }
 
 fn describe_thrown(v: &Value) -> String {
@@ -72,6 +87,16 @@ impl RenderError {
             RenderError::Thrown(v) => v.get("code").as_str().map(str::to_owned),
             RenderError::Shader(d) => Some(d.code.clone()),
             RenderError::Js(_) => None,
+            RenderError::Dsl(JsError::Thrown(v)) => v.get("code").as_str().map(str::to_owned),
+            RenderError::Dsl(JsError::Error { .. }) => None,
+        }
+    }
+
+    /// The frontend's thrown value when the error is a DSL compilation failure.
+    pub fn dsl_error(&self) -> Option<&JsError> {
+        match self {
+            RenderError::Dsl(e) => Some(e),
+            _ => None,
         }
     }
 }

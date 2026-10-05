@@ -322,7 +322,7 @@ impl Value {
 
     /// `Number.isInteger(value)`.
     pub fn is_integer(&self) -> bool {
-        matches!(self, Value::Number(n) if n.is_finite() && n.fract() == 0.0)
+        matches!(self, Value::Number(n) if crate::js::is_integer(*n))
     }
 
     /// `value[key]` for objects (absent and non-objects read as `undefined`).

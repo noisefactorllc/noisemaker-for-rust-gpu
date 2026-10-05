@@ -12,7 +12,7 @@ use super::{
 use crate::error::RenderError;
 use crate::graph::pass;
 use crate::jsre::JsRegex;
-use crate::jsv::{enforce_range_u32, interpolate, to_js_string, to_number};
+use crate::jsv::{enforce_range_u32, to_js_string, to_number};
 
 /// A resolved viewport `{x, y, w, h}`.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -113,7 +113,7 @@ impl WebGpuBackend {
     /// `getPipelineKey({blend, topology, format})`.
     pub fn get_pipeline_key(blend: &Value, topology: &Value, format: &str) -> String {
         let topo = if topology.is_truthy() {
-            interpolate(topology)
+            to_js_string(topology)
         } else {
             "triangle-list".into()
         };

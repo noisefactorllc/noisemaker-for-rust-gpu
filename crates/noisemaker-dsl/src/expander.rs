@@ -15,7 +15,9 @@ use std::borrow::Cow;
 use indexmap::IndexMap;
 
 use crate::error::JsError;
-use crate::js::{parse_int, value_to_property_key};
+use crate::js::{
+    is_finite_number, parse_int, same_value_zero, strict_equals, value_to_property_key,
+};
 use crate::palette::expand_palette;
 use crate::registry::Registry;
 use crate::value::{Object, Value};
@@ -67,29 +69,9 @@ pub(crate) fn starts_with(value: &Value, expr: &str, prefix: &str) -> Result<boo
     }
 }
 
-/// `a === b`. Objects compare by identity in JavaScript; no two objects the
-/// expander compares are the same object, so they never compare equal here.
-fn strict_equals(a: &Value, b: &Value) -> bool {
-    match (a, b) {
-        (Value::Undefined, Value::Undefined) | (Value::Null, Value::Null) => true,
-        (Value::Bool(x), Value::Bool(y)) => x == y,
-        (Value::Number(x), Value::Number(y)) => x == y,
-        (Value::String(x), Value::String(y)) => x == y,
-        _ => false,
-    }
-}
-
 /// `value === "s"`.
 pub(crate) fn is_str(value: &Value, s: &str) -> bool {
     matches!(value, Value::String(v) if v == s)
-}
-
-/// SameValueZero, the key equality of `Set` and `Map`.
-fn same_value_zero(a: &Value, b: &Value) -> bool {
-    match (a, b) {
-        (Value::Number(x), Value::Number(y)) if x.is_nan() && y.is_nan() => true,
-        _ => strict_equals(a, b),
-    }
 }
 
 /// `set.has(value)` for a `Set` kept as a vector.
@@ -130,33 +112,11 @@ fn code_unit_strings(s: &str) -> Vec<Value> {
         .collect()
 }
 
-/// `Object.entries(value)` for the (non-nullish) values the reference enumerates.
-pub(crate) fn js_entries(value: &Value) -> Vec<(String, Value)> {
-    match value {
-        Value::Object(o) => o.iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
-        Value::Array(a) => a
-            .iter()
-            .enumerate()
-            .map(|(i, v)| (i.to_string(), v.clone()))
-            .collect(),
-        Value::String(s) => code_unit_strings(s)
-            .into_iter()
-            .enumerate()
-            .map(|(i, v)| (i.to_string(), v))
-            .collect(),
-        _ => Vec::new(),
-    }
-}
-
-/// `Object.values(value)` for the (non-nullish) values the reference enumerates.
-pub(crate) fn js_values(value: &Value) -> Vec<Value> {
-    js_entries(value).into_iter().map(|(_, v)| v).collect()
-}
-
-/// `Object.keys(value)`.
-fn js_keys(value: &Value) -> Vec<String> {
-    js_entries(value).into_iter().map(|(k, _)| k).collect()
-}
+/// `Object.entries(value)`, `Object.values(value)` and `Object.keys(value)`
+/// for the (non-nullish) values the reference enumerates.
+pub(crate) use crate::unparser::jsv::{
+    entries as js_entries, keys as js_keys, values as js_values,
+};
 
 /// `{ ...value }`.
 fn spread(value: &Value) -> Object {
@@ -1872,11 +1832,6 @@ fn expand_pass(
     }
 
     Ok(Value::Object(pass))
-}
-
-/// `Number.isFinite(value)`.
-fn is_finite_number(value: &Value) -> bool {
-    matches!(value, Value::Number(n) if n.is_finite())
 }
 
 /// One entry of the "Map Inputs" loop: the binding of the pass input

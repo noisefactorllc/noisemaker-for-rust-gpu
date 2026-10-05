@@ -95,7 +95,7 @@ fn check_diagnostics(compilation_result: &Value) -> Result<(), JsError> {
         Value::Array(a) => a.len() as f64,
         Value::String(s) => s.encode_utf16().count() as f64,
         Value::Object(o) => match o.get("length") {
-            Some(length) => crate::palette::to_number(length),
+            Some(length) => crate::js::to_number(length),
             None => f64::NAN,
         },
         _ => f64::NAN,

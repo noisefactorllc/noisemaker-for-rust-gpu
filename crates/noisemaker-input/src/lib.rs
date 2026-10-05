@@ -20,8 +20,9 @@
 //!   `AudioInputManager` over pluggable backends; [`host`] has the `midir` and
 //!   `cpal` backends behind features of the same names (off by default).
 //!
-//! `Date.now()` is an injectable [`clock::Clock`]; JavaScript number semantics
-//! (including V8's `Math.sin`/`Math.cos`) are in [`jsmath`].
+//! `Date.now()` is an injectable [`clock::Clock`]. JavaScript number semantics
+//! are the workspace's ([`noisemaker_dsl::js`](mod@noisemaker_dsl::js)), except V8's `Math.sin` and
+//! `Math.cos`, which [`jsmath`] ports as Node computes them.
 
 pub mod analyser;
 pub mod audio;

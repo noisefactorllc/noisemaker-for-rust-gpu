@@ -194,7 +194,7 @@ pub mod pass {
 
     /// `pass.id` as text (for messages).
     pub fn id(pass: &Object) -> String {
-        crate::jsv::interpolate(get(pass, "id"))
+        crate::jsv::to_js_string(get(pass, "id"))
     }
 
     /// `pass.program` as a property key (`programs.get(pass.program)`).

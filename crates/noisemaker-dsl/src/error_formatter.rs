@@ -8,7 +8,7 @@
 //! value. Options and the source are read as plain JavaScript values.
 
 use crate::error::JsError;
-use crate::js::number_to_string;
+use crate::js::{is_js_whitespace, math_max, math_min, number_to_string, trim};
 use crate::unparser::jsv::{self, get, get_opt, pad_start, repeat, to_number, to_string};
 use crate::value::Value;
 
@@ -58,21 +58,6 @@ fn parse_location(message: &str) -> Option<(f64, f64)> {
     None
 }
 
-/// JavaScript `\s`.
-fn is_js_whitespace(c: char) -> bool {
-    matches!(
-        c,
-        '\t' | '\n' | '\u{b}' | '\u{c}' | '\r' | ' ' | '\u{a0}' | '\u{1680}' | '\u{2000}'
-            ..='\u{200a}'
-                | '\u{2028}'
-                | '\u{2029}'
-                | '\u{202f}'
-                | '\u{205f}'
-                | '\u{3000}'
-                | '\u{feff}'
-    )
-}
-
 /// Whether `s` is exactly `at line \d+ col(?:umn)? \d+` (the suffix the
 /// location regex anchors at the end of the message).
 fn location_suffix_matches(s: &str) -> bool {
@@ -117,12 +102,7 @@ fn extract_message(message: &str) -> String {
         }
         i = j;
     }
-    jsv_trim(stripped.unwrap_or(message)).to_owned()
-}
-
-/// `String.prototype.trim()`.
-fn jsv_trim(s: &str) -> &str {
-    s.trim_matches(is_js_whitespace)
+    trim(stripped.unwrap_or(message)).to_owned()
 }
 
 /// `a + b` where `a` is a number: string concatenation when `b` is (or converts
@@ -135,23 +115,6 @@ fn add(a: f64, b: &Value) -> Result<Value, JsError> {
         }
         other => Value::Number(a + to_number(other)?),
     })
-}
-
-/// `Math.min(a, b)` / `Math.max(a, b)` over numbers (`NaN` propagates).
-fn math_min(a: f64, b: f64) -> f64 {
-    if a.is_nan() || b.is_nan() {
-        f64::NAN
-    } else {
-        a.min(b)
-    }
-}
-
-fn math_max(a: f64, b: f64) -> f64 {
-    if a.is_nan() || b.is_nan() {
-        f64::NAN
-    } else {
-        a.max(b)
-    }
 }
 
 /// `lines[index]` for a numeric index (`undefined` outside the array or for a
@@ -277,6 +240,21 @@ pub fn format_dsl_error(
     Ok(parts.join("\n"))
 }
 
+/// A failed compile as terminal text, the way the reference demo reports one
+/// (`UIController.formatCompilationError(err, source)`): a DSL syntax error
+/// with a location is formatted with its source context by
+/// [`format_dsl_error`] (what the demo logs to the console); any other error
+/// is the demo's status text ([`crate::compiler::format_error`]: validator
+/// diagnostics with their locations, expansion errors, messages).
+pub fn format_compile_error(source: &str, error: &JsError) -> String {
+    if is_dsl_syntax_error(error)
+        && let Ok(text) = format_dsl_error(&Value::from(source), error, &Value::Undefined)
+    {
+        return text;
+    }
+    crate::compiler::format_error(error)
+}
+
 /// `isDslSyntaxError(error)`: a `SyntaxError` whose message carries a location.
 pub fn is_dsl_syntax_error(error: &JsError) -> bool {
     match error {
@@ -330,6 +308,10 @@ mod tests {
             "SyntaxError: Unexpected token DOT\n  --> line 3, column 3\n\n  1 | search synth\n  2 | noise(\n  3 |   .write(o0)\n      ^-- error here\n  4 | render(o0)"
         );
         assert!(is_dsl_syntax_error(&err));
+        assert_eq!(
+            format_compile_error("search synth\nnoise(\n  .write(o0)\nrender(o0)", &err),
+            out
+        );
         assert!(!is_dsl_syntax_error(&JsError::type_error(
             "at line 1 col 1"
         )));

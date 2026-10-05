@@ -136,7 +136,7 @@ fn clamp(value: &V, min: &Value, max: &Value) -> V {
 
 /// `Number.isInteger(value)`.
 fn is_integer(value: &V) -> bool {
-    matches!(value, V::Num(n) if n.is_finite() && n.fract() == 0.0)
+    matches!(value, V::Num(n) if crate::js::is_integer(*n))
 }
 
 /// The elements of `value` for an array method call (`value.map(...)`): the

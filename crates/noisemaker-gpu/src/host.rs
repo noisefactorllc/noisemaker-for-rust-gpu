@@ -164,6 +164,7 @@ fn js_error(e: JsError) -> RenderError {
 fn render_to_js(e: RenderError) -> JsError {
     match e {
         RenderError::Thrown(v) => JsError::Thrown(v),
+        RenderError::Dsl(e) => e,
         other => JsError::error(other.to_string()),
     }
 }
@@ -502,6 +503,27 @@ impl CanvasRenderer {
         Ok(())
     }
 
+    /// The render surface's current read texture (the texture the last frame
+    /// presented, after its buffer swap), read back as RGBA8 in texture row
+    /// order; [`PixelData::oriented`] turns it the way a canvas shows it.
+    pub fn read_output(&mut self) -> Result<PixelData, RenderError> {
+        let Some(p) = self.pipeline_mut() else {
+            return Err(RenderError::Js(
+                "Error: CanvasRenderer has no active pipeline; compile before reading output"
+                    .into(),
+            ));
+        };
+        let name = p.graph.render_surface_name().unwrap_or("o0").to_owned();
+        let id = p
+            .surfaces
+            .get(&name)
+            .and_then(|s| s.read.clone())
+            .ok_or_else(|| {
+                RenderError::Js(format!("Error: render surface {name} has no read texture"))
+            })?;
+        p.backend.read_pixels(&id)
+    }
+
     /// The normalized loop time at `now` (`(elapsed % loopDuration) /
     /// loopDuration` since the loop started).
     pub fn normalized_time_at(&self, now: Instant) -> f64 {
@@ -567,7 +589,7 @@ impl CanvasRenderer {
                 shader_overrides: options.shader_overrides.clone(),
             },
         )
-        .map_err(js_error)?;
+        .map_err(RenderError::Dsl)?;
         Graph::from_value(&value).map_err(RenderError::Js)
     }
 

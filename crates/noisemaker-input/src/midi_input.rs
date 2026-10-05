@@ -15,7 +15,7 @@
 //! note-ons with `Date.now()` on arrival) and the host calls
 //! [`MidiInputManager::update`] (apply queued messages) and
 //! [`MidiInputManager::refresh`] (poll hot-plug, the `statechange` handler).
-//! With the `midir` feature, [`crate::host::midir::MidirBackend`] connects real
+//! With the `midir` feature, `host::midir::MidirBackend` connects real
 //! devices.
 
 use std::collections::{HashMap, VecDeque};

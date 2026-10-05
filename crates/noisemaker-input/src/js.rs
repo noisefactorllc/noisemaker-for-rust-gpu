@@ -15,6 +15,7 @@ use std::fmt;
 use std::sync::{Arc, OnceLock};
 
 use indexmap::IndexMap;
+use noisemaker_dsl::js::{is_integer, number_to_string, string_to_number};
 use serde_json::Value as Json;
 
 /// A JavaScript value.
@@ -123,13 +124,10 @@ impl JsArray {
 /// A canonical array index (`"0"`, `"17"`, never `"01"`), which property
 /// enumeration orders first.
 fn array_index(key: &str) -> Option<u32> {
-    if key.is_empty()
-        || (key.len() > 1 && key.starts_with('0'))
-        || !key.bytes().all(|b| b.is_ascii_digit())
-    {
+    if !noisemaker_dsl::value::is_array_index(key) {
         return None;
     }
-    key.parse::<u32>().ok().filter(|&i| i != u32::MAX)
+    key.parse::<u32>().ok()
 }
 
 impl JsValue {
@@ -215,7 +213,7 @@ impl JsValue {
 
     /// `Number.isInteger(value)`.
     pub fn is_integer(&self) -> bool {
-        self.as_number().is_some_and(crate::jsmath::is_integer)
+        self.as_number().is_some_and(is_integer)
     }
 
     /// `value === n` for a number literal `n`.
@@ -275,7 +273,7 @@ impl JsValue {
         match items.first() {
             None | Some(JsValue::Undefined) | Some(JsValue::Null) => Some(String::new()),
             Some(JsValue::String(s)) => Some(s.to_string()),
-            Some(JsValue::Number(n)) => Some(number_text(*n)),
+            Some(JsValue::Number(n)) => Some(number_to_string(*n)),
             Some(JsValue::Bool(b)) => Some(b.to_string()),
             Some(item @ JsValue::Array(_)) => item.array_join(depth + 1),
             Some(JsValue::Object(_)) => Some("[object Object]".to_string()),
@@ -288,8 +286,7 @@ impl JsValue {
     pub fn channel_key(&self) -> Option<u8> {
         let key = match self {
             JsValue::Number(n) => {
-                return (crate::jsmath::is_integer(*n) && (1.0..=16.0).contains(n))
-                    .then_some(*n as u8);
+                return (is_integer(*n) && (1.0..=16.0).contains(n)).then_some(*n as u8);
             }
             JsValue::String(s) => s.to_string(),
             JsValue::Array(_) => self.array_join(0)?,
@@ -314,159 +311,6 @@ impl JsValue {
         let value = build(json, &ids)?;
         Ok(value)
     }
-}
-
-/// JavaScript `Number.prototype.toString()` for the values array joins need:
-/// integers print as integers; anything else gets the shortest round-trip
-/// text (which parses back to the same number).
-fn number_text(n: f64) -> String {
-    if n.is_nan() {
-        "NaN".to_string()
-    } else if n.is_infinite() {
-        if n > 0.0 { "Infinity" } else { "-Infinity" }.to_string()
-    } else if n == 0.0 {
-        "0".to_string()
-    } else if n == n.trunc() && n.abs() < 1e21 {
-        format!("{n:.0}")
-    } else {
-        format!("{n:e}")
-    }
-}
-
-/// JavaScript `StringToNumber`: whitespace-trimmed decimal literals (with
-/// optional sign, fraction and exponent), `Infinity`, `0x`/`0o`/`0b`
-/// integers; empty is 0; anything else is NaN.
-pub fn string_to_number(s: &str) -> f64 {
-    let trimmed = s.trim_matches(is_js_whitespace);
-    if trimmed.is_empty() {
-        return 0.0;
-    }
-    let bytes = trimmed.as_bytes();
-    if bytes.len() > 2 && bytes[0] == b'0' {
-        let radix = match bytes[1] {
-            b'x' | b'X' => Some(16),
-            b'o' | b'O' => Some(8),
-            b'b' | b'B' => Some(2),
-            _ => None,
-        };
-        if let Some(radix) = radix {
-            return parse_radix(&trimmed[2..], radix);
-        }
-    }
-    let (sign, unsigned) = match bytes[0] {
-        b'+' => (1.0, &trimmed[1..]),
-        b'-' => (-1.0, &trimmed[1..]),
-        _ => (1.0, trimmed),
-    };
-    if unsigned == "Infinity" {
-        return sign * f64::INFINITY;
-    }
-    if !is_decimal_literal(unsigned) {
-        return f64::NAN;
-    }
-    match unsigned.parse::<f64>() {
-        Ok(value) => sign * value,
-        Err(_) => f64::NAN,
-    }
-}
-
-fn is_js_whitespace(c: char) -> bool {
-    matches!(
-        c,
-        '\u{0009}'
-            | '\u{000A}'
-            | '\u{000B}'
-            | '\u{000C}'
-            | '\u{000D}'
-            | '\u{0020}'
-            | '\u{00A0}'
-            | '\u{1680}'
-            | '\u{2000}'
-            ..='\u{200A}'
-                | '\u{2028}'
-                | '\u{2029}'
-                | '\u{202F}'
-                | '\u{205F}'
-                | '\u{3000}'
-                | '\u{FEFF}'
-    )
-}
-
-/// `StrUnsignedDecimalLiteral`: digits [. digits] or . digits, then an
-/// optional exponent.
-fn is_decimal_literal(s: &str) -> bool {
-    let b = s.as_bytes();
-    let mut i = 0;
-    let int_start = i;
-    while i < b.len() && b[i].is_ascii_digit() {
-        i += 1;
-    }
-    let int_digits = i - int_start;
-    let mut frac_digits = 0;
-    if i < b.len() && b[i] == b'.' {
-        i += 1;
-        let frac_start = i;
-        while i < b.len() && b[i].is_ascii_digit() {
-            i += 1;
-        }
-        frac_digits = i - frac_start;
-    }
-    if int_digits == 0 && frac_digits == 0 {
-        return false;
-    }
-    if i < b.len() && (b[i] == b'e' || b[i] == b'E') {
-        i += 1;
-        if i < b.len() && (b[i] == b'+' || b[i] == b'-') {
-            i += 1;
-        }
-        let exp_start = i;
-        while i < b.len() && b[i].is_ascii_digit() {
-            i += 1;
-        }
-        if i == exp_start {
-            return false;
-        }
-    }
-    i == b.len()
-}
-
-/// A `0x`/`0o`/`0b` literal's value, rounded to the nearest double like the
-/// mathematical value of the digits.
-fn parse_radix(digits: &str, radix: u32) -> f64 {
-    if digits.is_empty() || !digits.chars().all(|c| c.is_digit(radix)) {
-        return f64::NAN;
-    }
-    let bits_per_digit = match radix {
-        16 => 4,
-        8 => 3,
-        _ => 1,
-    };
-    // Exact binary expansion, then round-half-even to 53 significant bits.
-    let mut bits: Vec<u8> = Vec::new();
-    for c in digits.chars() {
-        let d = c.to_digit(radix).expect("checked digit");
-        for shift in (0..bits_per_digit).rev() {
-            bits.push(((d >> shift) & 1) as u8);
-        }
-    }
-    let first = match bits.iter().position(|&b| b == 1) {
-        Some(first) => first,
-        None => return 0.0,
-    };
-    let bits = &bits[first..];
-    if bits.len() <= 53 {
-        return bits.iter().fold(0.0, |acc, &b| acc * 2.0 + f64::from(b));
-    }
-    let mut mantissa: u64 = bits[..53]
-        .iter()
-        .fold(0u64, |acc, &b| (acc << 1) | u64::from(b));
-    let round = bits[53] == 1;
-    let sticky = bits[54..].contains(&1);
-    if round && (sticky || mantissa & 1 == 1) {
-        mantissa += 1;
-    }
-    let exponent = (bits.len() - 53) as i32;
-    (mantissa as f64) * 2f64.powi(exponent)
 }
 
 fn collect_ids(json: &Json, ids: &mut IndexMap<String, JsValue>) -> Result<(), String> {
@@ -624,26 +468,6 @@ impl JsValue {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn string_to_number_follows_the_spec() {
-        assert_eq!(string_to_number(""), 0.0);
-        assert_eq!(string_to_number("  12 \n"), 12.0);
-        assert_eq!(string_to_number("-1.5e3"), -1500.0);
-        assert_eq!(string_to_number(".5"), 0.5);
-        assert_eq!(string_to_number("5."), 5.0);
-        assert_eq!(string_to_number("0x1F"), 31.0);
-        assert_eq!(string_to_number("0b101"), 5.0);
-        assert_eq!(string_to_number("0o17"), 15.0);
-        assert_eq!(string_to_number("-Infinity"), f64::NEG_INFINITY);
-        for nan in [
-            "1e", "abc", "1_000", "-0x10", "inf", "NaN", "0x", ".", "+-1", "1 2",
-        ] {
-            assert!(string_to_number(nan).is_nan(), "{nan}");
-        }
-        assert_eq!(string_to_number("0x20000000000001"), 9007199254740992.0);
-        assert_eq!(string_to_number("0x20000000000003"), 9007199254740996.0);
-    }
 
     #[test]
     fn to_number_of_arrays_joins() {

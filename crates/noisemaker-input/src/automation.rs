@@ -14,8 +14,9 @@
 use crate::audio::{AudioState, DeviceSelector};
 use crate::clock::system_now_ms;
 use crate::js::JsValue;
-use crate::jsmath::{js_clamp, js_cos, js_min, js_round, js_sin};
+use crate::jsmath::{js_cos, js_sin};
 use crate::midi::{MidiChannelState, MidiState, PortSelector, SelectorKey};
+use noisemaker_dsl::js::{is_integer, math_clamp, math_max, math_min, math_round};
 
 /// `Math.PI * 2`.
 pub const TAU: f64 = std::f64::consts::PI * 2.0;
@@ -557,7 +558,7 @@ fn osc_primitive(kind: &JsValue, x: f64) -> Option<f64> {
     } else if kind == 3.0 {
         Some(x - (whole * 0.5 + fraction * fraction * 0.5))
     } else if kind == 4.0 {
-        Some(whole * 0.5 + crate::jsmath::js_max(0.0, fraction - 0.5))
+        Some(whole * 0.5 + math_max(0.0, fraction - 0.5))
     } else {
         None
     }
@@ -999,7 +1000,7 @@ where
             if note.gate == 1.0 {
                 raw_value = note.key;
                 let elapsed = current_time - note.time;
-                let decay = js_min(1.0, elapsed * sensitivity * 0.001);
+                let decay = math_min(1.0, elapsed * sensitivity * 0.001);
                 raw_value *= 1.0 - decay;
             }
         }
@@ -1013,7 +1014,7 @@ where
             let limit = if m == 6.0 { 31.0 } else { 127.0 };
             let Some(index) = cc
                 .as_number()
-                .filter(|&c| crate::jsmath::is_integer(c) && c >= 0.0 && c <= limit)
+                .filter(|&c| is_integer(c) && c >= 0.0 && c <= limit)
             else {
                 return min;
             };
@@ -1028,7 +1029,7 @@ where
             let nrpn = config.get("nrpn");
             let Some(parameter) = nrpn
                 .as_number()
-                .filter(|&p| crate::jsmath::is_integer(p) && (0.0..=16382.0).contains(&p))
+                .filter(|&p| is_integer(p) && (0.0..=16382.0).contains(&p))
             else {
                 return min;
             };
@@ -1044,7 +1045,7 @@ where
             if note.gate == 1.0 {
                 raw_value = note.velocity;
                 let elapsed = current_time - note.time;
-                let decay = js_min(1.0, elapsed * sensitivity * 0.001);
+                let decay = math_min(1.0, elapsed * sensitivity * 0.001);
                 raw_value *= 1.0 - decay;
             }
         }
@@ -1136,12 +1137,12 @@ where
             } else {
                 levels.raw
             };
-            (js_clamp(raw, -1.0, 1.0) + 1.0) * 0.5
+            (math_clamp(raw, -1.0, 1.0) + 1.0) * 0.5
         }
         Some(3.0) => levels.vol,
         _ => 0.0,
     };
-    let raw_value = js_clamp(raw_value, 0.0, 1.0);
+    let raw_value = math_clamp(raw_value, 0.0, 1.0);
     min + raw_value * (max - min)
 }
 
@@ -1165,7 +1166,7 @@ where
     }
     let resolved = evaluate_automation(value, time, Range::Spec(param_spec), external, context);
     Some(if param_spec.get("type").strict_eq_str("int") {
-        js_round(resolved)
+        math_round(resolved)
     } else {
         resolved
     })

@@ -14,8 +14,8 @@ use std::fmt;
 
 use indexmap::IndexMap;
 
-use crate::jsmath::{js_clamp, js_max, js_min};
 use crate::midi::SelectorKey;
+use noisemaker_dsl::js::{math_clamp, math_max, math_min};
 
 /// Number of coarse FFT bins (`fft`).
 pub const FFT_BINS: usize = 16;
@@ -344,7 +344,7 @@ impl AudioState {
         let Some(analyser) = analyser else {
             return;
         };
-        self.max_buffer_length = js_max(1.0, js_min(10.0, smoothing));
+        self.max_buffer_length = math_max(1.0, math_min(10.0, smoothing));
         let bins = analyser.frequency_bin_count();
         if self
             .frequency_data
@@ -387,9 +387,9 @@ impl AudioState {
     /// `setBands(low, mid, high)`: sets the bands directly, clamped to 0-1, and
     /// the volume to their mean.
     pub fn set_bands(&mut self, low: f64, mid: f64, high: f64) {
-        self.low = js_clamp(low, 0.0, 1.0);
-        self.mid = js_clamp(mid, 0.0, 1.0);
-        self.high = js_clamp(high, 0.0, 1.0);
+        self.low = math_clamp(low, 0.0, 1.0);
+        self.mid = math_clamp(mid, 0.0, 1.0);
+        self.high = math_clamp(high, 0.0, 1.0);
         self.vol = (self.low + self.mid + self.high) / 3.0;
     }
 
@@ -397,7 +397,7 @@ impl AudioState {
     /// (non-finite values store 0), and marks the raw signal ready.
     pub fn set_raw(&mut self, value: f64) {
         self.raw = if value.is_finite() {
-            js_clamp(value, -1.0, 1.0)
+            math_clamp(value, -1.0, 1.0)
         } else {
             0.0
         };
@@ -491,7 +491,7 @@ impl AudioState {
             (values.vol, &mut state.vol),
         ] {
             if let Some(value) = value.filter(|v| v.is_finite()) {
-                *field = js_clamp(value, 0.0, 1.0);
+                *field = math_clamp(value, 0.0, 1.0);
             }
         }
         if let Some(raw) = values.raw.filter(|v| v.is_finite()) {

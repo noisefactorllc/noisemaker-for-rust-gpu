@@ -14,7 +14,7 @@
 //! the classicNoisedeck convention (0 = none, 1 = hsv, 2 = oklab, 3 = rgb).
 
 use crate::error::JsError;
-use crate::js::{string_to_number, value_to_property_key};
+use crate::js::to_number;
 use crate::value::{Object, Value};
 
 /// One preset of the reference `PALETTES` table: `{ amp, freq, offset, phase, mode }`.
@@ -502,21 +502,6 @@ pub fn expand_palette(index: f64) -> Result<Option<Object>, JsError> {
     out.insert("palettePhase", vec3(entry.phase));
     out.insert("paletteMode", Value::Number(entry.mode as f64));
     Ok(Some(out))
-}
-
-/// `ToNumber(ToPrimitive(value))`, the coercion `index <= 0` and `index - 1` apply
-/// to a non-number argument.
-pub(crate) fn to_number(value: &Value) -> f64 {
-    match value {
-        Value::Undefined => f64::NAN,
-        Value::Null => 0.0,
-        Value::Bool(b) => f64::from(u8::from(*b)),
-        Value::Number(n) => *n,
-        Value::String(s) => string_to_number(s),
-        // Arrays convert through their string form (`[3]` -> "3" -> 3).
-        Value::Array(_) => string_to_number(&value_to_property_key(value)),
-        Value::Object(_) | Value::Function(_) => f64::NAN,
-    }
 }
 
 /// `expandPalette(value)` for any argument, with the reference's implicit numeric

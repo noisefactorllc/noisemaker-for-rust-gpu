@@ -37,6 +37,16 @@
 //!     .unwrap();
 //! renderer.render(0.25).unwrap();
 //! ```
+//!
+//! [`present::Presenter`] shows frames in a window (or on any wgpu target) the
+//! way the reference's `present()` shows them on its canvas, and
+//! [`present::Orientation`] gives read-back pixels that orientation. A
+//! program that does not compile fails with [`RenderError::Dsl`], which
+//! [`dsl::error_formatter::format_compile_error`] renders with its source
+//! context. The examples run the host API end to end: `render_dsl` (a
+//! program to a PNG), `animate` (a program over its loop to a PNG sequence)
+//! and `viewer` (a live window that recompiles the program when its file
+//! changes).
 
 pub use noisemaker_dsl as dsl;
 pub use noisemaker_host as host_inputs;
@@ -58,6 +68,7 @@ pub mod lowering;
 pub mod pipeline;
 pub mod png_io;
 pub mod preflight;
+pub mod present;
 pub mod protocol;
 pub mod reflect;
 pub mod sink;
@@ -73,6 +84,7 @@ pub use hooks::{EffectHooks, EffectRegistry};
 pub use host::CanvasRenderer;
 pub use noisemaker_dsl::{Object, Value};
 pub use pipeline::{Pipeline, PipelineOptions};
+pub use present::{Orientation, Presenter};
 
 /// Options for [`Renderer::new`].
 #[derive(Clone, Default)]

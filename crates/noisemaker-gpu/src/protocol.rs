@@ -20,6 +20,11 @@
 //! and the host textures given as PNGs. Either way, `host_textures` replace
 //! textures with PNGs (texture contents, uploaded with `flipY: false`) — the
 //! minter's captures, to grade with exactly the reference's host inputs.
+//!
+//! Outside the parity protocol, a DSL fixture can also take parameter
+//! overrides ([`ParamOverride`], set as the demo's controls set them) and be
+//! written in the orientation a canvas shows ([`Orientation::Presented`]);
+//! [`run_animation`] renders a DSL program over its loop to a PNG sequence.
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -37,7 +42,56 @@ use crate::jsre::JsRegex;
 use crate::jsv::to_js_string;
 use crate::pipeline::Pipeline;
 use crate::png_io::{Rgba8Image, read_png_rgba8, write_png_rgba8};
+use crate::present::Orientation;
 use crate::{Renderer, RendererOptions};
+
+/// A parameter override of a DSL fixture: the value a control sets on one
+/// step's parameter, applied through [`DemoHost::set_control_value`]
+/// (ProgramState's `setValue`, which validates and coerces it, then the
+/// page's control-change handling).
+#[derive(Debug, Clone, PartialEq)]
+pub struct ParamOverride {
+    /// The step key (`step_<N>`, the step's index in the program).
+    pub step: String,
+    /// The parameter name (a key of the effect's `globals`).
+    pub name: String,
+    /// The value.
+    pub value: Value,
+}
+
+impl ParamOverride {
+    /// Parse `step_N.name=value`. The value is read as JSON when it is JSON
+    /// (`2.5`, `true`, `[1, 0, 0, 1]`, `"3"`) and as a string otherwise
+    /// (`hello world`, `noise.simplex`).
+    pub fn parse(text: &str) -> Result<ParamOverride, String> {
+        let (target, value) = text
+            .split_once('=')
+            .ok_or_else(|| format!("expected step_N.name=value, got '{text}'"))?;
+        let (step, name) = target
+            .split_once('.')
+            .filter(|(step, name)| {
+                !name.is_empty()
+                    && step
+                        .strip_prefix("step_")
+                        .is_some_and(|n| !n.is_empty() && n.bytes().all(|b| b.is_ascii_digit()))
+            })
+            .ok_or_else(|| format!("expected step_N.name=value, got '{text}'"))?;
+        let value = Value::from_json(value).unwrap_or_else(|_| Value::from(value));
+        Ok(ParamOverride {
+            step: step.to_owned(),
+            name: name.to_owned(),
+            value,
+        })
+    }
+}
+
+impl std::str::FromStr for ParamOverride {
+    type Err = String;
+
+    fn from_str(text: &str) -> Result<ParamOverride, String> {
+        ParamOverride::parse(text)
+    }
+}
 
 /// Where a fixture's graph comes from.
 #[derive(Debug, Clone)]
@@ -72,6 +126,11 @@ pub struct FixtureSpec {
     /// Write the graph the fixture rendered (JSON, as the minter writes
     /// `<name>.graph.json`) here.
     pub graph_out: Option<PathBuf>,
+    /// Parameter overrides, applied after the DSL loads (DSL fixtures only).
+    pub params: Vec<ParamOverride>,
+    /// The row order of the written PNGs (the protocol's is
+    /// [`Orientation::Texture`]).
+    pub orientation: Orientation,
 }
 
 impl Default for FixtureSpec {
@@ -88,6 +147,8 @@ impl Default for FixtureSpec {
             sample_every: 5.0,
             obj: None,
             graph_out: None,
+            params: Vec::new(),
+            orientation: Orientation::Texture,
         }
     }
 }
@@ -389,7 +450,7 @@ fn render_frames(
                     .map_err(|e| format!("render failed: {e}"))?;
             }
             let seconds = (s + 1) as f64 * spec.sample_every;
-            let pixels = read_output(pipeline)?;
+            let pixels = read_output(pipeline)?.oriented(spec.orientation);
             let path = timed_sample_path(&spec.out, seconds);
             write_png_rgba8(&path, pixels.width, pixels.height, &pixels.data)?;
             report.outputs.push(path);
@@ -403,7 +464,7 @@ fn render_frames(
                 .render(spec.time)
                 .map_err(|e| format!("render failed: {e}"))?;
         }
-        let pixels = read_output(pipeline)?;
+        let pixels = read_output(pipeline)?.oriented(spec.orientation);
         write_png_rgba8(&spec.out, pixels.width, pixels.height, &pixels.data)?;
         report.outputs.push(spec.out.clone());
     }
@@ -459,15 +520,159 @@ fn write_graph(pipeline: &Pipeline, spec: &FixtureSpec) -> Result<(), String> {
     std::fs::write(path, text + "\n").map_err(|e| format!("{}: {e}", path.display()))
 }
 
-/// The sidecar a DSL fixture loads into `mesh0`.
+/// The sidecar a DSL fixture loads into `mesh0`: the given OBJ, else the
+/// `.obj` next to the DSL file.
 fn sidecar(spec: &FixtureSpec) -> Option<PathBuf> {
-    if spec.obj.is_some() {
-        return spec.obj.clone();
-    }
     match &spec.source {
-        GraphSource::DslFile(path) => Some(path.with_extension("obj")),
-        _ => None,
+        GraphSource::DslFile(path) => dsl_sidecar(path, spec.obj.as_deref()),
+        _ => spec.obj.clone(),
     }
+}
+
+fn dsl_sidecar(dsl: &Path, obj: Option<&Path>) -> Option<PathBuf> {
+    Some(obj.map_or_else(|| dsl.with_extension("obj"), Path::to_path_buf))
+}
+
+/// A demo host on `device` with the context's registries, fonts and media.
+fn demo_host(device: &GpuDevice, width: u32, height: u32, context: &ProtocolContext) -> DemoHost {
+    let renderer = CanvasRenderer::new(
+        device,
+        CanvasRendererOptions {
+            width,
+            height,
+            registry: Some(context.registry.clone()),
+            ..Default::default()
+        },
+    );
+    DemoHost::new(
+        renderer,
+        DemoHostOptions {
+            default_media: context.default_media.clone(),
+            text_fonts: context.fonts.clone(),
+            ..Default::default()
+        },
+    )
+}
+
+/// Apply parameter overrides as control changes, after checking that each
+/// names a step of the program and a parameter of its effect.
+fn apply_param_overrides(host: &mut DemoHost, params: &[ParamOverride]) -> Result<(), String> {
+    for p in params {
+        let state = host.program_state();
+        let Some(def) = state.get_effect_def(&p.step) else {
+            let steps = state.get_step_keys().join(", ");
+            return Err(format!(
+                "--param {}.{}: the program has no step {} (its steps: {steps})",
+                p.step, p.name, p.step
+            ));
+        };
+        let globals = def.get("globals");
+        if !globals.as_object().is_some_and(|g| g.contains_key(&p.name)) {
+            let names: Vec<String> = globals
+                .as_object()
+                .map(|g| g.keys().cloned().collect())
+                .unwrap_or_default();
+            let effect = state
+                .effect_entry(&p.step)
+                .map(|e| e.id())
+                .unwrap_or_else(|| p.step.clone());
+            return Err(format!(
+                "--param {}.{}: {effect} has no parameter {} (its parameters: {})",
+                p.step,
+                p.name,
+                p.name,
+                names.join(", ")
+            ));
+        }
+        host.set_control_value(&p.step, &p.name, p.value.clone())
+            .map_err(|e| format!("--param {}.{}: {e}", p.step, p.name))?;
+    }
+    if !params.is_empty() {
+        host.settle().map_err(|e| format!("host inputs: {e}"))?;
+    }
+    Ok(())
+}
+
+/// Load DSL source into `host` as the minter loads a fixture: the program
+/// through the page (compile, ProgramState, controls, step values), its host
+/// inputs settled, the parameter overrides applied, the host texture
+/// overrides (a media step's texture is its media source; anything else is
+/// uploaded as texture contents) and the meshes loaded (each `externalMesh`
+/// step's first built-in mesh, then `obj` into `mesh0`). Returns the raw
+/// (non-media) texture overrides it uploaded.
+fn load_dsl(
+    host: &mut DemoHost,
+    text: &str,
+    params: &[ParamOverride],
+    host_textures: &[(String, PathBuf)],
+    obj: Option<&Path>,
+) -> Result<Vec<(String, PathBuf)>, String> {
+    host.rebuild_pipeline_from_dsl(text, true)
+        .map_err(|e| format!("DSL compile failed: {e}"))?;
+    host.settle().map_err(|e| format!("host inputs: {e}"))?;
+    apply_param_overrides(host, params)?;
+    // Host texture overrides: a media step's texture is its media source
+    // (shown as the page shows a loaded file: its imageSize follows);
+    // anything else is uploaded as texture contents.
+    let mut raw_overrides = Vec::new();
+    for (id, png) in host_textures {
+        let step = host
+            .media_inputs()
+            .iter()
+            .find(|(_, m)| m.texture_id == *id)
+            .map(|(step, _)| *step);
+        match step {
+            Some(step) => {
+                let image = read_png_rgba8(png)?;
+                host.set_media_image(step, Rc::new(image))
+                    .map_err(|e| format!("host texture {id}: {e}"))?;
+            }
+            None => raw_overrides.push((id.clone(), png.clone())),
+        }
+    }
+    let missing_media: Vec<String> = host
+        .media_inputs()
+        .values()
+        .filter(|m| m.source.is_none())
+        .map(|m| m.texture_id.clone())
+        .collect();
+    if !missing_media.is_empty() {
+        eprintln!(
+            "nm-render: warning: no media image for {} (the page's failed load)",
+            missing_media.join(", ")
+        );
+    }
+    let renderer = host.renderer_mut();
+    let graph = renderer
+        .pipeline()
+        .ok_or("no pipeline after the DSL load")?
+        .graph
+        .clone();
+    // applyMeshPlan: the minter loads through the page's renderer.
+    if let Some(plan) = mesh_plan(&graph, obj) {
+        let mut results = Vec::new();
+        for (mesh_id, path) in &plan.builtins {
+            results.push(renderer.load_builtin_mesh(path, mesh_id));
+        }
+        match &plan.obj_text {
+            Some(text) => results.push(renderer.load_obj_from_string(text, "mesh0")),
+            None if plan.builtins.is_empty() => {
+                results.push(renderer.load_obj_from_string("", "mesh0"))
+            }
+            None => {}
+        }
+        let failed: Vec<String> = results
+            .iter()
+            .filter(|r| !r.success)
+            .map(|r| r.error.clone().unwrap_or_default())
+            .collect();
+        if !failed.is_empty() {
+            return Err(format!("mesh load failed: {}", failed.join("; ")));
+        }
+    }
+    let pipeline = renderer.pipeline_mut().ok_or("no pipeline")?;
+    upload_host_textures(pipeline, &raw_overrides)?;
+    Ok(raw_overrides)
 }
 
 /// Run a DSL fixture through the demo host.
@@ -478,89 +683,17 @@ fn run_dsl_fixture(
     context: &ProtocolContext,
 ) -> Result<FixtureReport, String> {
     let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
-    let renderer = CanvasRenderer::new(
-        device,
-        CanvasRendererOptions {
-            width: spec.width,
-            height: spec.height,
-            registry: Some(context.registry.clone()),
-            ..Default::default()
-        },
-    );
-    let mut host = DemoHost::new(
-        renderer,
-        DemoHostOptions {
-            default_media: context.default_media.clone(),
-            text_fonts: context.fonts.clone(),
-            ..Default::default()
-        },
-    );
+    let mut host = demo_host(device, spec.width, spec.height, context);
     let mut report = FixtureReport::default();
     let result = (|| -> Result<(), String> {
-        host.rebuild_pipeline_from_dsl(&text, true)
-            .map_err(|e| format!("DSL compile failed: {e}"))?;
-        host.settle().map_err(|e| format!("host inputs: {e}"))?;
-        // Host texture overrides: a media step's texture is its media source
-        // (shown as the page shows a loaded file: its imageSize follows);
-        // anything else is uploaded as texture contents.
-        let mut raw_overrides = Vec::new();
-        for (id, png) in &spec.host_textures {
-            let step = host
-                .media_inputs()
-                .iter()
-                .find(|(_, m)| m.texture_id == *id)
-                .map(|(step, _)| *step);
-            match step {
-                Some(step) => {
-                    let image = read_png_rgba8(png)?;
-                    host.set_media_image(step, Rc::new(image))
-                        .map_err(|e| format!("host texture {id}: {e}"))?;
-                }
-                None => raw_overrides.push((id.clone(), png.clone())),
-            }
-        }
-        let missing_media: Vec<String> = host
-            .media_inputs()
-            .values()
-            .filter(|m| m.source.is_none())
-            .map(|m| m.texture_id.clone())
-            .collect();
-        if !missing_media.is_empty() {
-            eprintln!(
-                "nm-render: warning: no media image for {} (the page's failed load)",
-                missing_media.join(", ")
-            );
-        }
-        let renderer = host.renderer_mut();
-        let graph = renderer
-            .pipeline()
-            .ok_or("no pipeline after the DSL load")?
-            .graph
-            .clone();
-        // applyMeshPlan: the minter loads through the page's renderer.
-        if let Some(plan) = mesh_plan(&graph, sidecar(spec).as_deref()) {
-            let mut results = Vec::new();
-            for (mesh_id, path) in &plan.builtins {
-                results.push(renderer.load_builtin_mesh(path, mesh_id));
-            }
-            match &plan.obj_text {
-                Some(text) => results.push(renderer.load_obj_from_string(text, "mesh0")),
-                None if plan.builtins.is_empty() => {
-                    results.push(renderer.load_obj_from_string("", "mesh0"))
-                }
-                None => {}
-            }
-            let failed: Vec<String> = results
-                .iter()
-                .filter(|r| !r.success)
-                .map(|r| r.error.clone().unwrap_or_default())
-                .collect();
-            if !failed.is_empty() {
-                return Err(format!("mesh load failed: {}", failed.join("; ")));
-            }
-        }
-        let pipeline = renderer.pipeline_mut().ok_or("no pipeline")?;
-        upload_host_textures(pipeline, &raw_overrides)?;
+        load_dsl(
+            &mut host,
+            &text,
+            &spec.params,
+            &spec.host_textures,
+            sidecar(spec).as_deref(),
+        )?;
+        let pipeline = host.renderer_mut().pipeline_mut().ok_or("no pipeline")?;
         let mut keep: Vec<String> = external_texture_ids(&pipeline.graph);
         for id in async_overlay_ids(pipeline) {
             if !keep.contains(&id) {
@@ -591,6 +724,9 @@ pub fn run_fixture(
     spec: &FixtureSpec,
     context: &ProtocolContext,
 ) -> Result<FixtureReport, String> {
+    if !spec.params.is_empty() && !matches!(spec.source, GraphSource::DslFile(_)) {
+        return Err("parameter overrides need a DSL fixture".into());
+    }
     let graph = match &spec.source {
         GraphSource::DslFile(path) => return run_dsl_fixture(device, spec, path, context),
         GraphSource::GraphFile(path) => {
@@ -638,4 +774,168 @@ pub fn run_fixture(
     let _ = renderer.dispose();
     result?;
     Ok(report)
+}
+
+/// One animation: a DSL program loaded as [`run_fixture`] loads a DSL fixture
+/// (demo host, host inputs, parameter overrides, meshes), then rendered over
+/// its loop the way the page's render loop advances it, one PNG per frame.
+#[derive(Debug, Clone)]
+pub struct AnimationSpec {
+    /// The DSL program.
+    pub dsl: PathBuf,
+    /// The directory the frames are written to (created when missing):
+    /// `frame_00000.png`, `frame_00001.png`, ... ([`frame_path`]).
+    pub out_dir: PathBuf,
+    pub width: u32,
+    pub height: u32,
+    /// Frames per second.
+    pub fps: f64,
+    /// The loop duration in seconds (`CanvasRenderer.loopDuration`): frame
+    /// `i` renders at the normalized loop time `((i / fps) % loop) / loop`.
+    pub loop_seconds: f64,
+    /// Frames to render (one loop is `fps * loop_seconds`).
+    pub frames: u32,
+    /// Parameter overrides.
+    pub params: Vec<ParamOverride>,
+    /// `(textureId, png path)` host texture overrides.
+    pub host_textures: Vec<(String, PathBuf)>,
+    /// The OBJ loaded into `mesh0` (`None`: the `.obj` next to the DSL when
+    /// it exists).
+    pub obj: Option<PathBuf>,
+    /// The row order of the frames (a canvas's by default).
+    pub orientation: Orientation,
+}
+
+impl Default for AnimationSpec {
+    fn default() -> Self {
+        AnimationSpec {
+            dsl: PathBuf::new(),
+            out_dir: PathBuf::new(),
+            width: 512,
+            height: 512,
+            fps: 30.0,
+            loop_seconds: 10.0,
+            frames: 300,
+            params: Vec::new(),
+            host_textures: Vec::new(),
+            obj: None,
+            orientation: Orientation::Presented,
+        }
+    }
+}
+
+/// What an animation run produced.
+#[derive(Debug, Clone, Default)]
+pub struct AnimationReport {
+    /// The frames written, in order.
+    pub frames: Vec<PathBuf>,
+    /// Device (validation) errors observed while rendering.
+    pub device_errors: Vec<String>,
+}
+
+/// The path of frame `index` in `dir`: `frame_<index, 5 digits>.png`.
+pub fn frame_path(dir: &Path, index: u32) -> PathBuf {
+    dir.join(format!("frame_{index:05}.png"))
+}
+
+/// The normalized loop time of frame `index` at `fps` frames per second over
+/// a loop of `loop_seconds` (`(elapsed % loopDuration) / loopDuration`).
+pub fn frame_time(index: u32, fps: f64, loop_seconds: f64) -> f64 {
+    let elapsed = f64::from(index) / fps;
+    (elapsed % loop_seconds) / loop_seconds
+}
+
+/// Render an animation on `device`.
+pub fn run_animation(
+    device: &GpuDevice,
+    spec: &AnimationSpec,
+    context: &ProtocolContext,
+) -> Result<AnimationReport, String> {
+    if !(spec.fps > 0.0 && spec.fps.is_finite()) {
+        return Err(format!("fps must be positive, got {}", spec.fps));
+    }
+    if !(spec.loop_seconds > 0.0 && spec.loop_seconds.is_finite()) {
+        return Err(format!(
+            "the loop duration must be positive, got {}",
+            spec.loop_seconds
+        ));
+    }
+    let text =
+        std::fs::read_to_string(&spec.dsl).map_err(|e| format!("{}: {e}", spec.dsl.display()))?;
+    std::fs::create_dir_all(&spec.out_dir)
+        .map_err(|e| format!("{}: {e}", spec.out_dir.display()))?;
+    let mut host = demo_host(device, spec.width, spec.height, context);
+    let mut report = AnimationReport::default();
+    let result = (|| -> Result<(), String> {
+        load_dsl(
+            &mut host,
+            &text,
+            &spec.params,
+            &spec.host_textures,
+            dsl_sidecar(&spec.dsl, spec.obj.as_deref()).as_deref(),
+        )?;
+        let renderer = host.renderer_mut();
+        renderer.set_loop_duration(spec.loop_seconds);
+        renderer.sync_time(frame_time(0, spec.fps, spec.loop_seconds));
+        for i in 0..spec.frames {
+            renderer
+                .render(frame_time(i, spec.fps, spec.loop_seconds))
+                .map_err(|e| format!("render failed: {e}"))?;
+            let pixels = renderer
+                .read_output()
+                .map_err(|e| format!("readback failed: {e}"))?
+                .oriented(spec.orientation);
+            let path = frame_path(&spec.out_dir, i);
+            write_png_rgba8(&path, pixels.width, pixels.height, &pixels.data)?;
+            report.frames.push(path);
+        }
+        Ok(())
+    })();
+    if let Some(pipeline) = host.renderer_mut().pipeline_mut() {
+        pipeline.backend.collect_device_errors();
+        report.device_errors = pipeline.backend.device_error_log.clone();
+    }
+    let _ = host.renderer_mut().dispose();
+    result?;
+    Ok(report)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn param_overrides_parse_json_or_text() {
+        let p = ParamOverride::parse("step_0.scale=2.5").unwrap();
+        assert_eq!(
+            (p.step.as_str(), p.name.as_str(), p.value),
+            ("step_0", "scale", Value::Number(2.5))
+        );
+        let p: ParamOverride = "step_12.color=[1, 0, 0, 1]".parse().unwrap();
+        assert_eq!(p.value, Value::from_json("[1, 0, 0, 1]").unwrap());
+        let p = ParamOverride::parse("step_1.text=Hello = World").unwrap();
+        assert_eq!(p.value, Value::from("Hello = World"));
+        let p = ParamOverride::parse("step_1.text=\"3\"").unwrap();
+        assert_eq!(p.value, Value::from("3"));
+        for bad in [
+            "step_0.scale",
+            "step0.scale=1",
+            "step_.scale=1",
+            "step_0.=1",
+            "scale=1",
+        ] {
+            assert!(ParamOverride::parse(bad).is_err(), "{bad}");
+        }
+    }
+
+    #[test]
+    fn animation_frames_follow_the_loop() {
+        assert_eq!(frame_time(0, 30.0, 10.0), 0.0);
+        assert_eq!(frame_time(150, 30.0, 10.0), 0.5);
+        assert_eq!(frame_time(300, 30.0, 10.0), 0.0);
+        assert_eq!(
+            frame_path(Path::new("out"), 7),
+            Path::new("out").join("frame_00007.png")
+        );
+    }
 }

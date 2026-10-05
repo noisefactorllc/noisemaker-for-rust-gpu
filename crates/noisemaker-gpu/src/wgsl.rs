@@ -10,7 +10,7 @@
 
 use indexmap::IndexMap;
 use noisemaker_dsl::Value;
-use noisemaker_dsl::js::{number_to_string, parse_int, trim};
+use noisemaker_dsl::js::{is_js_whitespace, number_to_string, parse_int, trim};
 
 use crate::jsre::{JsRegex, group};
 use crate::jsv::to_js_string;
@@ -292,21 +292,6 @@ pub fn compute_wgsl_type_size(type_expr: &str) -> (u64, u64) {
         "mat4x4<f32>" | "mat4x4f" => (64, 16),
         _ => (0, 4),
     }
-}
-
-/// The ECMAScript `\s` set.
-pub fn is_js_whitespace(c: char) -> bool {
-    matches!(
-        c,
-        '\t' | '\n' | '\u{0B}' | '\u{0C}' | '\r' | ' ' | '\u{A0}' | '\u{1680}' | '\u{2000}'
-            ..='\u{200A}'
-                | '\u{2028}'
-                | '\u{2029}'
-                | '\u{202F}'
-                | '\u{205F}'
-                | '\u{3000}'
-                | '\u{FEFF}'
-    )
 }
 
 /// `computeWgslStructSize`: std140-style size of a struct body, rounded to the

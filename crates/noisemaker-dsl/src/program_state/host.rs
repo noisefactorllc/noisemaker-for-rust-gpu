@@ -19,9 +19,10 @@ use std::borrow::Cow;
 use std::rc::Rc;
 
 use crate::JsError;
+use crate::js::math_round;
 use crate::unparser::jsv::{
-    cannot_read, has_property, math_round, member, not_a_function, set_plain, strict_equals,
-    to_property_key, to_string,
+    cannot_read, has_property, member, not_a_function, set_plain, strict_equals, to_property_key,
+    to_string,
 };
 use crate::value::{Object, Value};
 

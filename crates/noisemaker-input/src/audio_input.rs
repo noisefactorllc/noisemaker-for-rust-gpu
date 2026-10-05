@@ -14,7 +14,7 @@
 //! Hosts call [`AudioInputManager::update`] once per frame (the reference's
 //! `requestAnimationFrame` loop): it feeds the samples the backend captured
 //! since the last update into the analysers, then reads them exactly like
-//! `_updateLoop`. With the `cpal` feature, [`crate::host::cpal::CpalBackend`]
+//! `_updateLoop`. With the `cpal` feature, `host::cpal::CpalBackend`
 //! captures real devices.
 
 use std::collections::VecDeque;
@@ -26,7 +26,7 @@ use indexmap::IndexMap;
 use crate::analyser::AudioAnalyzer;
 use crate::audio::{AudioState, DeviceSelector};
 use crate::automation::{AudioInputRequirements, AudioRequirement};
-use crate::jsmath::js_clamp;
+use noisemaker_dsl::js::math_clamp;
 
 /// `fftSize` of every analyser the reference manager creates.
 pub const INPUT_FFT_SIZE: u32 = 256;
@@ -262,7 +262,7 @@ impl<B: AudioBackend> AudioInputManager<B> {
     /// `smoothing = value`: clamped to 0..1, applied to the aggregate
     /// analyser (per-channel analysers keep the value they were created with).
     pub fn set_smoothing(&mut self, value: f64) {
-        self.smoothing = js_clamp(value, 0.0, 1.0);
+        self.smoothing = math_clamp(value, 0.0, 1.0);
         if let Some(main) = self.main.as_mut() {
             main.set_smoothing_time_constant(self.smoothing);
         }

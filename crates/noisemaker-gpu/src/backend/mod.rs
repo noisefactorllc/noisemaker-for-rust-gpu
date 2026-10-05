@@ -328,6 +328,9 @@ impl Default for DeviceOptions {
 /// A device created the way `createPipeline` creates one for the WebGPU backend.
 #[derive(Clone)]
 pub struct GpuDevice {
+    /// The instance the adapter came from (windowed hosts create their
+    /// surfaces on it).
+    pub instance: wgpu::Instance,
     pub adapter: wgpu::Adapter,
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
@@ -351,13 +354,31 @@ impl GpuDevice {
     /// `float32-filterable` when the adapter has it, and raise
     /// `maxColorAttachmentBytesPerSample` to `min(adapter limit, 128)`.
     pub fn create(options: &DeviceOptions) -> Result<GpuDevice, String> {
+        Self::create_on(wgpu::Instance::default(), None, options)
+    }
+
+    /// [`GpuDevice::create`] on `instance` with an adapter that can present to
+    /// `surface` (a window surface created on the same instance), the device a
+    /// windowed host renders and presents with.
+    pub fn create_for_surface(
+        instance: wgpu::Instance,
+        surface: &wgpu::Surface<'_>,
+        options: &DeviceOptions,
+    ) -> Result<GpuDevice, String> {
+        Self::create_on(instance, Some(surface), options)
+    }
+
+    fn create_on(
+        instance: wgpu::Instance,
+        surface: Option<&wgpu::Surface<'_>>,
+        options: &DeviceOptions,
+    ) -> Result<GpuDevice, String> {
         pollster::block_on(async {
-            let instance = wgpu::Instance::default();
             let adapter = instance
                 .request_adapter(&wgpu::RequestAdapterOptions {
                     power_preference: options.power_preference,
                     force_fallback_adapter: false,
-                    compatible_surface: None,
+                    compatible_surface: surface,
                     ..Default::default()
                 })
                 .await
@@ -386,6 +407,7 @@ impl GpuDevice {
                 .await
                 .map_err(|e| format!("requestDevice failed: {e}"))?;
             Ok(GpuDevice {
+                instance,
                 adapter,
                 device,
                 queue,
@@ -644,6 +666,12 @@ impl WebGpuBackend {
             }
         }
         None
+    }
+
+    /// `this.samplers.get(name)`: `default`, `nearest`, `repeat` or `mipmap`
+    /// (`None` before `init`).
+    pub fn sampler_for(&self, name: &str) -> Option<&wgpu::Sampler> {
+        self.samplers.get(name)
     }
 
     fn sampler(&self, name: &str) -> &wgpu::Sampler {

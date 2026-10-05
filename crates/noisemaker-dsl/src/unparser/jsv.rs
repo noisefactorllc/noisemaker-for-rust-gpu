@@ -8,11 +8,19 @@
 //! enumerates strings by code unit. These helpers reproduce those rules over
 //! [`Value`], including the `TypeError`/`RangeError` messages V8 throws.
 //!
+//! The number semantics and the basic comparisons (`===`, SameValueZero,
+//! `Number.isFinite`) are [`crate::js`](mod@crate::js)'s, re-exported here; [`to_string`] and
+//! [`to_number`] differ from [`crate::js::value_to_property_key`] and
+//! [`crate::js::to_number`] on purpose: they run `ToPrimitive` on plain
+//! objects whose own `toString`/`valueOf` members the tooling can see, and
+//! throw where V8 throws.
+//!
 //! Object identity: a [`Value`] owns its members, so two objects never alias.
 //! `===` between two objects (or arrays, or functions) is therefore `false`, which
 //! is what the reference observes for values that do not share a reference.
 
 use crate::error::JsError;
+pub use crate::js::{is_finite_number, same_value_zero, strict_equals};
 use crate::js::{number_to_string, string_to_number};
 use crate::value::{Object, Value, is_array_index};
 
@@ -380,33 +388,9 @@ pub fn join(values: &[Value], sep: &str) -> Result<String, JsError> {
     Ok(out)
 }
 
-/// `a === b`. Objects, arrays and functions are distinct references.
-pub fn strict_equals(a: &Value, b: &Value) -> bool {
-    match (a, b) {
-        (Value::Undefined, Value::Undefined) | (Value::Null, Value::Null) => true,
-        (Value::Bool(x), Value::Bool(y)) => x == y,
-        (Value::Number(x), Value::Number(y)) => x == y,
-        (Value::String(x), Value::String(y)) => x == y,
-        _ => false,
-    }
-}
-
-/// `SameValueZero(a, b)` (`Map`/`Set` keys, `Array.prototype.includes`).
-pub fn same_value_zero(a: &Value, b: &Value) -> bool {
-    match (a, b) {
-        (Value::Number(x), Value::Number(y)) => x == y || (x.is_nan() && y.is_nan()),
-        _ => strict_equals(a, b),
-    }
-}
-
 /// `typeof v === 'object' && v !== null` (arrays included).
 pub fn is_object_like(v: &Value) -> bool {
     matches!(v, Value::Object(_) | Value::Array(_))
-}
-
-/// `Number.isFinite(v)`.
-pub fn is_finite_number(v: &Value) -> bool {
-    matches!(v, Value::Number(n) if n.is_finite())
 }
 
 /// `Object.entries(v)` (own enumerable string-keyed members; strings enumerate
@@ -506,18 +490,6 @@ pub fn in_operator(key: &Value, obj: &Value) -> Result<bool, JsError> {
             to_string(obj)?
         ))),
     }
-}
-
-/// `Math.round(x)`, including its signed zero: values in `[-0.5, -0]` round to
-/// `-0`.
-pub fn math_round(x: f64) -> f64 {
-    if !x.is_finite() || x == 0.0 {
-        return x;
-    }
-    if (-0.5..0.0).contains(&x) {
-        return -0.0;
-    }
-    crate::js::math_round(x)
 }
 
 /// `String.prototype.repeat(count)` for a non-negative count.

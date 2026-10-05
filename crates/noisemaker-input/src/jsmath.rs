@@ -1,15 +1,19 @@
-//! JavaScript number semantics the reference relies on.
+//! `Math.sin` and `Math.cos` as V8 computes them in Node.
 //!
-//! `Math.min`/`Math.max` propagate NaN and order signed zeros; `Math.round`
-//! rounds halves toward +Infinity. `Math.sin` and `Math.cos` are not the
-//! platform libm: Node builds V8 without `V8_USE_LIBM_TRIG_FUNCTIONS`, so they
-//! are V8's port of fdlibm (`src/base/ieee754.cc`, V8 14.6), ported here
-//! statement by statement so automation values match the reference bit for bit.
+//! They are not the platform libm: Node builds V8 without
+//! `V8_USE_LIBM_TRIG_FUNCTIONS`, so they are V8's port of fdlibm
+//! (`src/base/ieee754.cc`, V8 14.6), ported here statement by statement so
+//! automation values match the reference bit for bit. They differ on purpose
+//! from `noisemaker_host::js::sin`/`cos`, the correctly rounded results
+//! Chromium returns to the reference's host code in the browser. The other
+//! JavaScript number semantics (`Math.min`/`Math.max`/`Math.round`,
+//! `Number.isInteger`, string conversions) are
+//! [`noisemaker_dsl::js`](mod@noisemaker_dsl::js)'s.
 //!
 //! The arithmetic also follows the compiler: clang compiles C/C++ with
 //! `-ffp-contract=on`, fusing a multiply and an add of one expression into an
 //! FMA wherever the target has one (AArch64; x86-64 builds target a baseline
-//! without FMA). [`fmuladd`] marks exactly the sites clang fuses (the
+//! without FMA). `fmuladd` marks exactly the sites clang fuses (the
 //! `llvm.fmuladd` formation of `CGExprScalar.cpp`: the left multiply is
 //! preferred, compound `+=`/`-=` included), so the port matches Node on both
 //! architectures (verified against Node 26 on macOS arm64 by
@@ -34,52 +38,6 @@
     clippy::eq_op,
     clippy::explicit_counter_loop
 )]
-
-/// `Math.min(a, b)`: NaN if either is NaN; -0 is below +0.
-pub fn js_min(a: f64, b: f64) -> f64 {
-    if a.is_nan() || b.is_nan() {
-        f64::NAN
-    } else if a == 0.0 && b == 0.0 {
-        if a.is_sign_negative() { a } else { b }
-    } else if a < b {
-        a
-    } else {
-        b
-    }
-}
-
-/// `Math.max(a, b)`: NaN if either is NaN; +0 is above -0.
-pub fn js_max(a: f64, b: f64) -> f64 {
-    if a.is_nan() || b.is_nan() {
-        f64::NAN
-    } else if a == 0.0 && b == 0.0 {
-        if a.is_sign_positive() { a } else { b }
-    } else if a > b {
-        a
-    } else {
-        b
-    }
-}
-
-/// `Math.max(lo, Math.min(hi, x))`.
-pub fn js_clamp(x: f64, lo: f64, hi: f64) -> f64 {
-    js_max(lo, js_min(hi, x))
-}
-
-/// `Math.round(x)`: the nearest integer, halves toward +Infinity, keeping
-/// -0 for values in [-0.5, 0).
-pub fn js_round(x: f64) -> f64 {
-    if !x.is_finite() || x == 0.0 {
-        return x;
-    }
-    let ceil = x.ceil();
-    if ceil - 0.5 > x { ceil - 1.0 } else { ceil }
-}
-
-/// `Number.isInteger(x)` for a number.
-pub fn is_integer(x: f64) -> bool {
-    x.is_finite() && x.trunc() == x
-}
 
 // ----------------------------------------------------------------------------
 // fdlibm sin/cos as V8 builds them.
@@ -611,25 +569,6 @@ pub fn js_sin(x: f64) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn min_max_follow_javascript() {
-        assert!(js_min(1.0, f64::NAN).is_nan());
-        assert!(js_max(f64::NAN, 0.0).is_nan());
-        assert!(js_min(0.0, -0.0).is_sign_negative());
-        assert!(js_max(-0.0, 0.0).is_sign_positive());
-        assert_eq!(js_clamp(1.5, 0.0, 1.0), 1.0);
-        assert!(js_clamp(-0.0, 0.0, 1.0).is_sign_positive());
-    }
-
-    #[test]
-    fn round_halves_toward_positive_infinity() {
-        assert_eq!(js_round(2.5), 3.0);
-        assert_eq!(js_round(-2.5), -2.0);
-        assert_eq!(js_round(0.49999999999999994), 0.0);
-        assert!(js_round(-0.4).is_sign_negative());
-        assert_eq!(js_round(-0.6), -1.0);
-    }
 
     // Values printed by Node 26 (V8 14.6): `Math.cos(1e10)` etc.
     #[test]

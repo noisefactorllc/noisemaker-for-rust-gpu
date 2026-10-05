@@ -713,8 +713,8 @@ impl FrameExportAdapter for WebGpuFrameExportAdapter {
         if source.width != slot.width as f64 || source.height != slot.height as f64 {
             return Err(error(format!(
                 "Error: WebGPU frame export source extent {}x{} does not match configured extent {}x{}",
-                crate::jsv::interpolate(&noisemaker_dsl::Value::Number(source.width)),
-                crate::jsv::interpolate(&noisemaker_dsl::Value::Number(source.height)),
+                crate::jsv::to_js_string(&noisemaker_dsl::Value::Number(source.width)),
+                crate::jsv::to_js_string(&noisemaker_dsl::Value::Number(source.height)),
                 slot.width,
                 slot.height
             )));

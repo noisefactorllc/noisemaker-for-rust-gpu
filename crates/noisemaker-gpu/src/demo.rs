@@ -227,6 +227,56 @@ pub fn text_params_from_values(values: &Object) -> TextParams {
     }
 }
 
+/// `_syncTextInputsFromParams()` for one text state: every member the step's
+/// values hold (`textState.x = params.x ?? textState.x`) replaces the current
+/// one.
+fn merge_text_params(current: &TextParams, values: &Object) -> TextParams {
+    let fresh = text_params_from_values(values);
+    let has = |key: &str| !values.get_or_undefined(key).is_nullish();
+    TextParams {
+        text: if has("text") {
+            fresh.text
+        } else {
+            current.text.clone()
+        },
+        font: if has("font") {
+            fresh.font
+        } else {
+            current.font.clone()
+        },
+        size: if has("size") {
+            fresh.size
+        } else {
+            current.size
+        },
+        pos_x: if has("posX") {
+            fresh.pos_x
+        } else {
+            current.pos_x
+        },
+        pos_y: if has("posY") {
+            fresh.pos_y
+        } else {
+            current.pos_y
+        },
+        rotation: if has("rotation") {
+            fresh.rotation
+        } else {
+            current.rotation
+        },
+        color: if has("color") {
+            fresh.color
+        } else {
+            current.color.clone()
+        },
+        justify: if has("justify") {
+            fresh.justify
+        } else {
+            current.justify.clone()
+        },
+    }
+}
+
 /// The reference demo page's host behavior over a [`CanvasRenderer`].
 pub struct DemoHost {
     state: ProgramState<CanvasRenderer>,
@@ -849,6 +899,49 @@ impl DemoHost {
                     Value::Array(vec![Value::Number(w as f64), Value::Number(h as f64)]),
                 )
                 .map_err(Self::js)?;
+        }
+        Ok(())
+    }
+
+    /// A parameter control's change: `programState.setValue(stepKey,
+    /// paramName, value)` (validated and coerced, then applied to the
+    /// pipeline), then the page's `_onControlChange()`: the editor DSL follows
+    /// the state (`_updateDslFromEffectParams`) and every text canvas re-reads
+    /// its step's values and is drawn again (`_syncTextInputsFromParams`). A
+    /// changed compile-time (`define`) parameter requests a recompile, which
+    /// [`DemoHost::settle`] runs.
+    pub fn set_control_value(
+        &mut self,
+        step_key: &str,
+        param_name: &str,
+        value: Value,
+    ) -> Result<(), RenderError> {
+        self.state
+            .set_value(step_key, param_name, value)
+            .map_err(Self::js)?;
+        self.on_control_change()
+    }
+
+    /// `_onControlChange()` without its DOM duties.
+    fn on_control_change(&mut self) -> Result<(), RenderError> {
+        // _updateDslFromEffectParams
+        let new_dsl = self.state.to_dsl();
+        if !new_dsl.is_empty() && new_dsl != self.dsl() {
+            self.set_dsl(&new_dsl);
+            self.renderer_mut().set_current_dsl(new_dsl);
+        }
+        // _syncTextInputsFromParams
+        let steps: Vec<usize> = self.text_inputs.keys().copied().collect();
+        for step_index in steps {
+            let Some(input) = self.text_inputs.get(&step_index) else {
+                continue;
+            };
+            let values = self.state.get_step_values(&input.effect_key);
+            let params = merge_text_params(&input.params, &values);
+            if let Some(input) = self.text_inputs.get_mut(&step_index) {
+                input.params = params;
+            }
+            self.render_text(step_index)?;
         }
         Ok(())
     }

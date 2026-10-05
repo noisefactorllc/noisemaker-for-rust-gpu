@@ -138,9 +138,9 @@ pub fn parse_obj(obj_text: &str) -> ObjMesh {
                     let mut fields = part.split('/');
                     // OBJ indices are 1-based. An absent or empty uv/normal
                     // field is -1 (`indices[n] ? parseInt(...) - 1 : -1`).
-                    let v = js::parse_int10(fields.next().unwrap_or("")) - 1.0;
+                    let v = js::parse_int(fields.next().unwrap_or(""), 10) - 1.0;
                     let index = |field: Option<&str>| match field {
-                        Some(f) if !f.is_empty() => js::parse_int10(f) - 1.0,
+                        Some(f) if !f.is_empty() => js::parse_int(f, 10) - 1.0,
                         _ => -1.0,
                     };
                     let vt = index(fields.next());

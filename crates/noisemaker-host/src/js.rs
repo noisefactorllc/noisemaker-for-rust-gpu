@@ -3,275 +3,29 @@
 //! The reference runs in JavaScript: every value is an IEEE double, strings
 //! are parsed with `parseFloat` / `parseInt`, `>>> 0` truncates through
 //! ToUint32, and numbers become strings through Number::toString. The ports
-//! in this crate evaluate the same operations in the same order with these
-//! helpers so their results are bit-identical to the reference's.
+//! in this crate evaluate the same operations in the same order, with the
+//! workspace's one implementation of these semantics,
+//! [`noisemaker_dsl::js`](mod@noisemaker_dsl::js), re-exported here, so their results are
+//! bit-identical to the reference's.
 //!
-//! `Math.sin`, `Math.cos` and `Math.log` are evaluated in double-double
-//! arithmetic (about 104 significant bits) and rounded once, i.e. correctly
-//! rounded. Chromium 153's V8 returns correctly rounded results for these
-//! functions (no difference on 3 million arguments of the tracer's ranges);
-//! the platform libm need not (macOS's differs in 4.0 % of sin, 4.2 % of
-//! cos and 0.07 % of log results, by 1 ulp), and neither does Node 26's V8
-//! (3.3 %, 3.2 % and 6.9 %). `tools/reference-host.mjs math-check` re-measures
-//! against the browser, the worm differential test checks every call of the
-//! tracer, and the unit tests below check arguments recorded from Chromium.
+//! What is specific to this crate: [`JsValue`], the parameter values the host
+//! code reads, and `Math.sin`, `Math.cos` and `Math.log` as the browser
+//! computes them. These are evaluated in double-double arithmetic (about 104
+//! significant bits) and rounded once, i.e. correctly rounded: Chromium 153's
+//! V8 returns correctly rounded results for these functions (no difference on
+//! 3 million arguments of the tracer's ranges), unlike the platform libm
+//! (macOS's differs in 4.0 % of sin, 4.2 % of cos and 0.07 % of log results,
+//! by 1 ulp) and unlike Node 26's V8 (3.3 %, 3.2 % and 6.9 %), whose fdlibm
+//! port `noisemaker_input::jsmath` reproduces for the automation code the
+//! reference runs under Node. `tools/reference-host.mjs math-check`
+//! re-measures against the browser, the worm differential test checks every
+//! call of the tracer, and the unit tests below check arguments recorded from
+//! Chromium.
 
-use std::fmt::Write as _;
-
-/// ECMAScript WhiteSpace and LineTerminator code points: the set shared by
-/// `String.prototype.trim`, the regular-expression class `\s`, `parseFloat`
-/// and `parseInt`.
-pub fn is_js_whitespace(c: char) -> bool {
-    matches!(
-        c,
-        '\u{0009}'
-            | '\u{000A}'
-            | '\u{000B}'
-            | '\u{000C}'
-            | '\u{000D}'
-            | '\u{0020}'
-            | '\u{00A0}'
-            | '\u{1680}'
-            | '\u{2000}'
-            ..='\u{200A}'
-                | '\u{2028}'
-                | '\u{2029}'
-                | '\u{202F}'
-                | '\u{205F}'
-                | '\u{3000}'
-                | '\u{FEFF}'
-    )
-}
-
-/// `String.prototype.trim`.
-pub fn trim(s: &str) -> &str {
-    s.trim_matches(is_js_whitespace)
-}
-
-/// `s.split(/\s+/)` for a string without leading or trailing whitespace
-/// (a trimmed line): the maximal runs of non-whitespace.
-pub fn split_whitespace(s: &str) -> impl Iterator<Item = &str> {
-    s.split(is_js_whitespace).filter(|t| !t.is_empty())
-}
-
-/// JavaScript `value || 0` for a Number: NaN, +0 and -0 all become +0.
-pub fn or_zero(value: f64) -> f64 {
-    if value.is_nan() || value == 0.0 {
-        0.0
-    } else {
-        value
-    }
-}
-
-/// `parseFloat(s)`: the value of the longest prefix of `s` (after leading
-/// whitespace) that is a StrDecimalLiteral, or NaN when no prefix is one.
-pub fn parse_float(s: &str) -> f64 {
-    let t = s.trim_start_matches(is_js_whitespace).as_bytes();
-    let n = t.len();
-    let mut i = 0;
-    let mut negative = false;
-    if i < n && (t[i] == b'+' || t[i] == b'-') {
-        negative = t[i] == b'-';
-        i += 1;
-    }
-    if t[i..].starts_with(b"Infinity") {
-        return if negative {
-            f64::NEG_INFINITY
-        } else {
-            f64::INFINITY
-        };
-    }
-    let int_start = i;
-    while i < n && t[i].is_ascii_digit() {
-        i += 1;
-    }
-    let int_end = i;
-    let mut frac = (i, i);
-    if i < n && t[i] == b'.' {
-        let mut j = i + 1;
-        while j < n && t[j].is_ascii_digit() {
-            j += 1;
-        }
-        // "1." and ".5" are literals, "." is not.
-        if int_end > int_start || j > i + 1 {
-            frac = (i + 1, j);
-            i = j;
-        }
-    }
-    if int_end == int_start && frac.0 == frac.1 {
-        return f64::NAN;
-    }
-    let mut exponent: Option<(bool, usize, usize)> = None;
-    if i < n && (t[i] == b'e' || t[i] == b'E') {
-        let mut k = i + 1;
-        let mut exp_negative = false;
-        if k < n && (t[k] == b'+' || t[k] == b'-') {
-            exp_negative = t[k] == b'-';
-            k += 1;
-        }
-        let digits_start = k;
-        while k < n && t[k].is_ascii_digit() {
-            k += 1;
-        }
-        if k > digits_start {
-            exponent = Some((exp_negative, digits_start, k));
-        }
-    }
-    // A canonical literal for Rust's correctly rounded conversion (V8's is
-    // correctly rounded too). Overflow gives infinity and underflow zero, as
-    // in JavaScript.
-    let mut text = String::with_capacity(n + 4);
-    if negative {
-        text.push('-');
-    }
-    if int_end > int_start {
-        text.push_str(std::str::from_utf8(&t[int_start..int_end]).unwrap());
-    } else {
-        text.push('0');
-    }
-    if frac.1 > frac.0 {
-        text.push('.');
-        text.push_str(std::str::from_utf8(&t[frac.0..frac.1]).unwrap());
-    }
-    if let Some((exp_negative, a, b)) = exponent {
-        text.push('e');
-        if exp_negative {
-            text.push('-');
-        }
-        text.push_str(std::str::from_utf8(&t[a..b]).unwrap());
-    }
-    text.parse::<f64>().unwrap_or(f64::NAN)
-}
-
-/// `parseInt(s, 10)`: optional sign, then the longest run of ASCII digits
-/// (after leading whitespace); NaN when there are none.
-pub fn parse_int10(s: &str) -> f64 {
-    let t = s.trim_start_matches(is_js_whitespace).as_bytes();
-    let mut i = 0;
-    let mut negative = false;
-    if i < t.len() && (t[i] == b'+' || t[i] == b'-') {
-        negative = t[i] == b'-';
-        i += 1;
-    }
-    let start = i;
-    while i < t.len() && t[i].is_ascii_digit() {
-        i += 1;
-    }
-    if i == start {
-        return f64::NAN;
-    }
-    let value: f64 = std::str::from_utf8(&t[start..i])
-        .unwrap()
-        .parse()
-        .unwrap_or(f64::INFINITY);
-    if negative { -value } else { value }
-}
-
-/// `Math.round`: the nearest integer, ties toward +Infinity; -0 for
-/// arguments in [-0.5, -0).
-pub fn math_round(x: f64) -> f64 {
-    if !x.is_finite() || x == 0.0 {
-        return x;
-    }
-    if (-0.5..0.0).contains(&x) {
-        return -0.0;
-    }
-    let floored = x.floor();
-    // x - floor(x) is exact for every finite double.
-    if x - floored >= 0.5 {
-        floored + 1.0
-    } else {
-        floored
-    }
-}
-
-/// `Math.max(a, b)` (NaN propagates; +0 is larger than -0).
-pub fn math_max(a: f64, b: f64) -> f64 {
-    if a.is_nan() || b.is_nan() {
-        return f64::NAN;
-    }
-    if a == 0.0 && b == 0.0 {
-        return if a.is_sign_positive() { a } else { b };
-    }
-    if a > b { a } else { b }
-}
-
-/// `Math.min(a, b)` (NaN propagates; -0 is smaller than +0).
-pub fn math_min(a: f64, b: f64) -> f64 {
-    if a.is_nan() || b.is_nan() {
-        return f64::NAN;
-    }
-    if a == 0.0 && b == 0.0 {
-        return if a.is_sign_negative() { a } else { b };
-    }
-    if a < b { a } else { b }
-}
-
-/// ECMAScript ToUint32.
-pub fn to_uint32(x: f64) -> u32 {
-    if !x.is_finite() {
-        return 0;
-    }
-    let m = x.trunc() % 4294967296.0;
-    let m = if m < 0.0 { m + 4294967296.0 } else { m };
-    m as u32
-}
-
-/// ECMAScript ToInt32.
-pub fn to_int32(x: f64) -> i32 {
-    to_uint32(x) as i32
-}
-
-/// ECMAScript Number::toString(x) (radix 10): the shortest round-trip
-/// digits, in fixed notation for decimal exponents -6 < n <= 21 and in
-/// exponential notation otherwise.
-pub fn number_to_string(x: f64) -> String {
-    if x.is_nan() {
-        return "NaN".into();
-    }
-    if x == 0.0 {
-        return "0".into();
-    }
-    if x.is_infinite() {
-        return if x > 0.0 { "Infinity" } else { "-Infinity" }.into();
-    }
-    let mut out = String::new();
-    let x = if x < 0.0 {
-        out.push('-');
-        -x
-    } else {
-        x
-    };
-    // Rust's LowerExp without a precision prints the shortest digits that
-    // round-trip (closest to the value), the digits ECMAScript requires.
-    let sci = format!("{x:e}");
-    let (mantissa, exp) = sci.split_once('e').expect("LowerExp has an exponent");
-    let exp: i32 = exp.parse().expect("LowerExp exponent");
-    let digits: String = mantissa.chars().filter(|c| *c != '.').collect();
-    let k = digits.len() as i32;
-    let n = exp + 1;
-    if k <= n && n <= 21 {
-        out.push_str(&digits);
-        out.extend(std::iter::repeat_n('0', (n - k) as usize));
-    } else if 0 < n && n <= 21 {
-        out.push_str(&digits[..n as usize]);
-        out.push('.');
-        out.push_str(&digits[n as usize..]);
-    } else if -6 < n && n <= 0 {
-        out.push_str("0.");
-        out.extend(std::iter::repeat_n('0', (-n) as usize));
-        out.push_str(&digits);
-    } else {
-        let e = n - 1;
-        out.push_str(&digits[..1]);
-        if k > 1 {
-            out.push('.');
-            out.push_str(&digits[1..]);
-        }
-        let _ = write!(out, "e{}{}", if e < 0 { '-' } else { '+' }, e.abs());
-    }
-    out
-}
+pub use noisemaker_dsl::js::{
+    is_js_whitespace, math_max, math_min, math_round, number_to_string, or_zero, parse_float,
+    parse_int, split_whitespace, string_to_number, to_int32, to_uint32, trim,
+};
 
 /// A JavaScript value as the reference host code reads it from a
 /// parameter object (`params.seed`, `textState.textContent`, ...).
@@ -350,67 +104,6 @@ impl From<f64> for JsValue {
     fn from(n: f64) -> JsValue {
         JsValue::Number(n)
     }
-}
-
-/// ECMAScript StringToNumber: whitespace-trimmed decimal literals,
-/// `Infinity`, and 0x / 0o / 0b integers; NaN otherwise; 0 when empty.
-fn string_to_number(s: &str) -> f64 {
-    let t = trim(s);
-    if t.is_empty() {
-        return 0.0;
-    }
-    for (prefix, radix) in [
-        ("0x", 16),
-        ("0X", 16),
-        ("0o", 8),
-        ("0O", 8),
-        ("0b", 2),
-        ("0B", 2),
-    ] {
-        if let Some(digits) = t.strip_prefix(prefix) {
-            if digits.is_empty() || !digits.chars().all(|c| c.is_digit(radix)) {
-                return f64::NAN;
-            }
-            return digits.chars().fold(0.0, |acc, c| {
-                acc * radix as f64 + c.to_digit(radix).unwrap() as f64
-            });
-        }
-    }
-    // The whole string must be a StrDecimalLiteral.
-    let value = parse_float(t);
-    let unsigned = t.trim_start_matches(['+', '-']);
-    let valid = if unsigned == "Infinity" {
-        true
-    } else {
-        let b = unsigned.as_bytes();
-        let mut i = 0;
-        while i < b.len() && b[i].is_ascii_digit() {
-            i += 1;
-        }
-        let int_digits = i;
-        let mut frac_digits = 0;
-        if i < b.len() && b[i] == b'.' {
-            i += 1;
-            while i < b.len() && b[i].is_ascii_digit() {
-                i += 1;
-                frac_digits += 1;
-            }
-        }
-        let mut ok = int_digits + frac_digits > 0;
-        if ok && i < b.len() && (b[i] == b'e' || b[i] == b'E') {
-            i += 1;
-            if i < b.len() && (b[i] == b'+' || b[i] == b'-') {
-                i += 1;
-            }
-            let start = i;
-            while i < b.len() && b[i].is_ascii_digit() {
-                i += 1;
-            }
-            ok = i > start;
-        }
-        ok && i == b.len() && t.len() - unsigned.len() <= 1
-    };
-    if valid { value } else { f64::NAN }
 }
 
 // ------------------------------------------------------------ double-double
@@ -544,8 +237,9 @@ fn reduce_quadrant(x: f64) -> Option<(Dd, u32)> {
     Some((acc, q))
 }
 
-/// `Math.sin`, correctly rounded for |x| < 2^20 (the platform function
-/// beyond, where the reference never evaluates it).
+/// `Math.sin` as Chromium computes it: correctly rounded for |x| < 2^20 (the
+/// platform function beyond, where the reference never evaluates it). Not
+/// Node's result, which `noisemaker_input::jsmath::js_sin` gives.
 pub fn sin(x: f64) -> f64 {
     if x == 0.0 {
         return x;
@@ -564,8 +258,9 @@ pub fn sin(x: f64) -> f64 {
     }
 }
 
-/// `Math.cos`, correctly rounded for |x| < 2^20 (the platform function
-/// beyond).
+/// `Math.cos` as Chromium computes it: correctly rounded for |x| < 2^20 (the
+/// platform function beyond). Not Node's result, which
+/// `noisemaker_input::jsmath::js_cos` gives.
 pub fn cos(x: f64) -> f64 {
     if !x.is_finite() {
         return f64::NAN;
@@ -641,77 +336,6 @@ fn frexp(x: f64) -> (f64, i32) {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn parse_float_matches_javascript() {
-        assert_eq!(parse_float("1.5abc"), 1.5);
-        assert!(parse_float("abc").is_nan());
-        assert!(parse_float(".").is_nan());
-        assert!(parse_float("").is_nan());
-        assert!(parse_float("-").is_nan());
-        assert!(parse_float("+-1").is_nan());
-        assert_eq!(parse_float("1."), 1.0);
-        assert_eq!(parse_float(".5"), 0.5);
-        assert_eq!(parse_float("-.5e-3"), -0.0005);
-        assert_eq!(parse_float("1e"), 1.0);
-        assert_eq!(parse_float("1e+"), 1.0);
-        assert_eq!(parse_float("1.2.3"), 1.2);
-        assert_eq!(parse_float("0x10"), 0.0);
-        assert_eq!(parse_float("Infinityx"), f64::INFINITY);
-        assert_eq!(parse_float("-Infinity"), f64::NEG_INFINITY);
-        assert!(parse_float("infinity").is_nan());
-        assert!(parse_float("nan").is_nan());
-        assert_eq!(parse_float("1e400"), f64::INFINITY);
-        assert_eq!(parse_float("-1e-400").to_bits(), (-0.0f64).to_bits());
-        assert_eq!(parse_float("-0").to_bits(), (-0.0f64).to_bits());
-        assert_eq!(parse_float("\u{a0} 7"), 7.0);
-    }
-
-    #[test]
-    fn parse_int_matches_javascript() {
-        assert_eq!(parse_int10("12abc"), 12.0);
-        assert_eq!(parse_int10("-1"), -1.0);
-        assert_eq!(parse_int10("+5"), 5.0);
-        assert_eq!(parse_int10("1.5"), 1.0);
-        assert_eq!(parse_int10("1e3"), 1.0);
-        assert!(parse_int10("").is_nan());
-        assert!(parse_int10("x1").is_nan());
-        assert_eq!(parse_int10("-0").to_bits(), (-0.0f64).to_bits());
-    }
-
-    #[test]
-    fn round_and_conversions() {
-        assert_eq!(math_round(-2.5), -2.0);
-        assert_eq!(math_round(2.5), 3.0);
-        assert_eq!(math_round(-0.3).to_bits(), (-0.0f64).to_bits());
-        assert_eq!(math_round(0.49999999999999994), 0.0);
-        assert_eq!(to_uint32(-1.0), 4294967295);
-        assert_eq!(to_uint32(4294967296.0 + 5.0), 5);
-        assert_eq!(to_uint32(f64::NAN), 0);
-        assert_eq!(to_int32(4294967295.0), -1);
-    }
-
-    #[test]
-    fn number_to_string_matches_javascript() {
-        for (value, text) in [
-            (0.5, "0.5"),
-            (1.0, "1"),
-            (-0.0, "0"),
-            (123.456, "123.456"),
-            (1e21, "1e+21"),
-            (1e20, "100000000000000000000"),
-            (1e-6, "0.000001"),
-            (1e-7, "1e-7"),
-            (1.5e-7, "1.5e-7"),
-            (0.1 + 0.2, "0.30000000000000004"),
-            (-2.5e-10, "-2.5e-10"),
-            (123456789012345680000.0, "123456789012345680000"),
-            (f64::INFINITY, "Infinity"),
-            (f64::NAN, "NaN"),
-        ] {
-            assert_eq!(number_to_string(value), text, "{value:e}");
-        }
-    }
 
     /// Chromium 153's Math.sin / Math.cos / Math.log for arguments where
     /// the platform libm (macOS) returns a different double: (function,

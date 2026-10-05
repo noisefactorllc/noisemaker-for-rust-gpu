@@ -6,9 +6,13 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+keywords = ["noisemaker", "obj", "canvas", "text", "procedural"]
+categories = ["graphics", "multimedia::images", "rendering::data-formats"]
 
 [dependencies]
 noisemaker-effects = { path = "../noisemaker-effects", version = "0.1.0" }
+# The workspace's JavaScript number semantics (noisemaker_dsl::js).
+noisemaker-dsl = { path = "../noisemaker-dsl", version = "0.1.0" }
 # Text shaping (HarfBuzz port, MIT; Blink shapes canvas text with HarfBuzz)
 # and font parsing (its ttf-parser 0.25, MIT/Apache-2.0: outlines with
 # variable-font instancing, OS/2 metrics, HVAR).

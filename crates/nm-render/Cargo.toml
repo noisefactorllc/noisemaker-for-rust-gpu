@@ -6,6 +6,8 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+keywords = ["noisemaker", "wgpu", "shaders", "generative", "cli"]
+categories = ["command-line-utilities", "graphics", "rendering"]
 
 [[bin]]
 name = "nm-render"
@@ -14,5 +16,6 @@ path = "src/main.rs"
 [dependencies]
 noisemaker-for-rust-gpu = { path = "../noisemaker-gpu", version = "0.1.0" }
 noisemaker-dsl = { path = "../noisemaker-dsl", version = "0.1.0" }
+noisemaker-effects = { path = "../noisemaker-effects", version = "0.1.0" }
 serde_json.workspace = true
 clap = { version = "4.6.7", features = ["derive"] }

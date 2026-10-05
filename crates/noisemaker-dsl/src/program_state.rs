@@ -63,7 +63,7 @@ pub use js_map::JsMap;
 pub use mock::{MockConvert, MockHost, MockMethods, MockPipeline};
 
 use crate::JsError;
-use crate::js::number_to_string;
+use crate::js::{math_max, math_min, number_to_string};
 use crate::palette::expand_palette_value;
 use crate::registry::{EffectEntry, Registry, is_starter_effect};
 use crate::unparser::jsv::{
@@ -246,36 +246,6 @@ fn spread_object(obj: &Object) -> Object {
     let mut copy = Object::new();
     copy.assign(obj);
     copy
-}
-
-/// `Math.max(a, b)` on numbers.
-fn math_max(a: f64, b: f64) -> f64 {
-    if a.is_nan() || b.is_nan() {
-        f64::NAN
-    } else if a == 0.0 && b == 0.0 {
-        if a.is_sign_positive() || b.is_sign_positive() {
-            0.0
-        } else {
-            -0.0
-        }
-    } else {
-        a.max(b)
-    }
-}
-
-/// `Math.min(a, b)` on numbers.
-fn math_min(a: f64, b: f64) -> f64 {
-    if a.is_nan() || b.is_nan() {
-        f64::NAN
-    } else if a == 0.0 && b == 0.0 {
-        if a.is_sign_negative() || b.is_sign_negative() {
-            -0.0
-        } else {
-            0.0
-        }
-    } else {
-        a.min(b)
-    }
 }
 
 /// `x === undefined ? undefined : ...`: `spec.min`/`spec.max` clamping of

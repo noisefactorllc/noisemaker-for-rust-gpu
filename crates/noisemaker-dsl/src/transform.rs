@@ -12,11 +12,12 @@
 use std::rc::Rc;
 
 use crate::error::JsError;
+use crate::js::math_round;
 use crate::registry::{EffectEntry, Registry};
 use crate::unparser::jsv::{
     self, cannot_read, entries, entries_strict, get, get_opt, in_operator, iterate, iterate_anon,
-    keys, math_round, member, not_a_function, object_member, same_value_zero, set_plain,
-    strict_equals, to_number, to_property_key, to_string, values,
+    keys, member, not_a_function, object_member, same_value_zero, set_plain, strict_equals,
+    to_number, to_property_key, to_string, values,
 };
 use crate::value::{Object, Value};
 

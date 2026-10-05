@@ -25,11 +25,12 @@ use crate::error::JsError;
 use crate::registry::Registry;
 use crate::value::{Object, Value};
 
+use crate::js::{is_js_whitespace, math_round};
 use jsv::{
     DepthGuard, cannot_read, entries, get, get_opt, get_v, is_finite_number, is_object_like,
-    iterate, join, keys, math_round, member, not_a_function, number_to_hex, object_member,
-    pad_start, quote_json_string, quote_json_utf16, repeat, same_value_zero, set_plain,
-    spread_into, strict_equals, to_number, to_property_key, to_string, utf16, values,
+    iterate, join, keys, member, not_a_function, number_to_hex, object_member, pad_start,
+    quote_json_string, quote_json_utf16, repeat, same_value_zero, set_plain, spread_into,
+    strict_equals, to_number, to_property_key, to_string, utf16, values,
 };
 
 /// Oscillator type number → `oscKind` member (`oscKindNames`).
@@ -2064,21 +2065,6 @@ pub fn unparse(
     }
 
     Ok(lines.join("\n"))
-}
-
-/// JavaScript `\s` (WhiteSpace and LineTerminator code points).
-fn is_js_whitespace(c: char) -> bool {
-    matches!(
-        c,
-        '\t' | '\n' | '\u{b}' | '\u{c}' | '\r' | ' ' | '\u{a0}' | '\u{1680}' | '\u{2000}'
-            ..='\u{200a}'
-                | '\u{2028}'
-                | '\u{2029}'
-                | '\u{202f}'
-                | '\u{205f}'
-                | '\u{3000}'
-                | '\u{feff}'
-    )
 }
 
 /// JavaScript LineTerminator (what `.` does not match and where `^`/`$` anchor in

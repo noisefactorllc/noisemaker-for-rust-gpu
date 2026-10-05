@@ -6,6 +6,8 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+keywords = ["noisemaker", "wgpu", "webgpu", "shaders", "generative"]
+categories = ["graphics", "rendering", "rendering::engine", "multimedia::images"]
 
 [lib]
 name = "noisemaker_gpu"
@@ -25,3 +27,7 @@ half.workspace = true
 png.workspace = true
 naga = { version = "30", features = ["wgsl-in"] }
 regex = "1"
+
+[dev-dependencies]
+# The viewer example's window and event loop (Apache-2.0).
+winit = "0.30"

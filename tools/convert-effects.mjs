@@ -14,6 +14,10 @@
 //                                          definitions reference (builtinMeshes)
 //   share/palettes.json                    byte copy of the reference palette table
 //                                          (share/palettes.json; the palette enum)
+//   share/fonts/<family>/*                 byte copies of the fonts the reference demo
+//                                          host serves for canvas text (demo/font:
+//                                          Nunito, filter/text's default family) and
+//                                          their licenses (OFL.txt)
 //
 // Behavior that a definition carries as JavaScript functions cannot be serialized.
 // Those functions are listed by name in the definition's "jsHooks" array so the
@@ -40,6 +44,8 @@ if (!process.env.NM_REFERENCE_ROOT) {
 const REFERENCE_ROOT = resolve(process.env.NM_REFERENCE_ROOT)
 const SHADERS_DIR = join(REFERENCE_ROOT, 'shaders')
 const EFFECTS_DIR = join(SHADERS_DIR, 'effects')
+// demo/font/<family>/<file> copied to share/fonts/<family>/<file>
+const DEMO_FONTS = [['Nunito', ['Nunito-VariableFont_wght.ttf', 'OFL.txt']]]
 
 function parseArgs (argv) {
   const opts = { out: join(REPO, 'crates', 'noisemaker-effects', 'catalog') }
@@ -151,8 +157,18 @@ async function main () {
     mkdirSync(dirname(dest), { recursive: true })
     copyFileSync(join(SHADERS_DIR, meshPath), dest)
   }
+  // The demo's text fonts (filter/text draws its default family, Nunito, from
+  // these files) with the license that allows redistributing them.
+  let fonts = 0
+  for (const [family, files] of DEMO_FONTS) {
+    mkdirSync(join(opts.out, 'share', 'fonts', family), { recursive: true })
+    for (const file of files) {
+      copyFileSync(join(REFERENCE_ROOT, 'demo', 'font', family, file), join(opts.out, 'share', 'fonts', family, file))
+      fonts++
+    }
+  }
 
-  console.error(`[convert-effects] ${effects} definitions, ${programs} WGSL programs, ${meshes.size} meshes -> ${opts.out}`)
+  console.error(`[convert-effects] ${effects} definitions, ${programs} WGSL programs, ${meshes.size} meshes, ${fonts} font files -> ${opts.out}`)
 }
 
 main().catch(err => {

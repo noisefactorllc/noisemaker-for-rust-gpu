@@ -1,0 +1,34 @@
+[package]
+name = "noisemaker-host"
+description = "CPU-side host inputs of the Noisemaker engine: OBJ meshes, traced overlay textures, canvas-style text"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+noisemaker-effects = { path = "../noisemaker-effects", version = "0.1.0" }
+# Text shaping (HarfBuzz port, MIT; Blink shapes canvas text with HarfBuzz)
+# and font parsing (its ttf-parser 0.25, MIT/Apache-2.0: outlines with
+# variable-font instancing, OS/2 metrics, HVAR).
+rustybuzz = "0.20"
+# Installed-font discovery (MIT), for families other than the bundled Nunito.
+fontdb = "0.24"
+# Unicode bidirectional algorithm (MIT/Apache-2.0, Servo), as Blink applies
+# it to canvas text.
+unicode-bidi = "0.3"
+# General categories (MIT/Apache-2.0; rustybuzz already depends on it): a
+# combining mark stays in its base character's font.
+unicode-properties = { version = "0.1", default-features = false, features = ["general-category"] }
+# Glyph outlines where ttf-parser cannot read a variable font's gvar (e.g.
+# macOS's SF, the system-ui font): Google Fontations' scaler (MIT/Apache-2.0),
+# which Chromium itself ships. ttf-parser stays primary because it applies
+# variation deltas unrounded, as CoreText does.
+skrifa = "0.48"
+
+[dev-dependencies]
+# Differential and raster tests: reading the reference's PNG readbacks and the
+# minter's graph JSON.
+png.workspace = true
+serde_json.workspace = true

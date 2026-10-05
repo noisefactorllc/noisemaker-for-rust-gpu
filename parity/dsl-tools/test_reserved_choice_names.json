@@ -1,0 +1,206 @@
+{
+ "profile": "host",
+ "setup": [],
+ "cases": [
+  {
+   "id": "reserved/choice-seed",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nsacredGeometry(geometry: seed).write(o0)\nrender(o0)"
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "reserved/choice-seed:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "reserved/choice-seed"
+    }
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "reserved/choice-seed:host",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nsacredGeometry(geometry: seed).write(o0)\nrender(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    },
+    "customFormatter": {
+     "kind": "formatValue",
+     "enums": {
+      "$enums": "host"
+     }
+    }
+   }
+  },
+  {
+   "id": "reserved/choice-seed:std-enums",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nsacredGeometry(geometry: seed).write(o0)\nrender(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    }
+   }
+  },
+  {
+   "id": "reserved/member-a",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nsacredGeometry().channel(channel: a).write(o0)\nrender(o0)"
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "reserved/member-a:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "reserved/member-a"
+    }
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "reserved/member-a:host",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nsacredGeometry().channel(channel: a).write(o0)\nrender(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    },
+    "customFormatter": {
+     "kind": "formatValue",
+     "enums": {
+      "$enums": "host"
+     }
+    }
+   }
+  },
+  {
+   "id": "reserved/member-a:std-enums",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nsacredGeometry().channel(channel: a).write(o0)\nrender(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    }
+   }
+  },
+  {
+   "id": "reserved/both",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nsacredGeometry(geometry: seed).channel(channel: a).write(o0)\nrender(o0)"
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "reserved/both:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "reserved/both"
+    }
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "reserved/both:host",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nsacredGeometry(geometry: seed).channel(channel: a).write(o0)\nrender(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    },
+    "customFormatter": {
+     "kind": "formatValue",
+     "enums": {
+      "$enums": "host"
+     }
+    }
+   }
+  },
+  {
+   "id": "reserved/both:std-enums",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nsacredGeometry(geometry: seed).channel(channel: a).write(o0)\nrender(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    }
+   }
+  },
+  {
+   "id": "reserved/state-scale",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nsacredGeometry(scale: seed).write(o0)\nrender(o0)"
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "reserved/state-scale:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "reserved/state-scale"
+    }
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "reserved/state-scale:host",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nsacredGeometry(scale: seed).write(o0)\nrender(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    },
+    "customFormatter": {
+     "kind": "formatValue",
+     "enums": {
+      "$enums": "host"
+     }
+    }
+   }
+  },
+  {
+   "id": "reserved/state-scale:std-enums",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nsacredGeometry(scale: seed).write(o0)\nrender(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    }
+   }
+  }
+ ]
+}

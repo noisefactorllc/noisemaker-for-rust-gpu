@@ -1,0 +1,7 @@
+{
+  "profile": "host",
+  "setup": [],
+  "cases": [
+    {"generate": "fixtures", "dirs": ["parity/programs", "parity/corpus", "parity/coverage"], "compatibleEvery": 40}
+  ]
+}

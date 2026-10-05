@@ -1,0 +1,6901 @@
+{
+ "profile": "host",
+ "setup": [
+  {
+   "op": "registerOp",
+   "name": "x.withProtoArgs",
+   "spec": {
+    "name": "withProtoArgs",
+    "args": [
+     {
+      "name": "constructor",
+      "default": 1
+     },
+     {
+      "name": "plain",
+      "default": 2
+     },
+     null,
+     {
+      "name": ""
+     }
+    ]
+   }
+  }
+ ],
+ "cases": [
+  {
+   "id": "edge/formatValue-0",
+   "op": "formatValue",
+   "value": null
+  },
+  {
+   "id": "edge/formatValue-1",
+   "op": "formatValue",
+   "value": {
+    "$js": "undefined"
+   }
+  },
+  {
+   "id": "edge/formatValue-2",
+   "op": "formatValue",
+   "value": true
+  },
+  {
+   "id": "edge/formatValue-3",
+   "op": "formatValue",
+   "value": false
+  },
+  {
+   "id": "edge/formatValue-4",
+   "op": "formatValue",
+   "value": 0
+  },
+  {
+   "id": "edge/formatValue-5",
+   "op": "formatValue",
+   "value": {
+    "$js": "-0"
+   }
+  },
+  {
+   "id": "edge/formatValue-6",
+   "op": "formatValue",
+   "value": {
+    "$js": "NaN"
+   }
+  },
+  {
+   "id": "edge/formatValue-7",
+   "op": "formatValue",
+   "value": {
+    "$js": "Infinity"
+   }
+  },
+  {
+   "id": "edge/formatValue-8",
+   "op": "formatValue",
+   "value": {
+    "$js": "-Infinity"
+   }
+  },
+  {
+   "id": "edge/formatValue-9",
+   "op": "formatValue",
+   "value": 1e+21
+  },
+  {
+   "id": "edge/formatValue-10",
+   "op": "formatValue",
+   "value": 1.5e+21
+  },
+  {
+   "id": "edge/formatValue-11",
+   "op": "formatValue",
+   "value": 1e-7
+  },
+  {
+   "id": "edge/formatValue-12",
+   "op": "formatValue",
+   "value": -1.5e-7
+  },
+  {
+   "id": "edge/formatValue-13",
+   "op": "formatValue",
+   "value": 123456789.123
+  },
+  {
+   "id": "edge/formatValue-14",
+   "op": "formatValue",
+   "value": 0.30000000000000004
+  },
+  {
+   "id": "edge/formatValue-15",
+   "op": "formatValue",
+   "value": 5e-324
+  },
+  {
+   "id": "edge/formatValue-16",
+   "op": "formatValue",
+   "value": 1.7976931348623157e+308
+  },
+  {
+   "id": "edge/formatValue-17",
+   "op": "formatValue",
+   "value": 9007199254740992
+  },
+  {
+   "id": "edge/formatValue-18",
+   "op": "formatValue",
+   "value": -1e-12
+  },
+  {
+   "id": "edge/formatValue-19",
+   "op": "formatValue",
+   "value": "perlin"
+  },
+  {
+   "id": "edge/formatValue-20",
+   "op": "formatValue",
+   "value": "perlin",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-21",
+   "op": "formatValue",
+   "value": "oscKind.sine"
+  },
+  {
+   "id": "edge/formatValue-22",
+   "op": "formatValue",
+   "value": "oscKind.sine",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-23",
+   "op": "formatValue",
+   "value": "a.b.c"
+  },
+  {
+   "id": "edge/formatValue-24",
+   "op": "formatValue",
+   "value": "a.b.c",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-25",
+   "op": "formatValue",
+   "value": "a..b"
+  },
+  {
+   "id": "edge/formatValue-26",
+   "op": "formatValue",
+   "value": "a..b",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-27",
+   "op": "formatValue",
+   "value": "_x"
+  },
+  {
+   "id": "edge/formatValue-28",
+   "op": "formatValue",
+   "value": "_x",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-29",
+   "op": "formatValue",
+   "value": "0vjd"
+  },
+  {
+   "id": "edge/formatValue-30",
+   "op": "formatValue",
+   "value": "0vjd",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-31",
+   "op": "formatValue",
+   "value": "with space"
+  },
+  {
+   "id": "edge/formatValue-32",
+   "op": "formatValue",
+   "value": "with space",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-33",
+   "op": "formatValue",
+   "value": "two\nlines"
+  },
+  {
+   "id": "edge/formatValue-34",
+   "op": "formatValue",
+   "value": "two\nlines",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-35",
+   "op": "formatValue",
+   "value": "q\"uote"
+  },
+  {
+   "id": "edge/formatValue-36",
+   "op": "formatValue",
+   "value": "q\"uote",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-37",
+   "op": "formatValue",
+   "value": "back\\slash"
+  },
+  {
+   "id": "edge/formatValue-38",
+   "op": "formatValue",
+   "value": "back\\slash",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-39",
+   "op": "formatValue",
+   "value": "#ff0000"
+  },
+  {
+   "id": "edge/formatValue-40",
+   "op": "formatValue",
+   "value": "#ff0000",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-41",
+   "op": "formatValue",
+   "value": "#"
+  },
+  {
+   "id": "edge/formatValue-42",
+   "op": "formatValue",
+   "value": "#",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-43",
+   "op": "formatValue",
+   "value": ""
+  },
+  {
+   "id": "edge/formatValue-44",
+   "op": "formatValue",
+   "value": "",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-45",
+   "op": "formatValue",
+   "value": "é"
+  },
+  {
+   "id": "edge/formatValue-46",
+   "op": "formatValue",
+   "value": "é",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-47",
+   "op": "formatValue",
+   "value": "a-b"
+  },
+  {
+   "id": "edge/formatValue-48",
+   "op": "formatValue",
+   "value": "a-b",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-49",
+   "op": "formatValue",
+   "value": "a."
+  },
+  {
+   "id": "edge/formatValue-50",
+   "op": "formatValue",
+   "value": "a.",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-51",
+   "op": "formatValue",
+   "value": ".a"
+  },
+  {
+   "id": "edge/formatValue-52",
+   "op": "formatValue",
+   "value": ".a",
+   "spec": {
+    "type": "string"
+   }
+  },
+  {
+   "id": "edge/formatValue-53",
+   "op": "formatValue",
+   "value": [
+    0.1,
+    0.2,
+    0.3,
+    0.4
+   ],
+   "spec": {
+    "type": "vec4",
+    "ui": {
+     "format": "vector"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-54",
+   "op": "formatValue",
+   "value": [
+    1e-7,
+    -2e+21,
+    3,
+    4
+   ],
+   "spec": {
+    "type": "vec4",
+    "ui": {
+     "format": "vector"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-55",
+   "op": "formatValue",
+   "value": [
+    0.1,
+    {
+     "$js": "NaN"
+    },
+    0.3,
+    0.4
+   ],
+   "spec": {
+    "type": "vec4",
+    "ui": {
+     "format": "vector"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-56",
+   "op": "formatValue",
+   "value": [
+    0.1,
+    0.2,
+    0.3
+   ],
+   "spec": {
+    "type": "vec4",
+    "ui": {
+     "format": "vector"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-57",
+   "op": "formatValue",
+   "value": {
+    "$js": "Float32Array",
+    "values": [
+     0.10000000149011612,
+     0.20000000298023224,
+     0.30000001192092896,
+     0.4000000059604645
+    ]
+   },
+   "spec": {
+    "type": "vec4",
+    "ui": {
+     "format": "vector"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-58",
+   "op": "formatValue",
+   "value": [
+    0.1,
+    "x",
+    true,
+    null
+   ],
+   "sourceForm": "array"
+  },
+  {
+   "id": "edge/formatValue-59",
+   "op": "formatValue",
+   "value": [],
+   "sourceForm": "array"
+  },
+  {
+   "id": "edge/formatValue-60",
+   "op": "formatValue",
+   "value": "notarray",
+   "sourceForm": "array"
+  },
+  {
+   "id": "edge/formatValue-61",
+   "op": "formatValue",
+   "value": [
+    [
+     1,
+     2
+    ],
+    {
+     "type": "Member",
+     "path": [
+      "a",
+      "b"
+     ]
+    }
+   ],
+   "sourceForm": "array"
+  },
+  {
+   "id": "edge/formatValue-62",
+   "op": "formatValue",
+   "value": {
+    "_varRef": "myVar"
+   }
+  },
+  {
+   "id": "edge/formatValue-63",
+   "op": "formatValue",
+   "value": {
+    "_varRef": 5
+   }
+  },
+  {
+   "id": "edge/formatValue-64",
+   "op": "formatValue",
+   "value": {
+    "_varRef": ""
+   }
+  },
+  {
+   "id": "edge/formatValue-65",
+   "op": "formatValue",
+   "value": {
+    "_ast": {
+     "type": "Ident",
+     "name": "seed"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-66",
+   "op": "formatValue",
+   "value": {
+    "_ast": {
+     "type": "Ident",
+     "name": 7
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-67",
+   "op": "formatValue",
+   "value": [
+    1,
+    2
+   ],
+   "spec": {
+    "_varRef": "x"
+   }
+  },
+  {
+   "id": "edge/formatValue-68",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "choices": {
+     "Group:": 3,
+     "none": 0,
+     "sunsetEnum": 16,
+     "Enum": 5,
+     "Soft Light": 2
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-69",
+   "op": "formatValue",
+   "value": 16,
+   "spec": {
+    "choices": {
+     "Group:": 3,
+     "none": 0,
+     "sunsetEnum": 16,
+     "Enum": 5,
+     "Soft Light": 2
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-70",
+   "op": "formatValue",
+   "value": 5,
+   "spec": {
+    "choices": {
+     "Group:": 3,
+     "none": 0,
+     "sunsetEnum": 16,
+     "Enum": 5,
+     "Soft Light": 2
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-71",
+   "op": "formatValue",
+   "value": 2,
+   "spec": {
+    "choices": {
+     "Group:": 3,
+     "none": 0,
+     "sunsetEnum": 16,
+     "Enum": 5,
+     "Soft Light": 2
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-72",
+   "op": "formatValue",
+   "value": 3,
+   "spec": {
+    "choices": {
+     "Group:": 3,
+     "none": 0,
+     "sunsetEnum": 16,
+     "Enum": 5,
+     "Soft Light": 2
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-73",
+   "op": "formatValue",
+   "value": 99,
+   "spec": {
+    "choices": {
+     "Group:": 3,
+     "none": 0,
+     "sunsetEnum": 16,
+     "Enum": 5,
+     "Soft Light": 2
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-74",
+   "op": "formatValue",
+   "value": {
+    "$js": "NaN"
+   },
+   "spec": {
+    "choices": {
+     "Group:": 3,
+     "none": 0,
+     "sunsetEnum": 16,
+     "Enum": 5,
+     "Soft Light": 2
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-75",
+   "op": "formatValue",
+   "value": 1,
+   "spec": {
+    "choices": [
+     5,
+     1
+    ]
+   }
+  },
+  {
+   "id": "edge/formatValue-76",
+   "op": "formatValue",
+   "value": 1,
+   "spec": {
+    "choices": "abc"
+   }
+  },
+  {
+   "id": "edge/formatValue-77",
+   "op": "formatValue",
+   "value": 1,
+   "spec": {
+    "choices": 7
+   }
+  },
+  {
+   "id": "edge/formatValue-78",
+   "op": "formatValue",
+   "value": "x",
+   "spec": {
+    "choices": {
+     "Group:": 3,
+     "none": 0,
+     "sunsetEnum": 16,
+     "Enum": 5,
+     "Soft Light": 2
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-79",
+   "op": "formatValue",
+   "value": 4,
+   "spec": {
+    "choices": {
+     "a": "4"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-80",
+   "op": "formatValue",
+   "value": 3,
+   "spec": {
+    "enum": "palette"
+   },
+   "options": {
+    "enums": {
+     "$enums": "std"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-81",
+   "op": "formatValue",
+   "value": 3,
+   "spec": {
+    "enum": "palette"
+   },
+   "options": {
+    "enums": {
+     "$enums": "host"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-82",
+   "op": "formatValue",
+   "value": 3,
+   "spec": {
+    "enum": "palette"
+   }
+  },
+  {
+   "id": "edge/formatValue-83",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "oscKind"
+   },
+   "options": {
+    "enums": {
+     "$enums": "std"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-84",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "oscKind"
+   },
+   "options": {
+    "enums": {
+     "$enums": "host"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-85",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "oscKind"
+   }
+  },
+  {
+   "id": "edge/formatValue-86",
+   "op": "formatValue",
+   "value": 5,
+   "spec": {
+    "enum": "oscKind"
+   },
+   "options": {
+    "enums": {
+     "$enums": "std"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-87",
+   "op": "formatValue",
+   "value": 5,
+   "spec": {
+    "enum": "oscKind"
+   },
+   "options": {
+    "enums": {
+     "$enums": "host"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-88",
+   "op": "formatValue",
+   "value": 5,
+   "spec": {
+    "enum": "oscKind"
+   }
+  },
+  {
+   "id": "edge/formatValue-89",
+   "op": "formatValue",
+   "value": 99,
+   "spec": {
+    "enum": "palette"
+   },
+   "options": {
+    "enums": {
+     "$enums": "std"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-90",
+   "op": "formatValue",
+   "value": 99,
+   "spec": {
+    "enum": "palette"
+   },
+   "options": {
+    "enums": {
+     "$enums": "host"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-91",
+   "op": "formatValue",
+   "value": 99,
+   "spec": {
+    "enum": "palette"
+   }
+  },
+  {
+   "id": "edge/formatValue-92",
+   "op": "formatValue",
+   "value": 1,
+   "spec": {
+    "enum": "channel"
+   },
+   "options": {
+    "enums": {
+     "$enums": "std"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-93",
+   "op": "formatValue",
+   "value": 1,
+   "spec": {
+    "enum": "channel"
+   },
+   "options": {
+    "enums": {
+     "$enums": "host"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-94",
+   "op": "formatValue",
+   "value": 1,
+   "spec": {
+    "enum": "channel"
+   }
+  },
+  {
+   "id": "edge/formatValue-95",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "missing"
+   },
+   "options": {
+    "enums": {
+     "$enums": "std"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-96",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "missing"
+   },
+   "options": {
+    "enums": {
+     "$enums": "host"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-97",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "missing"
+   }
+  },
+  {
+   "id": "edge/formatValue-98",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "palette.nope"
+   },
+   "options": {
+    "enums": {
+     "$enums": "std"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-99",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "palette.nope"
+   },
+   "options": {
+    "enums": {
+     "$enums": "host"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-100",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "palette.nope"
+   }
+  },
+  {
+   "id": "edge/formatValue-101",
+   "op": "formatValue",
+   "value": 1,
+   "spec": {
+    "enum": "synth.noise.type"
+   },
+   "options": {
+    "enums": {
+     "$enums": "std"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-102",
+   "op": "formatValue",
+   "value": 1,
+   "spec": {
+    "enum": "synth.noise.type"
+   },
+   "options": {
+    "enums": {
+     "$enums": "host"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-103",
+   "op": "formatValue",
+   "value": 1,
+   "spec": {
+    "enum": "synth.noise.type"
+   }
+  },
+  {
+   "id": "edge/formatValue-104",
+   "op": "formatValue",
+   "value": 10,
+   "spec": {
+    "enum": "synth.noise.type"
+   },
+   "options": {
+    "enums": {
+     "$enums": "std"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-105",
+   "op": "formatValue",
+   "value": 10,
+   "spec": {
+    "enum": "synth.noise.type"
+   },
+   "options": {
+    "enums": {
+     "$enums": "host"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-106",
+   "op": "formatValue",
+   "value": 10,
+   "spec": {
+    "enum": "synth.noise.type"
+   }
+  },
+  {
+   "id": "edge/formatValue-107",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "constructor"
+   },
+   "options": {
+    "enums": {
+     "$enums": "std"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-108",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "constructor"
+   },
+   "options": {
+    "enums": {
+     "$enums": "host"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-109",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "constructor"
+   }
+  },
+  {
+   "id": "edge/formatValue-110",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "__proto__"
+   },
+   "options": {
+    "enums": {
+     "$enums": "std"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-111",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "__proto__"
+   },
+   "options": {
+    "enums": {
+     "$enums": "host"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-112",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "__proto__"
+   }
+  },
+  {
+   "id": "edge/formatValue-113",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "oscKind.sine"
+   },
+   "options": {
+    "enums": {
+     "$enums": "std"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-114",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "oscKind.sine"
+   },
+   "options": {
+    "enums": {
+     "$enums": "host"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-115",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "oscKind.sine"
+   }
+  },
+  {
+   "id": "edge/formatValue-116",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": ""
+   },
+   "options": {
+    "enums": {
+     "$enums": "std"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-117",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": ""
+   },
+   "options": {
+    "enums": {
+     "$enums": "host"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-118",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": ""
+   }
+  },
+  {
+   "id": "edge/formatValue-119",
+   "op": "formatValue",
+   "value": 2,
+   "spec": {
+    "enum": "table"
+   },
+   "options": {
+    "enums": {
+     "table": {
+      "a": 1,
+      "b": 2,
+      "c": {
+       "value": 2
+      },
+      "d": {
+       "type": "Number",
+       "value": 2
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-120",
+   "op": "formatValue",
+   "value": 2,
+   "spec": {
+    "enum": "table"
+   },
+   "options": {
+    "enums": {
+     "table": {
+      "a": 1,
+      "c": {
+       "value": 2
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-121",
+   "op": "formatValue",
+   "value": 1,
+   "spec": {
+    "enum": "list"
+   },
+   "options": {
+    "enums": {
+     "list": [
+      0,
+      1,
+      2
+     ]
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-122",
+   "op": "formatValue",
+   "value": 1,
+   "spec": {
+    "enum": "str"
+   },
+   "options": {
+    "enums": {
+     "str": "abc"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-123",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "z"
+   },
+   "options": {
+    "enums": {
+     "z": {
+      "zero": 0
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-124",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": "z"
+   },
+   "options": {
+    "enums": null
+   }
+  },
+  {
+   "id": "edge/formatValue-125",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": 5
+   }
+  },
+  {
+   "id": "edge/formatValue-126",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": [
+     "a"
+    ]
+   }
+  },
+  {
+   "id": "edge/formatValue-127",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": true
+   }
+  },
+  {
+   "id": "edge/formatValue-128",
+   "op": "formatValue",
+   "value": 0,
+   "spec": {
+    "enum": {}
+   }
+  },
+  {
+   "id": "edge/formatValue-129",
+   "op": "formatValue",
+   "value": "oscType.sine",
+   "spec": {
+    "enum": "oscType"
+   }
+  },
+  {
+   "id": "edge/formatValue-130",
+   "op": "formatValue",
+   "value": "oscType",
+   "spec": {
+    "enum": "oscType"
+   }
+  },
+  {
+   "id": "edge/formatValue-131",
+   "op": "formatValue",
+   "value": "a,b.c",
+   "spec": {
+    "enum": [
+     "a",
+     "b"
+    ]
+   }
+  },
+  {
+   "id": "edge/formatValue-132",
+   "op": "formatValue",
+   "value": "[object Object].x",
+   "spec": {
+    "enum": {}
+   }
+  },
+  {
+   "id": "edge/formatValue-133",
+   "op": "formatValue",
+   "value": "5.x",
+   "spec": {
+    "enum": 5
+   }
+  },
+  {
+   "id": "edge/formatValue-134",
+   "op": "formatValue",
+   "value": "true.y",
+   "spec": {
+    "enum": true
+   }
+  },
+  {
+   "id": "edge/formatValue-135",
+   "op": "formatValue",
+   "value": {
+    "name": "none"
+   },
+   "spec": {
+    "type": "surface"
+   }
+  },
+  {
+   "id": "edge/formatValue-136",
+   "op": "formatValue",
+   "value": {
+    "name": "none"
+   },
+   "spec": {
+    "type": "surface",
+    "default": "none"
+   }
+  },
+  {
+   "id": "edge/formatValue-137",
+   "op": "formatValue",
+   "value": {
+    "name": "none"
+   },
+   "spec": {
+    "type": "surface",
+    "default": "o3"
+   }
+  },
+  {
+   "id": "edge/formatValue-138",
+   "op": "formatValue",
+   "value": {
+    "name": "none"
+   },
+   "spec": {
+    "type": "volume"
+   }
+  },
+  {
+   "id": "edge/formatValue-139",
+   "op": "formatValue",
+   "value": {
+    "name": "none"
+   },
+   "spec": {
+    "type": "volume",
+    "default": "vol3"
+   }
+  },
+  {
+   "id": "edge/formatValue-140",
+   "op": "formatValue",
+   "value": {
+    "name": "none"
+   },
+   "spec": {
+    "type": "geometry"
+   }
+  },
+  {
+   "id": "edge/formatValue-141",
+   "op": "formatValue",
+   "value": {
+    "name": "none"
+   },
+   "spec": {
+    "type": "geometry",
+    "default": "geo2"
+   }
+  },
+  {
+   "id": "edge/formatValue-142",
+   "op": "formatValue",
+   "value": {
+    "name": "o2"
+   },
+   "spec": {
+    "type": "surface"
+   }
+  },
+  {
+   "id": "edge/formatValue-143",
+   "op": "formatValue",
+   "value": {
+    "name": "o2"
+   },
+   "spec": {
+    "type": "surface",
+    "default": "none"
+   }
+  },
+  {
+   "id": "edge/formatValue-144",
+   "op": "formatValue",
+   "value": {
+    "name": "o2"
+   },
+   "spec": {
+    "type": "surface",
+    "default": "o3"
+   }
+  },
+  {
+   "id": "edge/formatValue-145",
+   "op": "formatValue",
+   "value": {
+    "name": "o2"
+   },
+   "spec": {
+    "type": "volume"
+   }
+  },
+  {
+   "id": "edge/formatValue-146",
+   "op": "formatValue",
+   "value": {
+    "name": "o2"
+   },
+   "spec": {
+    "type": "volume",
+    "default": "vol3"
+   }
+  },
+  {
+   "id": "edge/formatValue-147",
+   "op": "formatValue",
+   "value": {
+    "name": "o2"
+   },
+   "spec": {
+    "type": "geometry"
+   }
+  },
+  {
+   "id": "edge/formatValue-148",
+   "op": "formatValue",
+   "value": {
+    "name": "o2"
+   },
+   "spec": {
+    "type": "geometry",
+    "default": "geo2"
+   }
+  },
+  {
+   "id": "edge/formatValue-149",
+   "op": "formatValue",
+   "value": {
+    "kind": "output"
+   },
+   "spec": {
+    "type": "surface"
+   }
+  },
+  {
+   "id": "edge/formatValue-150",
+   "op": "formatValue",
+   "value": {
+    "kind": "output"
+   },
+   "spec": {
+    "type": "surface",
+    "default": "none"
+   }
+  },
+  {
+   "id": "edge/formatValue-151",
+   "op": "formatValue",
+   "value": {
+    "kind": "output"
+   },
+   "spec": {
+    "type": "surface",
+    "default": "o3"
+   }
+  },
+  {
+   "id": "edge/formatValue-152",
+   "op": "formatValue",
+   "value": {
+    "kind": "output"
+   },
+   "spec": {
+    "type": "volume"
+   }
+  },
+  {
+   "id": "edge/formatValue-153",
+   "op": "formatValue",
+   "value": {
+    "kind": "output"
+   },
+   "spec": {
+    "type": "volume",
+    "default": "vol3"
+   }
+  },
+  {
+   "id": "edge/formatValue-154",
+   "op": "formatValue",
+   "value": {
+    "kind": "output"
+   },
+   "spec": {
+    "type": "geometry"
+   }
+  },
+  {
+   "id": "edge/formatValue-155",
+   "op": "formatValue",
+   "value": {
+    "kind": "output"
+   },
+   "spec": {
+    "type": "geometry",
+    "default": "geo2"
+   }
+  },
+  {
+   "id": "edge/formatValue-156",
+   "op": "formatValue",
+   "value": "",
+   "spec": {
+    "type": "surface"
+   }
+  },
+  {
+   "id": "edge/formatValue-157",
+   "op": "formatValue",
+   "value": "",
+   "spec": {
+    "type": "surface",
+    "default": "none"
+   }
+  },
+  {
+   "id": "edge/formatValue-158",
+   "op": "formatValue",
+   "value": "",
+   "spec": {
+    "type": "surface",
+    "default": "o3"
+   }
+  },
+  {
+   "id": "edge/formatValue-159",
+   "op": "formatValue",
+   "value": "",
+   "spec": {
+    "type": "volume"
+   }
+  },
+  {
+   "id": "edge/formatValue-160",
+   "op": "formatValue",
+   "value": "",
+   "spec": {
+    "type": "volume",
+    "default": "vol3"
+   }
+  },
+  {
+   "id": "edge/formatValue-161",
+   "op": "formatValue",
+   "value": "",
+   "spec": {
+    "type": "geometry"
+   }
+  },
+  {
+   "id": "edge/formatValue-162",
+   "op": "formatValue",
+   "value": "",
+   "spec": {
+    "type": "geometry",
+    "default": "geo2"
+   }
+  },
+  {
+   "id": "edge/formatValue-163",
+   "op": "formatValue",
+   "value": "none",
+   "spec": {
+    "type": "surface"
+   }
+  },
+  {
+   "id": "edge/formatValue-164",
+   "op": "formatValue",
+   "value": "none",
+   "spec": {
+    "type": "surface",
+    "default": "none"
+   }
+  },
+  {
+   "id": "edge/formatValue-165",
+   "op": "formatValue",
+   "value": "none",
+   "spec": {
+    "type": "surface",
+    "default": "o3"
+   }
+  },
+  {
+   "id": "edge/formatValue-166",
+   "op": "formatValue",
+   "value": "none",
+   "spec": {
+    "type": "volume"
+   }
+  },
+  {
+   "id": "edge/formatValue-167",
+   "op": "formatValue",
+   "value": "none",
+   "spec": {
+    "type": "volume",
+    "default": "vol3"
+   }
+  },
+  {
+   "id": "edge/formatValue-168",
+   "op": "formatValue",
+   "value": "none",
+   "spec": {
+    "type": "geometry"
+   }
+  },
+  {
+   "id": "edge/formatValue-169",
+   "op": "formatValue",
+   "value": "none",
+   "spec": {
+    "type": "geometry",
+    "default": "geo2"
+   }
+  },
+  {
+   "id": "edge/formatValue-170",
+   "op": "formatValue",
+   "value": "o1",
+   "spec": {
+    "type": "surface"
+   }
+  },
+  {
+   "id": "edge/formatValue-171",
+   "op": "formatValue",
+   "value": "o1",
+   "spec": {
+    "type": "surface",
+    "default": "none"
+   }
+  },
+  {
+   "id": "edge/formatValue-172",
+   "op": "formatValue",
+   "value": "o1",
+   "spec": {
+    "type": "surface",
+    "default": "o3"
+   }
+  },
+  {
+   "id": "edge/formatValue-173",
+   "op": "formatValue",
+   "value": "o1",
+   "spec": {
+    "type": "volume"
+   }
+  },
+  {
+   "id": "edge/formatValue-174",
+   "op": "formatValue",
+   "value": "o1",
+   "spec": {
+    "type": "volume",
+    "default": "vol3"
+   }
+  },
+  {
+   "id": "edge/formatValue-175",
+   "op": "formatValue",
+   "value": "o1",
+   "spec": {
+    "type": "geometry"
+   }
+  },
+  {
+   "id": "edge/formatValue-176",
+   "op": "formatValue",
+   "value": "o1",
+   "spec": {
+    "type": "geometry",
+    "default": "geo2"
+   }
+  },
+  {
+   "id": "edge/formatValue-177",
+   "op": "formatValue",
+   "value": "read(o1)",
+   "spec": {
+    "type": "surface"
+   }
+  },
+  {
+   "id": "edge/formatValue-178",
+   "op": "formatValue",
+   "value": "read(o1)",
+   "spec": {
+    "type": "surface",
+    "default": "none"
+   }
+  },
+  {
+   "id": "edge/formatValue-179",
+   "op": "formatValue",
+   "value": "read(o1)",
+   "spec": {
+    "type": "surface",
+    "default": "o3"
+   }
+  },
+  {
+   "id": "edge/formatValue-180",
+   "op": "formatValue",
+   "value": "read(o1)",
+   "spec": {
+    "type": "volume"
+   }
+  },
+  {
+   "id": "edge/formatValue-181",
+   "op": "formatValue",
+   "value": "read(o1)",
+   "spec": {
+    "type": "volume",
+    "default": "vol3"
+   }
+  },
+  {
+   "id": "edge/formatValue-182",
+   "op": "formatValue",
+   "value": "read(o1)",
+   "spec": {
+    "type": "geometry"
+   }
+  },
+  {
+   "id": "edge/formatValue-183",
+   "op": "formatValue",
+   "value": "read(o1)",
+   "spec": {
+    "type": "geometry",
+    "default": "geo2"
+   }
+  },
+  {
+   "id": "edge/formatValue-184",
+   "op": "formatValue",
+   "value": 5,
+   "spec": {
+    "type": "surface"
+   }
+  },
+  {
+   "id": "edge/formatValue-185",
+   "op": "formatValue",
+   "value": 5,
+   "spec": {
+    "type": "surface",
+    "default": "none"
+   }
+  },
+  {
+   "id": "edge/formatValue-186",
+   "op": "formatValue",
+   "value": 5,
+   "spec": {
+    "type": "surface",
+    "default": "o3"
+   }
+  },
+  {
+   "id": "edge/formatValue-187",
+   "op": "formatValue",
+   "value": 5,
+   "spec": {
+    "type": "volume"
+   }
+  },
+  {
+   "id": "edge/formatValue-188",
+   "op": "formatValue",
+   "value": 5,
+   "spec": {
+    "type": "volume",
+    "default": "vol3"
+   }
+  },
+  {
+   "id": "edge/formatValue-189",
+   "op": "formatValue",
+   "value": 5,
+   "spec": {
+    "type": "geometry"
+   }
+  },
+  {
+   "id": "edge/formatValue-190",
+   "op": "formatValue",
+   "value": 5,
+   "spec": {
+    "type": "geometry",
+    "default": "geo2"
+   }
+  },
+  {
+   "id": "edge/formatValue-191",
+   "op": "formatValue",
+   "value": null,
+   "spec": {
+    "type": "surface"
+   }
+  },
+  {
+   "id": "edge/formatValue-192",
+   "op": "formatValue",
+   "value": null,
+   "spec": {
+    "type": "surface",
+    "default": "none"
+   }
+  },
+  {
+   "id": "edge/formatValue-193",
+   "op": "formatValue",
+   "value": null,
+   "spec": {
+    "type": "surface",
+    "default": "o3"
+   }
+  },
+  {
+   "id": "edge/formatValue-194",
+   "op": "formatValue",
+   "value": null,
+   "spec": {
+    "type": "volume"
+   }
+  },
+  {
+   "id": "edge/formatValue-195",
+   "op": "formatValue",
+   "value": null,
+   "spec": {
+    "type": "volume",
+    "default": "vol3"
+   }
+  },
+  {
+   "id": "edge/formatValue-196",
+   "op": "formatValue",
+   "value": null,
+   "spec": {
+    "type": "geometry"
+   }
+  },
+  {
+   "id": "edge/formatValue-197",
+   "op": "formatValue",
+   "value": null,
+   "spec": {
+    "type": "geometry",
+    "default": "geo2"
+   }
+  },
+  {
+   "id": "edge/formatValue-198",
+   "op": "formatValue",
+   "value": [
+    1,
+    2
+   ],
+   "spec": {
+    "type": "surface"
+   }
+  },
+  {
+   "id": "edge/formatValue-199",
+   "op": "formatValue",
+   "value": [
+    1,
+    2
+   ],
+   "spec": {
+    "type": "surface",
+    "default": "none"
+   }
+  },
+  {
+   "id": "edge/formatValue-200",
+   "op": "formatValue",
+   "value": [
+    1,
+    2
+   ],
+   "spec": {
+    "type": "surface",
+    "default": "o3"
+   }
+  },
+  {
+   "id": "edge/formatValue-201",
+   "op": "formatValue",
+   "value": [
+    1,
+    2
+   ],
+   "spec": {
+    "type": "volume"
+   }
+  },
+  {
+   "id": "edge/formatValue-202",
+   "op": "formatValue",
+   "value": [
+    1,
+    2
+   ],
+   "spec": {
+    "type": "volume",
+    "default": "vol3"
+   }
+  },
+  {
+   "id": "edge/formatValue-203",
+   "op": "formatValue",
+   "value": [
+    1,
+    2
+   ],
+   "spec": {
+    "type": "geometry"
+   }
+  },
+  {
+   "id": "edge/formatValue-204",
+   "op": "formatValue",
+   "value": [
+    1,
+    2
+   ],
+   "spec": {
+    "type": "geometry",
+    "default": "geo2"
+   }
+  },
+  {
+   "id": "edge/formatValue-205",
+   "op": "formatValue",
+   "value": 3,
+   "spec": {
+    "type": "member"
+   }
+  },
+  {
+   "id": "edge/formatValue-206",
+   "op": "formatValue",
+   "value": 3,
+   "spec": {
+    "type": "palette"
+   }
+  },
+  {
+   "id": "edge/formatValue-207",
+   "op": "formatValue",
+   "value": "oscKind.sine",
+   "spec": {
+    "type": "member"
+   }
+  },
+  {
+   "id": "edge/formatValue-208",
+   "op": "formatValue",
+   "value": "oscKind.sine",
+   "spec": {
+    "type": "palette"
+   }
+  },
+  {
+   "id": "edge/formatValue-209",
+   "op": "formatValue",
+   "value": {
+    "a": 1
+   },
+   "spec": {
+    "type": "member"
+   }
+  },
+  {
+   "id": "edge/formatValue-210",
+   "op": "formatValue",
+   "value": {
+    "a": 1
+   },
+   "spec": {
+    "type": "palette"
+   }
+  },
+  {
+   "id": "edge/formatValue-211",
+   "op": "formatValue",
+   "value": [
+    1,
+    2
+   ],
+   "spec": {
+    "type": "member"
+   }
+  },
+  {
+   "id": "edge/formatValue-212",
+   "op": "formatValue",
+   "value": [
+    1,
+    2
+   ],
+   "spec": {
+    "type": "palette"
+   }
+  },
+  {
+   "id": "edge/formatValue-213",
+   "op": "formatValue",
+   "value": null,
+   "spec": {
+    "type": "member"
+   }
+  },
+  {
+   "id": "edge/formatValue-214",
+   "op": "formatValue",
+   "value": null,
+   "spec": {
+    "type": "palette"
+   }
+  },
+  {
+   "id": "edge/formatValue-215",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 0,
+    "min": 0,
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-216",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 1.5,
+    "min": 0,
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-217",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": "length",
+    "min": 0,
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-218",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 7,
+    "min": 0,
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-219",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": "2",
+    "min": 0,
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-220",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 0,
+    "min": {
+     "$js": "undefined"
+    },
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-221",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 5,
+    "min": 0,
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 3
+   }
+  },
+  {
+   "id": "edge/formatValue-222",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 6,
+    "min": 0,
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 3
+   }
+  },
+  {
+   "id": "edge/formatValue-223",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 0,
+    "min": 0,
+    "max": 1,
+    "speed": {
+     "type": "Oscillator"
+    },
+    "offset": 0,
+    "seed": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-224",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 0,
+    "min": 0,
+    "max": {
+     "$js": "NaN"
+    },
+    "speed": 1,
+    "offset": -0.5,
+    "seed": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-225",
+   "op": "formatValue",
+   "value": {
+    "oscillator": true,
+    "oscType": 3
+   }
+  },
+  {
+   "id": "edge/formatValue-226",
+   "op": "formatValue",
+   "value": {
+    "oscillator": "yes",
+    "oscType": 3
+   }
+  },
+  {
+   "id": "edge/formatValue-227",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "_ast": {
+     "type": "Oscillator",
+     "oscType": {
+      "type": "Member",
+      "path": [
+       "oscKind",
+       "square"
+      ]
+     },
+     "min": {
+      "type": "Number",
+      "value": 0.5
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-228",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": 1,
+    "mode": 4,
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-229",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": 1,
+    "mode": 4,
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1,
+    "zone": 0
+   }
+  },
+  {
+   "id": "edge/formatValue-230",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": 1,
+    "mode": 4,
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1,
+    "zone": 1,
+    "members": 3
+   }
+  },
+  {
+   "id": "edge/formatValue-231",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": 1,
+    "mode": 4,
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1,
+    "zone": "x"
+   }
+  },
+  {
+   "id": "edge/formatValue-232",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": 1,
+    "mode": "length",
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-233",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": 1,
+    "mode": 11,
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-234",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": 1,
+    "mode": 0,
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-235",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": 1,
+    "mode": 4,
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1,
+    "cc": 7,
+    "nrpn": 300
+   }
+  },
+  {
+   "id": "edge/formatValue-236",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": 1,
+    "mode": 4,
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1,
+    "name": "",
+    "id": ""
+   }
+  },
+  {
+   "id": "edge/formatValue-237",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": 1,
+    "mode": 4,
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1,
+    "name": 5
+   }
+  },
+  {
+   "id": "edge/formatValue-238",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": 1,
+    "mode": 4,
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1,
+    "name": "a\"b\\c\u0001"
+   }
+  },
+  {
+   "id": "edge/formatValue-239",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": {
+     "$js": "undefined"
+    },
+    "mode": 4,
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-240",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": 1,
+    "mode": 4,
+    "min": 0.1,
+    "max": 0.9,
+    "sensitivity": 2
+   }
+  },
+  {
+   "id": "edge/formatValue-241",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": {
+     "type": "Ident",
+     "name": "ch"
+    },
+    "mode": 4,
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-242",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": {
+     "type": "Number",
+     "value": 3
+    },
+    "mode": {
+     "type": "Member",
+     "path": [
+      "midiMode",
+      "cc"
+     ]
+    },
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-243",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": 1,
+    "mode": 4,
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1,
+    "zone": {
+     "type": "Ident",
+     "name": "z"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-244",
+   "op": "formatValue",
+   "value": {
+    "type": "Midi",
+    "channel": 2,
+    "_ast": {
+     "type": "Midi",
+     "channel": {
+      "type": "Number",
+      "value": 2
+     },
+     "mode": {
+      "type": "Ident",
+      "name": "m"
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-245",
+   "op": "formatValue",
+   "value": {
+    "type": "Audio",
+    "band": 0,
+    "min": 0,
+    "max": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-246",
+   "op": "formatValue",
+   "value": {
+    "type": "Audio",
+    "band": 4,
+    "min": 0,
+    "max": 1,
+    "channel": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-247",
+   "op": "formatValue",
+   "value": {
+    "type": "Audio",
+    "band": 3,
+    "min": 0,
+    "max": 1,
+    "channel": 0
+   }
+  },
+  {
+   "id": "edge/formatValue-248",
+   "op": "formatValue",
+   "value": {
+    "type": "Audio",
+    "band": 2,
+    "min": 0,
+    "max": 1,
+    "channel": 1.5
+   }
+  },
+  {
+   "id": "edge/formatValue-249",
+   "op": "formatValue",
+   "value": {
+    "type": "Audio",
+    "band": "length",
+    "min": 0,
+    "max": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-250",
+   "op": "formatValue",
+   "value": {
+    "type": "Audio",
+    "band": 9,
+    "min": 0,
+    "max": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-251",
+   "op": "formatValue",
+   "value": {
+    "type": "Audio",
+    "band": 0,
+    "min": 0,
+    "max": 1,
+    "name": "",
+    "id": "i"
+   }
+  },
+  {
+   "id": "edge/formatValue-252",
+   "op": "formatValue",
+   "value": {
+    "type": "Audio",
+    "band": 0,
+    "min": 0,
+    "max": 1,
+    "name": "N",
+    "id": 7
+   }
+  },
+  {
+   "id": "edge/formatValue-253",
+   "op": "formatValue",
+   "value": {
+    "type": "Audio",
+    "band": 0,
+    "min": {
+     "$js": "undefined"
+    },
+    "max": 2
+   }
+  },
+  {
+   "id": "edge/formatValue-254",
+   "op": "formatValue",
+   "value": {
+    "type": "Audio",
+    "band": {
+     "type": "Member",
+     "path": [
+      "audioBand",
+      "mid"
+     ]
+    },
+    "min": 0,
+    "max": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-255",
+   "op": "formatValue",
+   "value": {
+    "type": "Audio",
+    "band": {
+     "type": "String",
+     "value": "bad\\nvalue"
+    },
+    "min": 0,
+    "max": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-256",
+   "op": "formatValue",
+   "value": {
+    "type": "Audio",
+    "band": 1,
+    "_ast": {
+     "type": "Audio",
+     "band": {
+      "type": "Number",
+      "value": 1
+     },
+     "name": {
+      "type": "String",
+      "value": "x\\\"y"
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-257",
+   "op": "formatValue",
+   "value": {
+    "type": "String",
+    "value": "he said \"hi\" \\ bye"
+   }
+  },
+  {
+   "id": "edge/formatValue-258",
+   "op": "formatValue",
+   "value": {
+    "type": "String",
+    "value": 5
+   }
+  },
+  {
+   "id": "edge/formatValue-259",
+   "op": "formatValue",
+   "value": {
+    "type": "String"
+   }
+  },
+  {
+   "id": "edge/formatValue-260",
+   "op": "formatValue",
+   "value": {
+    "_ast": {
+     "type": "Oscillator",
+     "oscType": {
+      "type": "Number",
+      "value": 2
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-261",
+   "op": "formatValue",
+   "value": {
+    "_ast": {
+     "type": "Midi",
+     "channel": {
+      "type": "Number",
+      "value": 4
+     }
+    },
+    "channel": 4,
+    "mode": 1,
+    "min": 0,
+    "max": 1,
+    "sensitivity": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-262",
+   "op": "formatValue",
+   "value": {
+    "_ast": {
+     "type": "Midi"
+    },
+    "channel": {
+     "a": 1
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-263",
+   "op": "formatValue",
+   "value": {
+    "_ast": {
+     "type": "Audio",
+     "band": {
+      "type": "Member",
+      "path": [
+       "audioBand",
+       "vol"
+      ]
+     }
+    },
+    "band": 3,
+    "min": 0,
+    "max": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-264",
+   "op": "formatValue",
+   "value": {
+    "type": "Read",
+    "surface": {
+     "name": "o1"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-265",
+   "op": "formatValue",
+   "value": {
+    "type": "Read",
+    "surface": "o2"
+   }
+  },
+  {
+   "id": "edge/formatValue-266",
+   "op": "formatValue",
+   "value": {
+    "type": "Read"
+   }
+  },
+  {
+   "id": "edge/formatValue-267",
+   "op": "formatValue",
+   "value": {
+    "type": "Read3D",
+    "tex3d": {
+     "name": "vol0"
+    },
+    "geo": {
+     "name": "geo0"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-268",
+   "op": "formatValue",
+   "value": {
+    "type": "Read3D",
+    "tex3d": "vol1"
+   }
+  },
+  {
+   "id": "edge/formatValue-269",
+   "op": "formatValue",
+   "value": {
+    "type": "Read3D",
+    "tex3d": "vol1",
+    "geo": "geo1"
+   }
+  },
+  {
+   "id": "edge/formatValue-270",
+   "op": "formatValue",
+   "value": {
+    "type": "OutputRef",
+    "name": "x1"
+   }
+  },
+  {
+   "id": "edge/formatValue-271",
+   "op": "formatValue",
+   "value": {
+    "type": "SourceRef",
+    "name": "x1"
+   }
+  },
+  {
+   "id": "edge/formatValue-272",
+   "op": "formatValue",
+   "value": {
+    "type": "VolRef",
+    "name": "x1"
+   }
+  },
+  {
+   "id": "edge/formatValue-273",
+   "op": "formatValue",
+   "value": {
+    "type": "GeoRef",
+    "name": "x1"
+   }
+  },
+  {
+   "id": "edge/formatValue-274",
+   "op": "formatValue",
+   "value": {
+    "type": "Member",
+    "path": [
+     "oscKind",
+     "sine"
+    ]
+   }
+  },
+  {
+   "id": "edge/formatValue-275",
+   "op": "formatValue",
+   "value": {
+    "type": "Member",
+    "path": "a.b"
+   }
+  },
+  {
+   "id": "edge/formatValue-276",
+   "op": "formatValue",
+   "value": {
+    "type": "Member"
+   }
+  },
+  {
+   "id": "edge/formatValue-277",
+   "op": "formatValue",
+   "value": {
+    "type": "Member",
+    "path": [
+     null,
+     "x",
+     1
+    ]
+   }
+  },
+  {
+   "id": "edge/formatValue-278",
+   "op": "formatValue",
+   "value": {
+    "type": "Number",
+    "value": 0.25
+   }
+  },
+  {
+   "id": "edge/formatValue-279",
+   "op": "formatValue",
+   "value": {
+    "type": "Number",
+    "value": 2
+   },
+   "spec": {
+    "choices": {
+     "two": 2
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-280",
+   "op": "formatValue",
+   "value": {
+    "type": "Number",
+    "value": "x"
+   }
+  },
+  {
+   "id": "edge/formatValue-281",
+   "op": "formatValue",
+   "value": {
+    "type": "Boolean",
+    "value": 0
+   }
+  },
+  {
+   "id": "edge/formatValue-282",
+   "op": "formatValue",
+   "value": {
+    "type": "Boolean",
+    "value": "yes"
+   }
+  },
+  {
+   "id": "edge/formatValue-283",
+   "op": "formatValue",
+   "value": {
+    "kind": "output",
+    "name": "o4"
+   }
+  },
+  {
+   "id": "edge/formatValue-284",
+   "op": "formatValue",
+   "value": {
+    "kind": "output",
+    "name": "o4"
+   },
+   "spec": {
+    "type": "surface"
+   }
+  },
+  {
+   "id": "edge/formatValue-285",
+   "op": "formatValue",
+   "value": {
+    "kind": "feedback",
+    "name": "o4"
+   }
+  },
+  {
+   "id": "edge/formatValue-286",
+   "op": "formatValue",
+   "value": {
+    "kind": "feedback",
+    "name": "o4"
+   },
+   "spec": {
+    "type": "surface"
+   }
+  },
+  {
+   "id": "edge/formatValue-287",
+   "op": "formatValue",
+   "value": {
+    "kind": "source",
+    "name": "o4"
+   }
+  },
+  {
+   "id": "edge/formatValue-288",
+   "op": "formatValue",
+   "value": {
+    "kind": "source",
+    "name": "o4"
+   },
+   "spec": {
+    "type": "surface"
+   }
+  },
+  {
+   "id": "edge/formatValue-289",
+   "op": "formatValue",
+   "value": {
+    "kind": "temp",
+    "name": "o4"
+   }
+  },
+  {
+   "id": "edge/formatValue-290",
+   "op": "formatValue",
+   "value": {
+    "kind": "temp",
+    "name": "o4"
+   },
+   "spec": {
+    "type": "surface"
+   }
+  },
+  {
+   "id": "edge/formatValue-291",
+   "op": "formatValue",
+   "value": {
+    "kind": "other",
+    "name": "o4"
+   }
+  },
+  {
+   "id": "edge/formatValue-292",
+   "op": "formatValue",
+   "value": {
+    "kind": "other",
+    "name": "o4"
+   },
+   "spec": {
+    "type": "surface"
+   }
+  },
+  {
+   "id": "edge/formatValue-293",
+   "op": "formatValue",
+   "value": {
+    "0": 1,
+    "1": 2,
+    "length": 2
+   }
+  },
+  {
+   "id": "edge/formatValue-294",
+   "op": "formatValue",
+   "value": {
+    "0": 0.5,
+    "1": 0.25,
+    "2": 1,
+    "length": 3
+   }
+  },
+  {
+   "id": "edge/formatValue-295",
+   "op": "formatValue",
+   "value": {
+    "0": 0.5,
+    "1": 0.25,
+    "2": 1,
+    "length": 3
+   },
+   "spec": {
+    "type": "color"
+   }
+  },
+  {
+   "id": "edge/formatValue-296",
+   "op": "formatValue",
+   "value": {
+    "0": 1,
+    "1": 0,
+    "2": 0,
+    "3": 0.5,
+    "length": 4
+   }
+  },
+  {
+   "id": "edge/formatValue-297",
+   "op": "formatValue",
+   "value": {
+    "0": 1,
+    "length": 2
+   }
+  },
+  {
+   "id": "edge/formatValue-298",
+   "op": "formatValue",
+   "value": {
+    "0": 1,
+    "length": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-299",
+   "op": "formatValue",
+   "value": {
+    "length": 5
+   }
+  },
+  {
+   "id": "edge/formatValue-300",
+   "op": "formatValue",
+   "value": {
+    "length": -1
+   }
+  },
+  {
+   "id": "edge/formatValue-301",
+   "op": "formatValue",
+   "value": {
+    "0": 1,
+    "1": 2,
+    "length": 2.7
+   }
+  },
+  {
+   "id": "edge/formatValue-302",
+   "op": "formatValue",
+   "value": {
+    "length": 10000000000
+   }
+  },
+  {
+   "id": "edge/formatValue-303",
+   "op": "formatValue",
+   "value": {
+    "length": {
+     "$js": "Infinity"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-304",
+   "op": "formatValue",
+   "value": {
+    "0": 1,
+    "length": {
+     "$js": "NaN"
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-305",
+   "op": "formatValue",
+   "value": {
+    "a": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-306",
+   "op": "formatValue",
+   "value": {
+    "toString": 5
+   }
+  },
+  {
+   "id": "edge/formatValue-307",
+   "op": "formatValue",
+   "value": {
+    "toString": 5,
+    "valueOf": 6
+   }
+  },
+  {
+   "id": "edge/formatValue-308",
+   "op": "formatValue",
+   "value": {
+    "$js": "function",
+    "source": "(state) => state.seed"
+   }
+  },
+  {
+   "id": "edge/formatValue-309",
+   "op": "formatValue",
+   "value": [
+    1,
+    2
+   ],
+   "spec": {
+    "type": "vec2"
+   }
+  },
+  {
+   "id": "edge/formatValue-310",
+   "op": "formatValue",
+   "value": [
+    1,
+    2,
+    3
+   ],
+   "spec": {
+    "type": "vec2"
+   }
+  },
+  {
+   "id": "edge/formatValue-311",
+   "op": "formatValue",
+   "value": [
+    1,
+    2,
+    3
+   ],
+   "spec": {
+    "type": "vec3"
+   }
+  },
+  {
+   "id": "edge/formatValue-312",
+   "op": "formatValue",
+   "value": [
+    0.5,
+    0.25,
+    1
+   ],
+   "spec": {
+    "type": "color"
+   }
+  },
+  {
+   "id": "edge/formatValue-313",
+   "op": "formatValue",
+   "value": [
+    1.5,
+    -1,
+    0.5
+   ],
+   "spec": {
+    "type": "color"
+   }
+  },
+  {
+   "id": "edge/formatValue-314",
+   "op": "formatValue",
+   "value": [
+    0.5,
+    0.25,
+    1,
+    0.5
+   ],
+   "spec": {
+    "type": "color"
+   }
+  },
+  {
+   "id": "edge/formatValue-315",
+   "op": "formatValue",
+   "value": [
+    2,
+    -0.5,
+    0,
+    1
+   ],
+   "spec": {
+    "type": "vec4"
+   }
+  },
+  {
+   "id": "edge/formatValue-316",
+   "op": "formatValue",
+   "value": [
+    0.5,
+    {
+     "$js": "NaN"
+    },
+    0,
+    1
+   ],
+   "spec": {
+    "type": "vec4"
+   }
+  },
+  {
+   "id": "edge/formatValue-317",
+   "op": "formatValue",
+   "value": [
+    1e+300,
+    0,
+    0,
+    1
+   ],
+   "spec": {
+    "type": "vec4"
+   }
+  },
+  {
+   "id": "edge/formatValue-318",
+   "op": "formatValue",
+   "value": [
+    0.1,
+    0.2
+   ]
+  },
+  {
+   "id": "edge/formatValue-319",
+   "op": "formatValue",
+   "value": [
+    0.1,
+    0.2,
+    0.3
+   ]
+  },
+  {
+   "id": "edge/formatValue-320",
+   "op": "formatValue",
+   "value": [
+    0.1,
+    0.2,
+    0.3,
+    0.4
+   ]
+  },
+  {
+   "id": "edge/formatValue-321",
+   "op": "formatValue",
+   "value": [
+    -1,
+    2,
+    0.5,
+    0.25
+   ]
+  },
+  {
+   "id": "edge/formatValue-322",
+   "op": "formatValue",
+   "value": [
+    1
+   ]
+  },
+  {
+   "id": "edge/formatValue-323",
+   "op": "formatValue",
+   "value": []
+  },
+  {
+   "id": "edge/formatValue-324",
+   "op": "formatValue",
+   "value": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ]
+  },
+  {
+   "id": "edge/formatValue-325",
+   "op": "formatValue",
+   "value": [
+    "0.5",
+    null,
+    true
+   ],
+   "spec": {
+    "type": "color"
+   }
+  },
+  {
+   "id": "edge/formatValue-326",
+   "op": "formatValue",
+   "value": [
+    "0.5",
+    [],
+    {},
+    "x"
+   ],
+   "spec": {
+    "type": "color"
+   }
+  },
+  {
+   "id": "edge/formatValue-327",
+   "op": "formatValue",
+   "value": [
+    "a",
+    "b"
+   ]
+  },
+  {
+   "id": "edge/formatValue-328",
+   "op": "formatValue",
+   "value": [
+    {
+     "type": "Member",
+     "path": [
+      "a"
+     ]
+    },
+    "x y",
+    true,
+    4
+   ]
+  },
+  {
+   "id": "edge/formatValue-329",
+   "op": "formatValue",
+   "value": [
+    1,
+    2,
+    "x"
+   ],
+   "spec": {
+    "type": "vec3"
+   }
+  },
+  {
+   "id": "edge/formatValue-330",
+   "op": "formatValue",
+   "value": [
+    [
+     1,
+     2
+    ],
+    3,
+    4
+   ]
+  },
+  {
+   "id": "edge/formatValue-331",
+   "op": "formatValue",
+   "value": {
+    "$js": "Float32Array",
+    "values": [
+     0.6000000238418579,
+     0.699999988079071,
+     0.800000011920929
+    ]
+   },
+   "spec": {
+    "type": "vec3"
+   }
+  },
+  {
+   "id": "edge/formatValue-332",
+   "op": "formatValue",
+   "value": {
+    "$js": "Float32Array",
+    "values": [
+     0.6000000238418579,
+     0.699999988079071,
+     0.800000011920929,
+     1
+    ]
+   }
+  },
+  {
+   "id": "edge/formatValue-333",
+   "op": "formatValue",
+   "value": {
+    "$js": "Float32Array",
+    "values": [
+     0.6000000238418579,
+     0.699999988079071
+    ]
+   }
+  },
+  {
+   "id": "edge/formatValue-334",
+   "op": "formatValue",
+   "value": 3,
+   "spec": {
+    "enum": "palette"
+   },
+   "options": {
+    "$legacyFormatter": {
+     "kind": "formatValue",
+     "enums": {
+      "$enums": "std"
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-335",
+   "op": "formatValue",
+   "value": 5,
+   "spec": null,
+   "options": {
+    "customFormatter": {
+     "kind": "formatValue",
+     "enums": {
+      "$enums": "std"
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-336",
+   "op": "formatValue",
+   "value": "x",
+   "spec": {
+    "type": "geometry"
+   },
+   "options": {
+    "customFormatter": {
+     "kind": "formatValue",
+     "enums": {
+      "$enums": "std"
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-337",
+   "op": "formatValue",
+   "value": [],
+   "spec": {
+    "type": "geometry"
+   },
+   "options": {
+    "customFormatter": {
+     "kind": "formatValue",
+     "enums": {
+      "$enums": "std"
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/formatValue-338",
+   "op": "formatValue",
+   "value": {
+    "_ast": {
+     "type": "Midi"
+    },
+    "channel": {
+     "x": 1
+    },
+    "mode": 1
+   }
+  },
+  {
+   "id": "edge/formatValue-339",
+   "op": "formatValue",
+   "value": {
+    "_ast": {
+     "type": "Audio"
+    },
+    "band": {
+     "x": 1
+    }
+   }
+  },
+  {
+   "id": "edge/unparseCall-0",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "a": 1,
+     "s": "none",
+     "n": "none",
+     "c": 1,
+     "_skip": false,
+     "z": [
+      0.5,
+      0.5
+     ]
+    },
+    "args": []
+   },
+   "options": {
+    "specs": {
+     "a": {
+      "type": "float",
+      "default": 1
+     },
+     "s": {
+      "type": "surface",
+      "default": "inputTex"
+     },
+     "n": {
+      "type": "surface",
+      "default": "none"
+     },
+     "g": {
+      "type": "geometry"
+     },
+     "c": {
+      "type": "int",
+      "choices": {
+       "x": 0,
+       "y": 1
+      },
+      "default": 0
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/unparseCall-1",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "a": 2,
+     "s": "o1",
+     "n": "o2",
+     "c": 0,
+     "_skip": true
+    },
+    "args": []
+   },
+   "options": {
+    "specs": {
+     "a": {
+      "type": "float",
+      "default": 1
+     },
+     "s": {
+      "type": "surface",
+      "default": "inputTex"
+     },
+     "n": {
+      "type": "surface",
+      "default": "none"
+     },
+     "g": {
+      "type": "geometry"
+     },
+     "c": {
+      "type": "int",
+      "choices": {
+       "x": 0,
+       "y": 1
+      },
+      "default": 0
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/unparseCall-2",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "a": 2,
+     "s": "o1",
+     "n": "o2",
+     "c": 1
+    },
+    "args": []
+   },
+   "options": {
+    "specs": {
+     "a": {
+      "type": "float",
+      "default": 1
+     },
+     "s": {
+      "type": "surface",
+      "default": "inputTex"
+     },
+     "n": {
+      "type": "surface",
+      "default": "none"
+     },
+     "g": {
+      "type": "geometry"
+     },
+     "c": {
+      "type": "int",
+      "choices": {
+       "x": 0,
+       "y": 1
+      },
+      "default": 0
+     }
+    },
+    "multilineKwargs": false
+   }
+  },
+  {
+   "id": "edge/unparseCall-3",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "a": 2,
+     "b": 3,
+     "c": 1
+    },
+    "args": []
+   },
+   "options": {
+    "specs": {
+     "a": {
+      "type": "float",
+      "default": 1
+     },
+     "s": {
+      "type": "surface",
+      "default": "inputTex"
+     },
+     "n": {
+      "type": "surface",
+      "default": "none"
+     },
+     "g": {
+      "type": "geometry"
+     },
+     "c": {
+      "type": "int",
+      "choices": {
+       "x": 0,
+       "y": 1
+      },
+      "default": 0
+     }
+    },
+    "indent": 4
+   }
+  },
+  {
+   "id": "edge/unparseCall-4",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "a": 2,
+     "b": 3,
+     "c": 1
+    },
+    "args": []
+   },
+   "options": {
+    "specs": {
+     "a": {
+      "type": "float",
+      "default": 1
+     },
+     "s": {
+      "type": "surface",
+      "default": "inputTex"
+     },
+     "n": {
+      "type": "surface",
+      "default": "none"
+     },
+     "g": {
+      "type": "geometry"
+     },
+     "c": {
+      "type": "int",
+      "choices": {
+       "x": 0,
+       "y": 1
+      },
+      "default": 0
+     }
+    },
+    "indent": 1.5
+   }
+  },
+  {
+   "id": "edge/unparseCall-5",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "a": 2,
+     "b": 3,
+     "c": 1
+    },
+    "args": []
+   },
+   "options": {
+    "specs": {
+     "a": {
+      "type": "float",
+      "default": 1
+     },
+     "s": {
+      "type": "surface",
+      "default": "inputTex"
+     },
+     "n": {
+      "type": "surface",
+      "default": "none"
+     },
+     "g": {
+      "type": "geometry"
+     },
+     "c": {
+      "type": "int",
+      "choices": {
+       "x": 0,
+       "y": 1
+      },
+      "default": 0
+     }
+    },
+    "indent": -3
+   }
+  },
+  {
+   "id": "edge/unparseCall-6",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "a": 2,
+     "b": 3,
+     "c": 1
+    },
+    "args": []
+   },
+   "options": {
+    "specs": {
+     "a": {
+      "type": "float",
+      "default": 1
+     },
+     "s": {
+      "type": "surface",
+      "default": "inputTex"
+     },
+     "n": {
+      "type": "surface",
+      "default": "none"
+     },
+     "g": {
+      "type": "geometry"
+     },
+     "c": {
+      "type": "int",
+      "choices": {
+       "x": 0,
+       "y": 1
+      },
+      "default": 0
+     }
+    },
+    "indent": {
+     "$js": "NaN"
+    }
+   }
+  },
+  {
+   "id": "edge/unparseCall-7",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "a": 2,
+     "b": 3,
+     "c": 1
+    },
+    "args": []
+   },
+   "options": {
+    "specs": {
+     "a": {
+      "type": "float",
+      "default": 1
+     },
+     "s": {
+      "type": "surface",
+      "default": "inputTex"
+     },
+     "n": {
+      "type": "surface",
+      "default": "none"
+     },
+     "g": {
+      "type": "geometry"
+     },
+     "c": {
+      "type": "int",
+      "choices": {
+       "x": 0,
+       "y": 1
+      },
+      "default": 0
+     }
+    },
+    "indent": "2"
+   }
+  },
+  {
+   "id": "edge/unparseCall-8",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "a": 2,
+     "b": 3,
+     "c": 1
+    },
+    "args": []
+   },
+   "options": {
+    "specs": {
+     "a": {
+      "type": "float",
+      "default": 1
+     },
+     "s": {
+      "type": "surface",
+      "default": "inputTex"
+     },
+     "n": {
+      "type": "surface",
+      "default": "none"
+     },
+     "g": {
+      "type": "geometry"
+     },
+     "c": {
+      "type": "int",
+      "choices": {
+       "x": 0,
+       "y": 1
+      },
+      "default": 0
+     }
+    },
+    "indent": {
+     "$js": "Infinity"
+    }
+   }
+  },
+  {
+   "id": "edge/unparseCall-9",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "a": 2,
+     "b": 3,
+     "c": 1
+    },
+    "args": []
+   },
+   "options": {
+    "specs": {
+     "a": {
+      "type": "float",
+      "default": 1
+     },
+     "s": {
+      "type": "surface",
+      "default": "inputTex"
+     },
+     "n": {
+      "type": "surface",
+      "default": "none"
+     },
+     "g": {
+      "type": "geometry"
+     },
+     "c": {
+      "type": "int",
+      "choices": {
+       "x": 0,
+       "y": 1
+      },
+      "default": 0
+     }
+    },
+    "indent": {
+     "$js": "undefined"
+    }
+   }
+  },
+  {
+   "id": "edge/unparseCall-10",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {},
+    "args": [
+     1,
+     "two words",
+     true,
+     null,
+     [
+      1,
+      2
+     ]
+    ]
+   }
+  },
+  {
+   "id": "edge/unparseCall-11",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "g": "x",
+     "h": 1
+    },
+    "args": [
+     2
+    ]
+   },
+   "options": {
+    "specs": {
+     "a": {
+      "type": "float",
+      "default": 1
+     },
+     "s": {
+      "type": "surface",
+      "default": "inputTex"
+     },
+     "n": {
+      "type": "surface",
+      "default": "none"
+     },
+     "g": {
+      "type": "geometry"
+     },
+     "c": {
+      "type": "int",
+      "choices": {
+       "x": 0,
+       "y": 1
+      },
+      "default": 0
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/unparseCall-12",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "g": [],
+     "h": 1,
+     "i": 2
+    },
+    "args": []
+   },
+   "options": {
+    "specs": {
+     "a": {
+      "type": "float",
+      "default": 1
+     },
+     "s": {
+      "type": "surface",
+      "default": "inputTex"
+     },
+     "n": {
+      "type": "surface",
+      "default": "none"
+     },
+     "g": {
+      "type": "geometry"
+     },
+     "c": {
+      "type": "int",
+      "choices": {
+       "x": 0,
+       "y": 1
+      },
+      "default": 0
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/unparseCall-13",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "g": []
+    },
+    "args": []
+   },
+   "options": {
+    "specs": {
+     "g": {
+      "type": "geometry",
+      "default": "geo0"
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/unparseCall-14",
+   "op": "unparseCall",
+   "call": {
+    "name": 5,
+    "kwargs": {
+     "a": 1
+    },
+    "args": []
+   }
+  },
+  {
+   "id": "edge/unparseCall-15",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "a": 1
+    },
+    "args": []
+   },
+   "options": {
+    "schemaSpecs": {
+     "a": {
+      "default": 1
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/unparseCall-16",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "a": 1,
+     "b": 2
+    },
+    "args": []
+   },
+   "options": {
+    "schemaSpecs": {
+     "a": {
+      "default": 1
+     },
+     "b": {
+      "default": 2
+     }
+    },
+    "specs": {
+     "b": {
+      "type": "float"
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/unparseCall-17",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "v": [
+      0.1,
+      0.2,
+      0.3
+     ]
+    },
+    "args": [],
+    "argSources": {
+     "v": "array"
+    }
+   },
+   "options": {
+    "specs": {
+     "v": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/unparseCall-18",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "v": [
+      0,
+      0,
+      0
+     ]
+    },
+    "args": [],
+    "argSources": {
+     "v": "array"
+    }
+   },
+   "options": {
+    "specs": {
+     "v": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/unparseCall-19",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "constructor": 1,
+     "toString": 2,
+     "valueOf": 3
+    },
+    "args": []
+   }
+  },
+  {
+   "id": "edge/unparseCall-20",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": "ab",
+    "args": "cd"
+   }
+  },
+  {
+   "id": "edge/unparseCall-21",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx"
+   }
+  },
+  {
+   "id": "edge/unparseCall-22",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": null,
+    "args": null
+   }
+  },
+  {
+   "id": "edge/unparseCall-23",
+   "op": "unparseCall",
+   "call": {
+    "name": "fx",
+    "kwargs": {
+     "a": {
+      "kind": "output",
+      "name": "o1"
+     }
+    },
+    "args": []
+   },
+   "options": {
+    "specs": {
+     "a": {
+      "type": "surface",
+      "default": "inputTex"
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/unparseCall-24",
+   "op": "unparseCall",
+   "call": null
+  },
+  {
+   "id": "edge/unparseChain-0",
+   "op": "unparseChain",
+   "chain": [
+    {
+     "name": "noise",
+     "kwargs": {
+      "scale": 3
+     },
+     "args": []
+    },
+    {
+     "name": "blur",
+     "kwargs": {
+      "a": 1,
+      "b": 2,
+      "c": 3
+     },
+     "args": []
+    },
+    {
+     "name": "warp",
+     "kwargs": {
+      "x": 1,
+      "y": 2,
+      "z": 3
+     },
+     "args": []
+    }
+   ]
+  },
+  {
+   "id": "edge/unparseChain-1",
+   "op": "unparseChain",
+   "chain": [
+    {
+     "name": "noise",
+     "kwargs": {
+      "a": 1,
+      "b": 2,
+      "c": 3
+     },
+     "args": []
+    }
+   ],
+   "options": {
+    "multilineKwargs": false
+   }
+  },
+  {
+   "id": "edge/unparseChain-2",
+   "op": "unparseChain",
+   "chain": []
+  },
+  {
+   "id": "edge/unparseChain-3",
+   "op": "unparseChain",
+   "chain": "noise"
+  },
+  {
+   "id": "edge/unparseChain-4",
+   "op": "unparseChain",
+   "chain": null
+  },
+  {
+   "id": "edge/unparseChain-5",
+   "op": "unparseChain",
+   "chain": {
+    "$js": "undefined"
+   }
+  },
+  {
+   "id": "edge/let-0",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "vars": [
+     {
+      "name": "v0",
+      "expr": null,
+      "leadingComments": [
+       "// first",
+       null,
+       7
+      ]
+     },
+     {
+      "name": "v1",
+      "expr": 0
+     },
+     {
+      "name": "v2",
+      "expr": ""
+     },
+     {
+      "name": "v3",
+      "expr": false
+     },
+     {
+      "name": "v4",
+      "expr": {
+       "$js": "NaN"
+      }
+     },
+     {
+      "name": "v5",
+      "expr": {
+       "_varRef": "other"
+      }
+     },
+     {
+      "name": "v6",
+      "expr": 5
+     },
+     {
+      "name": "v7",
+      "expr": "raw"
+     },
+     {
+      "name": "v8",
+      "expr": {
+       "type": "Number",
+       "value": 1e-7
+      }
+     },
+     {
+      "name": "v9",
+      "expr": {
+       "type": "Number",
+       "value": {
+        "$js": "-0"
+       }
+      }
+     },
+     {
+      "name": "v10",
+      "expr": {
+       "type": "String",
+       "value": "q\"\n"
+      }
+     },
+     {
+      "name": "v11",
+      "expr": {
+       "type": "String"
+      }
+     },
+     {
+      "name": "v12",
+      "expr": {
+       "type": "Boolean",
+       "value": 1
+      }
+     },
+     {
+      "name": "v13",
+      "expr": {
+       "type": "Ident",
+       "name": "x"
+      }
+     },
+     {
+      "name": "v14",
+      "expr": {
+       "type": "Ident"
+      }
+     },
+     {
+      "name": "v15",
+      "expr": {
+       "type": "Member",
+       "path": [
+        "a",
+        "b"
+       ]
+      }
+     }
+    ],
+    "plans": []
+   }
+  },
+  {
+   "id": "edge/let-1",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "vars": [
+     {
+      "name": "v0",
+      "expr": {
+       "type": "Member",
+       "path": "a.b"
+      },
+      "leadingComments": [
+       "// first",
+       null,
+       7
+      ]
+     }
+    ],
+    "plans": []
+   }
+  },
+  {
+   "id": "edge/let-2",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "vars": [
+     {
+      "name": "v0",
+      "expr": {
+       "type": "Member"
+      },
+      "leadingComments": [
+       "// first",
+       null,
+       7
+      ]
+     }
+    ],
+    "plans": []
+   }
+  },
+  {
+   "id": "edge/let-3",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "vars": [
+     {
+      "name": "v0",
+      "expr": {
+       "type": "Oscillator"
+      },
+      "leadingComments": [
+       "// first",
+       null,
+       7
+      ]
+     },
+     {
+      "name": "v1",
+      "expr": {
+       "type": "Oscillator",
+       "oscType": {
+        "type": "Member",
+        "path": [
+         "oscKind",
+         "tri"
+        ]
+       },
+       "min": {
+        "type": "Number",
+        "value": 0
+       },
+       "max": {
+        "type": "Number",
+        "value": 1
+       },
+       "speed": {
+        "type": "Number",
+        "value": 2
+       },
+       "offset": {
+        "type": "Ident",
+        "name": "o"
+       },
+       "seed": {
+        "type": "Number",
+        "value": 1
+       }
+      }
+     },
+     {
+      "name": "v2",
+      "expr": {
+       "type": "Oscillator",
+       "oscType": {
+        "type": "Ident",
+        "name": "kind"
+       }
+      }
+     },
+     {
+      "name": "v3",
+      "expr": {
+       "type": "Oscillator",
+       "oscType": {
+        "type": "Number",
+        "value": 3
+       }
+      }
+     },
+     {
+      "name": "v4",
+      "expr": {
+       "type": "Oscillator",
+       "oscType": {
+        "type": "Number",
+        "value": 6
+       }
+      }
+     },
+     {
+      "name": "v5",
+      "expr": {
+       "type": "Oscillator",
+       "oscType": {
+        "type": "Number",
+        "value": 2.5
+       }
+      }
+     },
+     {
+      "name": "v6",
+      "expr": {
+       "type": "Oscillator",
+       "oscType": {
+        "type": "Member",
+        "path": "xy"
+       }
+      }
+     },
+     {
+      "name": "v7",
+      "expr": {
+       "type": "Oscillator",
+       "oscType": {
+        "type": "Member",
+        "path": []
+       }
+      }
+     },
+     {
+      "name": "v8",
+      "expr": {
+       "type": "Oscillator",
+       "oscType": {
+        "type": "Member"
+       }
+      }
+     },
+     {
+      "name": "v9",
+      "expr": {
+       "type": "Oscillator",
+       "min": {
+        "type": "Oscillator",
+        "oscType": {
+         "type": "Number",
+         "value": 1
+        }
+       },
+       "max": {
+        "_varRef": "m"
+       }
+      }
+     }
+    ],
+    "plans": []
+   }
+  },
+  {
+   "id": "edge/let-4",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "vars": [
+     {
+      "name": "v0",
+      "expr": {
+       "type": "Midi"
+      },
+      "leadingComments": [
+       "// first",
+       null,
+       7
+      ]
+     },
+     {
+      "name": "v1",
+      "expr": {
+       "type": "Midi",
+       "channel": {
+        "type": "Number",
+        "value": 3
+       },
+       "mode": {
+        "type": "Member",
+        "path": [
+         "midiMode",
+         "velocity"
+        ]
+       }
+      }
+     },
+     {
+      "name": "v2",
+      "expr": {
+       "type": "Midi",
+       "channel": {
+        "type": "Number",
+        "value": 3
+       },
+       "mode": {
+        "type": "Member",
+        "path": [
+         "midiMode",
+         "cc"
+        ]
+       },
+       "cc": {
+        "type": "Number",
+        "value": 7
+       },
+       "nrpn": {
+        "type": "Number",
+        "value": 0
+       },
+       "zone": {
+        "type": "Number",
+        "value": 1
+       },
+       "members": {
+        "type": "Number",
+        "value": 4
+       }
+      }
+     },
+     {
+      "name": "v3",
+      "expr": {
+       "type": "Midi",
+       "mode": {
+        "type": "Ident",
+        "name": "m"
+       }
+      }
+     },
+     {
+      "name": "v4",
+      "expr": {
+       "type": "Midi",
+       "mode": {
+        "type": "Ident",
+        "name": ""
+       }
+      }
+     },
+     {
+      "name": "v5",
+      "expr": {
+       "type": "Midi",
+       "mode": {
+        "type": "Number",
+        "value": 4
+       }
+      }
+     },
+     {
+      "name": "v6",
+      "expr": {
+       "type": "Midi",
+       "mode": {
+        "type": "Number",
+        "value": 9
+       }
+      }
+     },
+     {
+      "name": "v7",
+      "expr": {
+       "type": "Midi",
+       "min": {
+        "type": "Number",
+        "value": 0
+       },
+       "max": {
+        "type": "Number",
+        "value": 0.5
+       },
+       "sensitivity": {
+        "type": "Number",
+        "value": 1
+       }
+      }
+     },
+     {
+      "name": "v8",
+      "expr": {
+       "type": "Midi",
+       "channel": {
+        "type": "Number",
+        "value": 1
+       },
+       "name": {
+        "type": "String",
+        "value": "a\\\"b"
+       },
+       "id": {
+        "type": "String",
+        "value": "it\\'s \\x"
+       }
+      }
+     },
+     {
+      "name": "v9",
+      "expr": {
+       "type": "Midi",
+       "channel": {
+        "type": "Number",
+        "value": 1
+       },
+       "name": {
+        "type": "String",
+        "value": "lone \\ud800 surrogate"
+       },
+       "id": {
+        "type": "String",
+        "value": "tab\\there"
+       }
+      }
+     },
+     {
+      "name": "v10",
+      "expr": {
+       "type": "Midi",
+       "channel": {
+        "type": "Number",
+        "value": 1
+       },
+       "name": {
+        "type": "String",
+        "value": "emoji 😀 and \\u00e9"
+       },
+       "id": {
+        "type": "Ident",
+        "name": "notString"
+       }
+      }
+     },
+     {
+      "name": "v11",
+      "expr": {
+       "type": "Midi",
+       "channel": {
+        "type": "Number",
+        "value": 1
+       },
+       "name": {
+        "type": "String",
+        "value": 5
+       }
+      }
+     },
+     {
+      "name": "v12",
+      "expr": {
+       "type": "Midi",
+       "channel": {
+        "type": "Number",
+        "value": 1
+       },
+       "name": {
+        "type": "String",
+        "value": [
+         "a\"",
+         "\\",
+         "n"
+        ]
+       }
+      }
+     }
+    ],
+    "plans": []
+   }
+  },
+  {
+   "id": "edge/let-5",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "vars": [
+     {
+      "name": "v0",
+      "expr": {
+       "type": "Audio"
+      },
+      "leadingComments": [
+       "// first",
+       null,
+       7
+      ]
+     },
+     {
+      "name": "v1",
+      "expr": {
+       "type": "Audio",
+       "band": {
+        "type": "String",
+        "value": "bad\\nvalue"
+       }
+      }
+     },
+     {
+      "name": "v2",
+      "expr": {
+       "type": "Audio",
+       "band": {
+        "type": "Member",
+        "path": [
+         "audioBand",
+         "raw"
+        ]
+       },
+       "min": {
+        "type": "Number",
+        "value": 0
+       },
+       "max": {
+        "type": "Number",
+        "value": 2
+       },
+       "channel": {
+        "type": "Number",
+        "value": 3
+       }
+      }
+     },
+     {
+      "name": "v3",
+      "expr": {
+       "type": "Audio",
+       "band": {
+        "type": "Number",
+        "value": 2
+       },
+       "min": {
+        "type": "String",
+        "value": "x"
+       },
+       "channel": {
+        "type": "Ident",
+        "name": "c"
+       },
+       "name": {
+        "type": "String",
+        "value": "In \"1\""
+       },
+       "id": {
+        "type": "String",
+        "value": "a\\'b"
+       }
+      }
+     }
+    ],
+    "plans": []
+   }
+  },
+  {
+   "id": "edge/let-6",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "vars": [
+     {
+      "name": "v0",
+      "expr": {
+       "type": "Call",
+       "name": "noise",
+       "kwargs": {
+        "scale": 3,
+        "seed": 2,
+        "octaves": 4
+       },
+       "args": []
+      },
+      "leadingComments": [
+       "// first",
+       null,
+       7
+      ]
+     },
+     {
+      "name": "v1",
+      "expr": {
+       "type": "Chain",
+       "chain": [
+        {
+         "name": "noise",
+         "kwargs": {
+          "scale": 3
+         },
+         "args": []
+        },
+        {
+         "name": "blur",
+         "kwargs": {},
+         "args": [
+          1
+         ]
+        }
+       ]
+      }
+     },
+     {
+      "name": "v2",
+      "expr": {
+       "type": "Func",
+       "body": {
+        "type": "Number",
+        "value": 2
+       }
+      }
+     },
+     {
+      "name": "v3",
+      "expr": {
+       "type": "Func"
+      }
+     },
+     {
+      "name": "v4",
+      "expr": {
+       "type": "Unknown",
+       "name": "x"
+      }
+     },
+     {
+      "name": "v5",
+      "expr": {
+       "type": "Read",
+       "surface": "o1"
+      }
+     },
+     {
+      "name": "v6",
+      "expr": {
+       "type": 5
+      }
+     }
+    ],
+    "plans": []
+   }
+  },
+  {
+   "id": "edge/let-7",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "vars": [
+     {
+      "name": "v0",
+      "expr": {
+       "type": "Chain",
+       "chain": "x"
+      },
+      "leadingComments": [
+       "// first",
+       null,
+       7
+      ]
+     }
+    ],
+    "plans": []
+   }
+  },
+  {
+   "id": "edge/let-8",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "vars": [
+     {
+      "name": "v0",
+      "expr": {
+       "type": "Chain"
+      },
+      "leadingComments": [
+       "// first",
+       null,
+       7
+      ]
+     }
+    ],
+    "plans": []
+   }
+  },
+  {
+   "id": "edge/let-9",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "vars": 5,
+    "plans": []
+   }
+  },
+  {
+   "id": "edge/let-iterable-object",
+   "op": "unparse",
+   "compiled": {
+    "vars": {
+     "length": 1
+    },
+    "plans": []
+   }
+  },
+  {
+   "id": "edge/unparse-0",
+   "op": "unparse",
+   "compiled": {
+    "plans": []
+   }
+  },
+  {
+   "id": "edge/unparse-1",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "type": "Branch",
+      "then": []
+     },
+     {
+      "chain": []
+     },
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scale": 2
+        },
+        "temp": 0,
+        "from": null
+       }
+      ],
+      "write": "o1"
+     },
+     {
+      "type": "Branch"
+     }
+    ],
+    "render": 3,
+    "trailingComments": [
+     "// end",
+     null,
+     {
+      "$js": "undefined"
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-2",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     null
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-3",
+   "op": "unparse",
+   "compiled": {
+    "plans": {
+     "0": {
+      "chain": [
+       {
+        "op": "a.b",
+        "args": {}
+       }
+      ]
+     },
+     "length": 1
+    }
+   }
+  },
+  {
+   "id": "edge/unparse-4",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": "ab"
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-5",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": {
+       "length": 1
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-6",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": "synth",
+    "plans": []
+   }
+  },
+  {
+   "id": "edge/unparse-7",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": "synth",
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {}
+       }
+      ]
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {
+    "omitSearchDirective": true
+   }
+  },
+  {
+   "id": "edge/unparse-8",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     null,
+     {
+      "$js": "undefined"
+     },
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "filter.blur",
+        "args": {
+         "a": 1
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-9",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": 5,
+        "args": {}
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-10",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": {
+         "$js": "undefined"
+        },
+        "args": {}
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-11",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": 5,
+        "args": {
+         "a": 1
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-12",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "a": 1
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "overrides": null
+  },
+  {
+   "id": "edge/unparse-13",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scale": 1
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "overrides": [
+    {
+     "scale": 5
+    },
+    null,
+    {
+     "r": 9
+    }
+   ]
+  },
+  {
+   "id": "edge/unparse-14",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scale": 1
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "overrides": {
+    "0": "ab",
+    "1": 7
+   }
+  },
+  {
+   "id": "edge/unparse-15",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "a": 1
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "tex": {
+          "kind": "temp"
+         }
+        }
+       },
+       {
+        "op": "filter.x",
+        "args": {}
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-16",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.solid",
+        "args": {
+         "color": [
+          1,
+          0,
+          0
+         ]
+        },
+        "temp": 0,
+        "from": null
+       },
+       {
+        "op": "filter.invert",
+        "args": {},
+        "temp": 1,
+        "from": 0
+       },
+       {
+        "op": "synth.noise",
+        "args": {
+         "seed": 2
+        },
+        "temp": 2,
+        "from": null
+       },
+       {
+        "op": "filter.blend",
+        "args": {
+         "tex": {
+          "kind": "temp",
+          "index": 1
+         },
+         "mix": {
+          "kind": "temp",
+          "index": 2
+         }
+        },
+        "temp": 3,
+        "from": 2
+       },
+       {
+        "op": "_write",
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o0"
+         }
+        },
+        "temp": 4,
+        "from": 3,
+        "builtin": true
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-17",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.solid",
+        "args": {
+         "color": [
+          1,
+          0,
+          0
+         ]
+        },
+        "temp": 0,
+        "from": null
+       },
+       {
+        "op": "filter.invert",
+        "args": {},
+        "temp": 1,
+        "from": 0
+       },
+       {
+        "op": "synth.noise",
+        "args": {
+         "seed": 2
+        },
+        "temp": 2,
+        "from": null
+       },
+       {
+        "op": "filter.blend",
+        "args": {
+         "tex": {
+          "kind": "temp",
+          "index": 1
+         },
+         "mix": {
+          "kind": "temp",
+          "index": 2
+         }
+        },
+        "temp": 3,
+        "from": 2
+       },
+       {
+        "op": "_write",
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o0"
+         }
+        },
+        "temp": 4,
+        "from": 3,
+        "builtin": true
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {
+    "3": {
+     "mix": "none"
+    }
+   }
+  },
+  {
+   "id": "edge/unparse-18",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.solid",
+        "args": {
+         "color": [
+          1,
+          0,
+          0
+         ]
+        },
+        "temp": 0,
+        "from": null
+       },
+       {
+        "op": "filter.invert",
+        "args": {},
+        "temp": 1,
+        "from": 0
+       },
+       {
+        "op": "synth.noise",
+        "args": {
+         "seed": 2
+        },
+        "temp": 2,
+        "from": null
+       },
+       {
+        "op": "filter.blend",
+        "args": {
+         "tex": {
+          "kind": "temp",
+          "index": 1
+         },
+         "mix": {
+          "kind": "temp",
+          "index": 2
+         }
+        },
+        "temp": 3,
+        "from": 2
+       },
+       {
+        "op": "_write",
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o0"
+         }
+        },
+        "temp": 4,
+        "from": 3,
+        "builtin": true
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {
+    "3": {
+     "extra": {
+      "kind": "temp",
+      "index": 0
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/unparse-19",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.solid",
+        "args": {
+         "color": [
+          1,
+          0,
+          0
+         ]
+        },
+        "temp": 0,
+        "from": null
+       },
+       {
+        "op": "filter.invert",
+        "args": {},
+        "temp": 1,
+        "from": 0
+       },
+       {
+        "op": "synth.noise",
+        "args": {
+         "seed": 2
+        },
+        "temp": 2,
+        "from": null
+       },
+       {
+        "op": "filter.blend",
+        "args": {
+         "tex": {
+          "kind": "temp",
+          "index": 1
+         },
+         "mix": {
+          "kind": "temp",
+          "index": 2
+         }
+        },
+        "temp": 3,
+        "from": 2
+       },
+       {
+        "op": "_write",
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o0"
+         }
+        },
+        "temp": 4,
+        "from": 3,
+        "builtin": true
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {
+    "0": {
+     "color": [
+      0,
+      1,
+      0
+     ]
+    },
+    "2": {
+     "seed": 9
+    }
+   },
+   "options": {
+    "multilineKwargs": true
+   }
+  },
+  {
+   "id": "edge/unparse-20",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "a.x",
+        "args": {
+         "t": {
+          "kind": "temp",
+          "index": 0
+         }
+        },
+        "temp": 0
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-21",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "a.x",
+        "args": {
+         "t": {
+          "kind": "temp",
+          "index": 1
+         }
+        },
+        "temp": 0
+       },
+       {
+        "op": "a.y",
+        "args": {
+         "t": {
+          "kind": "temp",
+          "index": 0
+         }
+        },
+        "temp": 1
+       },
+       {
+        "op": "a.z",
+        "args": {
+         "t": {
+          "kind": "temp",
+          "index": 1
+         }
+        },
+        "temp": 2
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-22",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "a.x",
+        "args": {},
+        "temp": {
+         "$js": "NaN"
+        }
+       },
+       {
+        "op": "a.y",
+        "args": {
+         "t": {
+          "kind": "temp",
+          "index": {
+           "$js": "NaN"
+          }
+         }
+        },
+        "temp": 1
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-23",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     "filter"
+    ],
+    "plans": [
+     {
+      "leadingComments": [
+       "// plan",
+       {
+        "$js": "undefined"
+       }
+      ],
+      "chain": [
+       {
+        "op": "_read",
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o1"
+         },
+         "_skip": true
+        },
+        "builtin": true,
+        "temp": 0,
+        "leadingComments": [
+         "// read"
+        ]
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 1,
+         "_skip": false
+        },
+        "temp": 1,
+        "from": 0,
+        "leadingComments": [
+         "// blur",
+         null
+        ]
+       },
+       {
+        "op": "_write",
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o2"
+         }
+        },
+        "builtin": true,
+        "temp": 2
+       },
+       {
+        "op": "_read3d",
+        "args": {
+         "tex3d": {
+          "name": "vol0"
+         },
+         "geo": "geo0"
+        },
+        "builtin": true,
+        "temp": 3
+       },
+       {
+        "op": "_subchain_begin",
+        "args": {
+         "name": "sub \"x\"",
+         "id": "sc1"
+        },
+        "builtin": true,
+        "temp": 4,
+        "leadingComments": [
+         "// sub"
+        ]
+       },
+       {
+        "op": "filter.warp",
+        "args": {
+         "a": 1,
+         "b": 2,
+         "c": 3
+        },
+        "temp": 5,
+        "leadingComments": [
+         "// in sub"
+        ]
+       },
+       {
+        "op": "_subchain_end",
+        "args": {},
+        "builtin": true,
+        "temp": 6,
+        "leadingComments": [
+         "// ignored"
+        ]
+       },
+       {
+        "op": "_read",
+        "args": {},
+        "builtin": true,
+        "temp": 7
+       },
+       {
+        "op": "_read",
+        "args": {
+         "tex": "o3"
+        },
+        "builtin": true,
+        "temp": 8
+       },
+       {
+        "op": "_write3d",
+        "args": {
+         "tex3d": "vol1",
+         "geo": {
+          "name": "geo1"
+         }
+        },
+        "builtin": true,
+        "temp": 9
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o4"
+      },
+      "write3d": {
+       "tex3d": {
+        "name": "vol2"
+       },
+       "geo": "geo2"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-24",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     "filter"
+    ],
+    "plans": [
+     {
+      "leadingComments": [
+       "// plan",
+       {
+        "$js": "undefined"
+       }
+      ],
+      "chain": [
+       {
+        "op": "_read",
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o1"
+         },
+         "_skip": true
+        },
+        "builtin": true,
+        "temp": 0,
+        "leadingComments": [
+         "// read"
+        ]
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 1,
+         "_skip": false
+        },
+        "temp": 1,
+        "from": 0,
+        "leadingComments": [
+         "// blur",
+         null
+        ]
+       },
+       {
+        "op": "_write",
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o2"
+         }
+        },
+        "builtin": true,
+        "temp": 2
+       },
+       {
+        "op": "_read3d",
+        "args": {
+         "tex3d": {
+          "name": "vol0"
+         },
+         "geo": "geo0"
+        },
+        "builtin": true,
+        "temp": 3
+       },
+       {
+        "op": "_subchain_begin",
+        "args": {
+         "name": "sub \"x\"",
+         "id": "sc1"
+        },
+        "builtin": true,
+        "temp": 4,
+        "leadingComments": [
+         "// sub"
+        ]
+       },
+       {
+        "op": "filter.warp",
+        "args": {
+         "a": 1,
+         "b": 2,
+         "c": 3
+        },
+        "temp": 5,
+        "leadingComments": [
+         "// in sub"
+        ]
+       },
+       {
+        "op": "_subchain_end",
+        "args": {},
+        "builtin": true,
+        "temp": 6,
+        "leadingComments": [
+         "// ignored"
+        ]
+       },
+       {
+        "op": "_read",
+        "args": {},
+        "builtin": true,
+        "temp": 7
+       },
+       {
+        "op": "_read",
+        "args": {
+         "tex": "o3"
+        },
+        "builtin": true,
+        "temp": 8
+       },
+       {
+        "op": "_write3d",
+        "args": {
+         "tex3d": "vol1",
+         "geo": {
+          "name": "geo1"
+         }
+        },
+        "builtin": true,
+        "temp": 9
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o4"
+      },
+      "write3d": {
+       "tex3d": {
+        "name": "vol2"
+       },
+       "geo": "geo2"
+      }
+     }
+    ]
+   },
+   "overrides": {
+    "0": {
+     "_skip": false
+    },
+    "1": {
+     "_skip": true,
+     "r": 4
+    },
+    "3": {
+     "_skip": true
+    }
+   }
+  },
+  {
+   "id": "edge/unparse-25",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     "filter"
+    ],
+    "plans": [
+     {
+      "leadingComments": [
+       "// plan",
+       {
+        "$js": "undefined"
+       }
+      ],
+      "chain": [
+       {
+        "op": "_read",
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o1"
+         },
+         "_skip": true
+        },
+        "builtin": true,
+        "temp": 0,
+        "leadingComments": [
+         "// read"
+        ]
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 1,
+         "_skip": false
+        },
+        "temp": 1,
+        "from": 0,
+        "leadingComments": [
+         "// blur",
+         null
+        ]
+       },
+       {
+        "op": "_write",
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o2"
+         }
+        },
+        "builtin": true,
+        "temp": 2
+       },
+       {
+        "op": "_read3d",
+        "args": {
+         "tex3d": {
+          "name": "vol0"
+         },
+         "geo": "geo0"
+        },
+        "builtin": true,
+        "temp": 3
+       },
+       {
+        "op": "_subchain_begin",
+        "args": {
+         "name": "sub \"x\"",
+         "id": "sc1"
+        },
+        "builtin": true,
+        "temp": 4,
+        "leadingComments": [
+         "// sub"
+        ]
+       },
+       {
+        "op": "filter.warp",
+        "args": {
+         "a": 1,
+         "b": 2,
+         "c": 3
+        },
+        "temp": 5,
+        "leadingComments": [
+         "// in sub"
+        ]
+       },
+       {
+        "op": "_subchain_end",
+        "args": {},
+        "builtin": true,
+        "temp": 6,
+        "leadingComments": [
+         "// ignored"
+        ]
+       },
+       {
+        "op": "_read",
+        "args": {},
+        "builtin": true,
+        "temp": 7
+       },
+       {
+        "op": "_read",
+        "args": {
+         "tex": "o3"
+        },
+        "builtin": true,
+        "temp": 8
+       },
+       {
+        "op": "_write3d",
+        "args": {
+         "tex3d": "vol1",
+         "geo": {
+          "name": "geo1"
+         }
+        },
+        "builtin": true,
+        "temp": 9
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o4"
+      },
+      "write3d": {
+       "tex3d": {
+        "name": "vol2"
+       },
+       "geo": "geo2"
+      }
+     }
+    ]
+   },
+   "overrides": {
+    "7": {
+     "_skip": 1
+    }
+   }
+  },
+  {
+   "id": "edge/unparse-26",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "_subchain_begin",
+        "args": {},
+        "builtin": true
+       },
+       {
+        "op": "_subchain_end",
+        "args": {},
+        "builtin": true
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-27",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.n",
+        "args": {}
+       },
+       {
+        "op": "_write",
+        "args": {
+         "tex": "o1"
+        },
+        "builtin": true
+       }
+      ],
+      "write": "o1"
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-28",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.n",
+        "args": {}
+       },
+       {
+        "op": "_write3d",
+        "args": {
+         "tex3d": "v",
+         "geo": "g"
+        },
+        "builtin": true
+       }
+      ],
+      "write3d": {
+       "tex3d": "v",
+       "geo": "g"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-29",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.n",
+        "args": {}
+       }
+      ],
+      "write": {
+       "kind": "output"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-30",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {}
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "call": {
+          "fromOverride": true,
+          "resolved": "filter"
+         }
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "call": {
+          "fromOverride": true,
+          "name": "filter"
+         }
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "fromOverride": true,
+         "resolved": "filter"
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "call": {
+          "fromOverride": true
+         },
+         "resolved": "filter"
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "call": {
+          "fromOverride": true
+         }
+        }
+       },
+       {
+        "op": "mixer.blend",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "call": {
+          "fromOverride": true,
+          "resolved": "filter"
+         }
+        }
+       },
+       {
+        "op": "blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "namespace": "filter"
+        }
+       },
+       {
+        "op": "blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": "filter"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-31",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {}
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "call": {
+          "fromOverride": true,
+          "resolved": "filter"
+         }
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "call": {
+          "fromOverride": true,
+          "name": "filter"
+         }
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "fromOverride": true,
+         "resolved": "filter"
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "call": {
+          "fromOverride": true
+         },
+         "resolved": "filter"
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "call": {
+          "fromOverride": true
+         }
+        }
+       },
+       {
+        "op": "mixer.blend",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "call": {
+          "fromOverride": true,
+          "resolved": "filter"
+         }
+        }
+       },
+       {
+        "op": "blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "namespace": "filter"
+        }
+       },
+       {
+        "op": "blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": "filter"
+       }
+      ]
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    }
+   }
+  },
+  {
+   "id": "edge/unparse-32",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {}
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "call": {
+          "fromOverride": true,
+          "resolved": "filter"
+         }
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "call": {
+          "fromOverride": true,
+          "name": "filter"
+         }
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "fromOverride": true,
+         "resolved": "filter"
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "call": {
+          "fromOverride": true
+         },
+         "resolved": "filter"
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "call": {
+          "fromOverride": true
+         }
+        }
+       },
+       {
+        "op": "mixer.blend",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "call": {
+          "fromOverride": true,
+          "resolved": "filter"
+         }
+        }
+       },
+       {
+        "op": "blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": {
+         "namespace": "filter"
+        }
+       },
+       {
+        "op": "blur",
+        "args": {
+         "r": 2
+        },
+        "namespace": "filter"
+       }
+      ]
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "registrySimple"
+    }
+   }
+  },
+  {
+   "id": "edge/unparse-33",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "x.fx",
+        "args": {
+         "scale": 1,
+         "volumeSize": 64,
+         "mode": 1,
+         "tex": {
+          "kind": "output",
+          "name": "o1"
+         },
+         "extra": 5,
+         "from": 1,
+         "temp": 2,
+         "_skip": true
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "overrides": {
+    "0": {
+     "scale": 2,
+     "notDeclared": 3,
+     "_internal": 4,
+     "volumeSize": 8
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "constant",
+     "def": {
+      "globals": {
+       "scale": {
+        "type": "float",
+        "default": 1
+       },
+       "volumeSize": {
+        "type": "int",
+        "default": 32,
+        "ui": {
+         "control": false
+        }
+       },
+       "mode": {
+        "type": "int",
+        "default": 0,
+        "choices": {
+         "a": 0,
+         "bEnum": 1
+        }
+       },
+       "tex": {
+        "type": "surface",
+        "default": "none"
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/unparse-34",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "x.fx",
+        "args": {
+         "scale": 1
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "overrides": {
+    "0": {
+     "scale": 2
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "constant",
+     "def": {
+      "globals": {}
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/unparse-35",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "x.fx",
+        "args": {
+         "scale": 1
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "overrides": {
+    "0": {
+     "scale": 2
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "constant",
+     "def": "truthy"
+    }
+   }
+  },
+  {
+   "id": "edge/unparse-36",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scaleX": 75,
+         "seed": 1,
+         "octaves": 3,
+         "type": 10
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-37",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scaleX": 75,
+         "seed": 1,
+         "octaves": 3,
+         "type": 10
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {
+    "enums": {
+     "synth": {
+      "noise": {
+       "type": {
+        "perlin": {
+         "value": 10
+        }
+       }
+      }
+     }
+    },
+    "getEffectDef": {
+     "kind": "registry"
+    }
+   }
+  },
+  {
+   "id": "edge/unparse-38",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scaleX": 75,
+         "seed": 1,
+         "octaves": 3,
+         "type": 10
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {
+    "enums": {
+     "$enums": "host"
+    },
+    "getEffectDef": {
+     "kind": "registry"
+    }
+   }
+  },
+  {
+   "id": "edge/unparse-39",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "constructor",
+        "args": {
+         "a": 1
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/unparse-40",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "__proto__": 5,
+         "seed": 2
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "overrides": {
+    "0": {
+     "toString": 1,
+     "__proto__": {
+      "x": 1
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/unparse-41",
+   "op": "unparse",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scaleX": [
+          1,
+          2
+         ]
+        },
+        "argSources": {
+         "scaleX": "array"
+        }
+       }
+      ]
+     }
+    ]
+   }
+  }
+ ]
+}

@@ -1,0 +1,159 @@
+{
+ "profile": "host",
+ "setup": [],
+ "cases": [
+  {
+   "id": "volume/exports",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, filter3d, render\nheightmap3d(volumeSize: x16).write3d(vol0, geo0)\nheightmap3d(volumeSize: x32).write3d(vol1, geo1)\nread3d(vol0, geo0).palette3d().renderLandscape3d().write(o0)\nread3d(vol1, geo1).palette3d().renderLandscape3d().write(o1)\nrender(o0)"
+   }
+  },
+  {
+   "id": "volume/exports:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "volume/exports"
+    }
+   }
+  },
+  {
+   "id": "volume/exports:host",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, filter3d, render\nheightmap3d(volumeSize: x16).write3d(vol0, geo0)\nheightmap3d(volumeSize: x32).write3d(vol1, geo1)\nread3d(vol0, geo0).palette3d().renderLandscape3d().write(o0)\nread3d(vol1, geo1).palette3d().renderLandscape3d().write(o1)\nrender(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    },
+    "customFormatter": {
+     "kind": "formatValue",
+     "enums": {
+      "$enums": "host"
+     }
+    }
+   }
+  },
+  {
+   "id": "volume/exports:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth3d, filter3d, render\nheightmap3d(volumeSize: x16).write3d(vol0, geo0)\nheightmap3d(volumeSize: x32).write3d(vol1, geo1)\nread3d(vol0, geo0).palette3d().renderLandscape3d().write(o0)\nread3d(vol1, geo1).palette3d().renderLandscape3d().write(o1)\nrender(o0)"
+   }
+  },
+  {
+   "id": "volume/exports:resize",
+   "op": "applyParameterUpdates",
+   "dsl": "search synth3d, filter3d, render\nheightmap3d(volumeSize: x16).write3d(vol0, geo0)\nheightmap3d(volumeSize: x32).write3d(vol1, geo1)\nread3d(vol0, geo0).palette3d().renderLandscape3d().write(o0)\nread3d(vol1, geo1).palette3d().renderLandscape3d().write(o1)\nrender(o0)",
+   "updates": {
+    "0": {
+     "volumeSize": 64
+    }
+   }
+  },
+  {
+   "id": "volume/feedback",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, filter3d, render\nread3d(vol1, geo1).palette3d().renderLandscape3d().write(o0)\nread3d(vol0, geo0).write3d(vol1, geo1)\nheightmap3d(volumeSize: x16).write3d(vol0, geo0)\nrender(o0)"
+   }
+  },
+  {
+   "id": "volume/feedback:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "volume/feedback"
+    }
+   }
+  },
+  {
+   "id": "volume/feedback:host",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, filter3d, render\nread3d(vol1, geo1).palette3d().renderLandscape3d().write(o0)\nread3d(vol0, geo0).write3d(vol1, geo1)\nheightmap3d(volumeSize: x16).write3d(vol0, geo0)\nrender(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    },
+    "customFormatter": {
+     "kind": "formatValue",
+     "enums": {
+      "$enums": "host"
+     }
+    }
+   }
+  },
+  {
+   "id": "volume/feedback:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth3d, filter3d, render\nread3d(vol1, geo1).palette3d().renderLandscape3d().write(o0)\nread3d(vol0, geo0).write3d(vol1, geo1)\nheightmap3d(volumeSize: x16).write3d(vol0, geo0)\nrender(o0)"
+   }
+  },
+  {
+   "id": "volume/feedback:resize",
+   "op": "applyParameterUpdates",
+   "dsl": "search synth3d, filter3d, render\nread3d(vol1, geo1).palette3d().renderLandscape3d().write(o0)\nread3d(vol0, geo0).write3d(vol1, geo1)\nheightmap3d(volumeSize: x16).write3d(vol0, geo0)\nrender(o0)",
+   "updates": {
+    "0": {
+     "volumeSize": 64
+    }
+   }
+  },
+  {
+   "id": "volume/rewrite",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, filter3d, render\nheightmap3d(volumeSize: x16).write3d(vol0, geo0)\nread3d(vol0, geo0).palette3d().write3d(vol0, geo0)\nread3d(vol0, geo0).palette3d().write3d(vol0, geo0)\nread3d(vol0, geo0).renderLandscape3d().write(o0)\nrender(o0)"
+   }
+  },
+  {
+   "id": "volume/rewrite:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "volume/rewrite"
+    }
+   }
+  },
+  {
+   "id": "volume/rewrite:host",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, filter3d, render\nheightmap3d(volumeSize: x16).write3d(vol0, geo0)\nread3d(vol0, geo0).palette3d().write3d(vol0, geo0)\nread3d(vol0, geo0).palette3d().write3d(vol0, geo0)\nread3d(vol0, geo0).renderLandscape3d().write(o0)\nrender(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    },
+    "customFormatter": {
+     "kind": "formatValue",
+     "enums": {
+      "$enums": "host"
+     }
+    }
+   }
+  },
+  {
+   "id": "volume/rewrite:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth3d, filter3d, render\nheightmap3d(volumeSize: x16).write3d(vol0, geo0)\nread3d(vol0, geo0).palette3d().write3d(vol0, geo0)\nread3d(vol0, geo0).palette3d().write3d(vol0, geo0)\nread3d(vol0, geo0).renderLandscape3d().write(o0)\nrender(o0)"
+   }
+  },
+  {
+   "id": "volume/rewrite:resize",
+   "op": "applyParameterUpdates",
+   "dsl": "search synth3d, filter3d, render\nheightmap3d(volumeSize: x16).write3d(vol0, geo0)\nread3d(vol0, geo0).palette3d().write3d(vol0, geo0)\nread3d(vol0, geo0).palette3d().write3d(vol0, geo0)\nread3d(vol0, geo0).renderLandscape3d().write(o0)\nrender(o0)",
+   "updates": {
+    "0": {
+     "volumeSize": 64
+    }
+   }
+  }
+ ]
+}

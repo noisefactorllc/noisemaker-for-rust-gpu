@@ -1,0 +1,259 @@
+{
+ "profile": "host",
+ "setup": [],
+ "cases": [
+  {
+   "id": "mip/accepts-policies",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Mip Probe",
+    "namespace": "synth",
+    "func": "mipProbe",
+    "description": "Texture policy probe used by tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "textures": {
+     "acc": {
+      "width": 64,
+      "height": 64,
+      "format": "rgba16f",
+      "mipmaps": true,
+      "persistent": true
+     }
+    },
+    "textures3d": {
+     "vol": {
+      "width": 8,
+      "height": 8,
+      "depth": 8,
+      "format": "rgba16f",
+      "filter": "nearest"
+     }
+    },
+    "passes": [
+     {
+      "program": "probe",
+      "inputs": {},
+      "outputs": {
+       "color": "acc"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "mip/unknown-field",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Mip Probe",
+    "namespace": "synth",
+    "func": "mipProbe",
+    "description": "Texture policy probe used by tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "textures": {
+     "acc": {
+      "width": 64,
+      "height": 64,
+      "mipps": true
+     }
+    },
+    "textures3d": {
+     "$js": "undefined"
+    },
+    "passes": [
+     {
+      "program": "probe",
+      "inputs": {},
+      "outputs": {
+       "color": "acc"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "mip/filter-2d",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Mip Probe",
+    "namespace": "synth",
+    "func": "mipProbe",
+    "description": "Texture policy probe used by tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "textures": {
+     "acc": {
+      "width": 64,
+      "height": 64,
+      "filter": "nearest"
+     }
+    },
+    "textures3d": {
+     "$js": "undefined"
+    },
+    "passes": [
+     {
+      "program": "probe",
+      "inputs": {},
+      "outputs": {
+       "color": "acc"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "mip/filter-value",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Mip Probe",
+    "namespace": "synth",
+    "func": "mipProbe",
+    "description": "Texture policy probe used by tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "textures": {
+     "$js": "undefined"
+    },
+    "textures3d": {
+     "vol": {
+      "width": 8,
+      "height": 8,
+      "depth": 8,
+      "filter": "bilinear"
+     }
+    },
+    "passes": [
+     {
+      "program": "probe",
+      "inputs": {},
+      "outputs": {
+       "color": "acc"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "mip/policies-3d",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Mip Probe",
+    "namespace": "synth",
+    "func": "mipProbe",
+    "description": "Texture policy probe used by tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "textures": {
+     "acc": {
+      "width": 64,
+      "height": 64,
+      "mipmaps": "yes",
+      "persistent": 1
+     }
+    },
+    "textures3d": {
+     "vol": {
+      "width": 8,
+      "height": 8,
+      "depth": 8,
+      "mipmaps": true,
+      "persistent": true
+     }
+    },
+    "passes": [
+     {
+      "program": "probe",
+      "inputs": {},
+      "outputs": {
+       "color": "acc"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "mip/output-tex3d",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Mip Probe",
+    "namespace": "synth",
+    "func": "mipProbe",
+    "description": "Texture policy probe used by tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "textures": {
+     "acc": {
+      "width": 64,
+      "height": 64,
+      "format": "rgba16f",
+      "mipmaps": true,
+      "persistent": true
+     }
+    },
+    "textures3d": {
+     "vol": {
+      "width": 8,
+      "height": 8,
+      "depth": 8,
+      "format": "rgba16f",
+      "filter": "nearest"
+     }
+    },
+    "passes": [
+     {
+      "program": "probe",
+      "inputs": {},
+      "outputs": {
+       "color": "acc"
+      }
+     }
+    ],
+    "outputTex3d": "vol"
+   }
+  },
+  {
+   "id": "mip/plain",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Plain Probe",
+    "namespace": "synth",
+    "func": "plainProbe",
+    "description": "Default texture probe used by tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "textures": {
+     "scratch": {
+      "width": 32,
+      "height": 32,
+      "format": "rgba16f"
+     }
+    },
+    "passes": [
+     {
+      "program": "probe",
+      "inputs": {},
+      "outputs": {
+       "color": "scratch"
+      }
+     }
+    ]
+   }
+  }
+ ]
+}

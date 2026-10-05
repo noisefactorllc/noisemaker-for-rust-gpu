@@ -1,0 +1,620 @@
+{
+ "profile": "test_comment_roundtrip+test_chain_preservation",
+ "setup": [
+  {
+   "op": "registerOp",
+   "name": "synth.noise",
+   "spec": {
+    "globals": {
+     "freq": {
+      "name": "freq",
+      "type": "float",
+      "default": 10
+     }
+    },
+    "starter": true,
+    "category": "synth"
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "filter.bloom",
+   "spec": {
+    "globals": {
+     "radius": {
+      "name": "radius",
+      "type": "float",
+      "default": 1
+     }
+    },
+    "category": "filter"
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "mixer.blend",
+   "spec": {
+    "globals": {
+     "amount": {
+      "name": "amount",
+      "type": "float",
+      "default": 0.5
+     }
+    },
+    "category": "mixer"
+   }
+  },
+  {
+   "op": "registerStarterOps",
+   "names": [
+    "synth.noise"
+   ]
+  }
+ ],
+ "cases": [
+  {
+   "id": "comments/simple",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nnoise().write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/simple:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "comments/simple"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/simple:plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nnoise().write(o0)"
+   }
+  },
+  {
+   "id": "comments/plan-comment",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\n// this is a plan comment\nnoise().write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/plan-comment:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "comments/plan-comment"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/plan-comment:plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\n// this is a plan comment\nnoise().write(o0)"
+   }
+  },
+  {
+   "id": "comments/multiple-plan-comments",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\n// first comment\n// second comment\nnoise().write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/multiple-plan-comments:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "comments/multiple-plan-comments"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/multiple-plan-comments:plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\n// first comment\n// second comment\nnoise().write(o0)"
+   }
+  },
+  {
+   "id": "comments/chained-comment",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\n\nnoise()\n  // comment on bloom\n  .bloom().write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/chained-comment:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "comments/chained-comment"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/chained-comment:plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\n\nnoise()\n  // comment on bloom\n  .bloom().write(o0)"
+   }
+  },
+  {
+   "id": "comments/subchain-markers",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\n\n// @subchain:begin name=\"feedback\" id=\"sc1\"\nnoise()\n  .bloom()\n  // @subchain:end id=\"sc1\"\n  .write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/subchain-markers:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "comments/subchain-markers"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/subchain-markers:plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\n\n// @subchain:begin name=\"feedback\" id=\"sc1\"\nnoise()\n  .bloom()\n  // @subchain:end id=\"sc1\"\n  .write(o0)"
+   }
+  },
+  {
+   "id": "comments/block-comment",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\n/* block comment */\nnoise().write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/block-comment:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "comments/block-comment"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/block-comment:plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\n/* block comment */\nnoise().write(o0)"
+   }
+  },
+  {
+   "id": "comments/trailing-comment",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nnoise().write(o0)\n// trailing comment"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/trailing-comment:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "comments/trailing-comment"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/trailing-comment:plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nnoise().write(o0)\n// trailing comment"
+   }
+  },
+  {
+   "id": "comments/multiple-chains",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\n\n// first chain\nnoise().write(o0)\n\n// second chain\nnoise().bloom().write(o1)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/multiple-chains:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "comments/multiple-chains"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "comments/multiple-chains:plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\n\n// first chain\nnoise().write(o0)\n\n// second chain\nnoise().bloom().write(o1)"
+   }
+  },
+  {
+   "id": "chain/standalone-read",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nnoise()\n  .write(o1)\n\nread(o1)\n  .bloom()\n  .write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/standalone-read:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "chain/standalone-read"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/standalone-read:skip-override",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nnoise()\n  .write(o1)\n\nread(o1)\n  .bloom()\n  .write(o0)"
+   },
+   "overrides": {
+    "0": {
+     "_skip": false
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/standalone-read:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth\n\nnoise()\n  .write(o1)\n\nread(o1)\n  .bloom()\n  .write(o0)"
+   }
+  },
+  {
+   "id": "chain/inline-read",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nnoise()\n  .read(o1)\n  .bloom()\n  .write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/inline-read:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "chain/inline-read"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/inline-read:skip-override",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nnoise()\n  .read(o1)\n  .bloom()\n  .write(o0)"
+   },
+   "overrides": {
+    "0": {
+     "_skip": false
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/inline-read:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth\n\nnoise()\n  .read(o1)\n  .bloom()\n  .write(o0)"
+   }
+  },
+  {
+   "id": "chain/inline-read3d",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nnoise()\n  .read3d(vol0, geo0)\n  .bloom()\n  .write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/inline-read3d:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "chain/inline-read3d"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/inline-read3d:skip-override",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nnoise()\n  .read3d(vol0, geo0)\n  .bloom()\n  .write(o0)"
+   },
+   "overrides": {
+    "0": {
+     "_skip": false
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/inline-read3d:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth\n\nnoise()\n  .read3d(vol0, geo0)\n  .bloom()\n  .write(o0)"
+   }
+  },
+  {
+   "id": "chain/read-skip",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nread(surface: o1, _skip: true)\n  .bloom()\n  .write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/read-skip:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "chain/read-skip"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/read-skip:skip-override",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nread(surface: o1, _skip: true)\n  .bloom()\n  .write(o0)"
+   },
+   "overrides": {
+    "0": {
+     "_skip": false
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/read-skip:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth\n\nread(surface: o1, _skip: true)\n  .bloom()\n  .write(o0)"
+   }
+  },
+  {
+   "id": "chain/read3d-standalone",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nread3d(vol0, geo0)\n  .bloom()\n  .write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/read3d-standalone:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "chain/read3d-standalone"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/read3d-standalone:skip-override",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nread3d(vol0, geo0)\n  .bloom()\n  .write(o0)"
+   },
+   "overrides": {
+    "0": {
+     "_skip": false
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/read3d-standalone:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth\n\nread3d(vol0, geo0)\n  .bloom()\n  .write(o0)"
+   }
+  },
+  {
+   "id": "chain/read3d-skip",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nread3d(tex3d: vol0, geo: geo0, _skip: true)\n  .bloom()\n  .write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/read3d-skip:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "chain/read3d-skip"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/read3d-skip:skip-override",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nread3d(tex3d: vol0, geo: geo0, _skip: true)\n  .bloom()\n  .write(o0)"
+   },
+   "overrides": {
+    "0": {
+     "_skip": false
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "ops"
+    }
+   }
+  },
+  {
+   "id": "chain/read3d-skip:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth\n\nread3d(tex3d: vol0, geo: geo0, _skip: true)\n  .bloom()\n  .write(o0)"
+   }
+  }
+ ]
+}

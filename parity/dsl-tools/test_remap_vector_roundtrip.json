@@ -1,0 +1,3915 @@
+{
+ "profile": "test_remap_vector_roundtrip",
+ "setup": [
+  {
+   "op": "registerOp",
+   "name": "synth.remap",
+   "spec": {
+    "name": "remap",
+    "args": [
+     {
+      "name": "zoneCount",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 8
+     },
+     {
+      "name": "bgColor",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "bgAlpha",
+      "type": "float",
+      "default": 1,
+      "min": 0,
+      "max": 1
+     },
+     {
+      "name": "smoothEdge",
+      "type": "float",
+      "default": 0.04,
+      "min": 0,
+      "max": 1
+     },
+     {
+      "name": "zone0_tex",
+      "type": "surface",
+      "default": "none"
+     },
+     {
+      "name": "zone0_count",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 64
+     },
+     {
+      "name": "zone0_alpha",
+      "type": "float",
+      "default": 1,
+      "min": 0,
+      "max": 1
+     },
+     {
+      "name": "zone0_bounds",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "zone0_v0",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v1",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v2",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v3",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v4",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v5",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v6",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v7",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v8",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v9",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v10",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v11",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v12",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v13",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v14",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v15",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v16",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v17",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v18",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v19",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v20",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v21",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v22",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v23",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v24",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v25",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v26",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v27",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v28",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v29",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v30",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone0_v31",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_tex",
+      "type": "surface",
+      "default": "none"
+     },
+     {
+      "name": "zone1_count",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 64
+     },
+     {
+      "name": "zone1_alpha",
+      "type": "float",
+      "default": 1,
+      "min": 0,
+      "max": 1
+     },
+     {
+      "name": "zone1_bounds",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "zone1_v0",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v1",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v2",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v3",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v4",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v5",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v6",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v7",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v8",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v9",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v10",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v11",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v12",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v13",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v14",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v15",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v16",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v17",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v18",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v19",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v20",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v21",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v22",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v23",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v24",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v25",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v26",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v27",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v28",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v29",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v30",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone1_v31",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_tex",
+      "type": "surface",
+      "default": "none"
+     },
+     {
+      "name": "zone2_count",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 64
+     },
+     {
+      "name": "zone2_alpha",
+      "type": "float",
+      "default": 1,
+      "min": 0,
+      "max": 1
+     },
+     {
+      "name": "zone2_bounds",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "zone2_v0",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v1",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v2",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v3",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v4",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v5",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v6",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v7",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v8",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v9",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v10",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v11",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v12",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v13",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v14",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v15",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v16",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v17",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v18",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v19",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v20",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v21",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v22",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v23",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v24",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v25",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v26",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v27",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v28",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v29",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v30",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone2_v31",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_tex",
+      "type": "surface",
+      "default": "none"
+     },
+     {
+      "name": "zone3_count",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 64
+     },
+     {
+      "name": "zone3_alpha",
+      "type": "float",
+      "default": 1,
+      "min": 0,
+      "max": 1
+     },
+     {
+      "name": "zone3_bounds",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "zone3_v0",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v1",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v2",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v3",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v4",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v5",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v6",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v7",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v8",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v9",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v10",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v11",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v12",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v13",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v14",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v15",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v16",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v17",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v18",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v19",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v20",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v21",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v22",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v23",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v24",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v25",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v26",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v27",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v28",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v29",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v30",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone3_v31",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_tex",
+      "type": "surface",
+      "default": "none"
+     },
+     {
+      "name": "zone4_count",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 64
+     },
+     {
+      "name": "zone4_alpha",
+      "type": "float",
+      "default": 1,
+      "min": 0,
+      "max": 1
+     },
+     {
+      "name": "zone4_bounds",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "zone4_v0",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v1",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v2",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v3",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v4",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v5",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v6",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v7",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v8",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v9",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v10",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v11",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v12",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v13",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v14",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v15",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v16",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v17",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v18",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v19",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v20",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v21",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v22",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v23",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v24",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v25",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v26",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v27",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v28",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v29",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v30",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone4_v31",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_tex",
+      "type": "surface",
+      "default": "none"
+     },
+     {
+      "name": "zone5_count",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 64
+     },
+     {
+      "name": "zone5_alpha",
+      "type": "float",
+      "default": 1,
+      "min": 0,
+      "max": 1
+     },
+     {
+      "name": "zone5_bounds",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "zone5_v0",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v1",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v2",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v3",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v4",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v5",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v6",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v7",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v8",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v9",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v10",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v11",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v12",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v13",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v14",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v15",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v16",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v17",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v18",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v19",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v20",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v21",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v22",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v23",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v24",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v25",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v26",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v27",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v28",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v29",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v30",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone5_v31",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_tex",
+      "type": "surface",
+      "default": "none"
+     },
+     {
+      "name": "zone6_count",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 64
+     },
+     {
+      "name": "zone6_alpha",
+      "type": "float",
+      "default": 1,
+      "min": 0,
+      "max": 1
+     },
+     {
+      "name": "zone6_bounds",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "zone6_v0",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v1",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v2",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v3",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v4",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v5",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v6",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v7",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v8",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v9",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v10",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v11",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v12",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v13",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v14",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v15",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v16",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v17",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v18",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v19",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v20",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v21",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v22",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v23",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v24",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v25",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v26",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v27",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v28",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v29",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v30",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone6_v31",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_tex",
+      "type": "surface",
+      "default": "none"
+     },
+     {
+      "name": "zone7_count",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 64
+     },
+     {
+      "name": "zone7_alpha",
+      "type": "float",
+      "default": 1,
+      "min": 0,
+      "max": 1
+     },
+     {
+      "name": "zone7_bounds",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "zone7_v0",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v1",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v2",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v3",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v4",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v5",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v6",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v7",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v8",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v9",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v10",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v11",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v12",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v13",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v14",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v15",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v16",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v17",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v18",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v19",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v20",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v21",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v22",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v23",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v24",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v25",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v26",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v27",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v28",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v29",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v30",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "zone7_v31",
+      "type": "color",
+      "default": [
+       0,
+       0,
+       0,
+       0
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerStarterOps",
+   "names": [
+    "remap",
+    "synth.remap"
+   ]
+  }
+ ],
+ "cases": [
+  {
+   "id": "remap/vec4-hex",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4"
+   }
+  },
+  {
+   "id": "remap/color-hex",
+   "op": "formatValue",
+   "value": [
+    0.2,
+    0.4,
+    0.6,
+    0.8
+   ],
+   "spec": {
+    "type": "color"
+   }
+  },
+  {
+   "id": "remap/vector-exact",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    -0.4500000195000499,
+    1.0999999609999003,
+    1e-7
+   ],
+   "spec": {
+    "type": "vec4",
+    "ui": {
+     "format": "vector"
+    }
+   }
+  },
+  {
+   "id": "remap/vector-exact:compiled",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nremap(zone0_v0: [0.8000000780001997, -0.4500000195000499, 1.0999999609999003, 0.0000001]).write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "remap": {
+       "$catalogInstance": "synth/remap"
+      },
+      "synth.remap": {
+       "$catalogInstance": "synth/remap"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v0",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v0",
+    "ui": {
+     "label": "verts 0–1",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v1",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v1",
+    "ui": {
+     "label": "verts 2–3",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v2",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v2",
+    "ui": {
+     "label": "verts 4–5",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v3",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v3",
+    "ui": {
+     "label": "verts 6–7",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v4",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v4",
+    "ui": {
+     "label": "verts 8–9",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v5",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v5",
+    "ui": {
+     "label": "verts 10–11",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v6",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v6",
+    "ui": {
+     "label": "verts 12–13",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v7",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v7",
+    "ui": {
+     "label": "verts 14–15",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v8",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v8",
+    "ui": {
+     "label": "verts 16–17",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v9",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v9",
+    "ui": {
+     "label": "verts 18–19",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v10",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v10",
+    "ui": {
+     "label": "verts 20–21",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v11",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v11",
+    "ui": {
+     "label": "verts 22–23",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v12",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v12",
+    "ui": {
+     "label": "verts 24–25",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v13",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v13",
+    "ui": {
+     "label": "verts 26–27",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v14",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v14",
+    "ui": {
+     "label": "verts 28–29",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v15",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v15",
+    "ui": {
+     "label": "verts 30–31",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v16",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v16",
+    "ui": {
+     "label": "verts 32–33",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v17",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v17",
+    "ui": {
+     "label": "verts 34–35",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v18",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v18",
+    "ui": {
+     "label": "verts 36–37",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v19",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v19",
+    "ui": {
+     "label": "verts 38–39",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v20",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v20",
+    "ui": {
+     "label": "verts 40–41",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v21",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v21",
+    "ui": {
+     "label": "verts 42–43",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v22",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v22",
+    "ui": {
+     "label": "verts 44–45",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v23",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v23",
+    "ui": {
+     "label": "verts 46–47",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v24",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v24",
+    "ui": {
+     "label": "verts 48–49",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v25",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v25",
+    "ui": {
+     "label": "verts 50–51",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v26",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v26",
+    "ui": {
+     "label": "verts 52–53",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v27",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v27",
+    "ui": {
+     "label": "verts 54–55",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v28",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v28",
+    "ui": {
+     "label": "verts 56–57",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v29",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v29",
+    "ui": {
+     "label": "verts 58–59",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v30",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v30",
+    "ui": {
+     "label": "verts 60–61",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/spec-zone0_v31",
+   "op": "formatValue",
+   "value": [
+    0.8000000780001997,
+    0.4500000195000499,
+    0.09999996099990016,
+    0.4500000195000499
+   ],
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "uniform": "zone0_v31",
+    "ui": {
+     "label": "verts 62–63",
+     "control": "slider",
+     "hidden": true,
+     "format": "vector",
+     "category": "zone 1"
+    }
+   }
+  },
+  {
+   "id": "remap/precise-literals",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nremap(zone0_v1: [0.8000000780001997, 0.4500000195000499, 0.09999996099990016, 0.4500000195000499])\n  .write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "remap": {
+       "$catalogInstance": "synth/remap"
+      },
+      "synth.remap": {
+       "$catalogInstance": "synth/remap"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "remap/precise-literals:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "remap/precise-literals"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "remap": {
+       "$catalogInstance": "synth/remap"
+      },
+      "synth.remap": {
+       "$catalogInstance": "synth/remap"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "remap/legacy-hex",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nremap(zoneCount: 1, zone0_count: 4, zone0_v1: #cc731973)\n  .write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "remap": {
+       "$catalogInstance": "synth/remap"
+      },
+      "synth.remap": {
+       "$catalogInstance": "synth/remap"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "remap/legacy-hex:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "remap/legacy-hex"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "remap": {
+       "$catalogInstance": "synth/remap"
+      },
+      "synth.remap": {
+       "$catalogInstance": "synth/remap"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "remap/program-state",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nremap(zoneCount: 1, zone0_count: 4, zone0_v1: #cc731973)\n  .write(o0)"
+   },
+   "overrides": {
+    "0": {
+     "zone0_v1": [
+      0.8000000780001997,
+      0.4500000195000499,
+      0.09999996099990016,
+      0.4500000195000499
+     ]
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    },
+    "customFormatter": {
+     "kind": "formatValue",
+     "enums": {}
+    }
+   }
+  },
+  {
+   "id": "remap/program-state:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "remap/program-state"
+    }
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    },
+    "customFormatter": {
+     "kind": "formatValue",
+     "enums": {}
+    }
+   }
+  },
+  {
+   "id": "remap/apply-updates",
+   "op": "applyParameterUpdates",
+   "dsl": "search synth\n\nremap(zoneCount: 1, zone0_count: 4, zone0_v1: #cc731973)\n  .write(o0)",
+   "updates": {
+    "0": {
+     "zone0_v1": [
+      0.8000000780001997,
+      0.4500000195000499,
+      0.09999996099990016,
+      0.4500000195000499
+     ]
+    }
+   }
+  }
+ ]
+}

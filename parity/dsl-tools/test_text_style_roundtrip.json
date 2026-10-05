@@ -1,0 +1,206 @@
+{
+ "profile": "host",
+ "setup": [],
+ "cases": [
+  {
+   "id": "text-style/style-survives",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.perlin",
+        "args": {
+         "scale": 100
+        }
+       },
+       {
+        "op": "filter.text",
+        "args": {
+         "text": "Hamburg",
+         "font": "Monaspace"
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {
+    "1": {
+     "text": "Hamburg",
+     "font": "Monaspace",
+     "style": "Argon Medium Italic"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "filter.text": {
+       "$catalogInstance": "filter/text"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "text-style/unknown-dropped",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.perlin",
+        "args": {
+         "scale": 100
+        }
+       },
+       {
+        "op": "filter.text",
+        "args": {
+         "text": "Hamburg",
+         "font": "Monaspace"
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {
+    "1": {
+     "style": "Argon Medium Italic",
+     "notAParam": "x"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "filter.text": {
+       "$catalogInstance": "filter/text"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "text-style/no-definition",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.perlin",
+        "args": {
+         "scale": 100
+        }
+       },
+       {
+        "op": "filter.text",
+        "args": {
+         "text": "Hamburg",
+         "font": "Monaspace"
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {
+    "1": {
+     "style": "Argon Medium Italic",
+     "notAParam": "x"
+    }
+   }
+  },
+  {
+   "id": "text-style/multiline-text",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.perlin",
+        "args": {
+         "scale": 100
+        }
+       },
+       {
+        "op": "filter.text",
+        "args": {
+         "text": "Hamburg",
+         "font": "Monaspace"
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {
+    "1": {
+     "text": "two\nlines",
+     "font": "Mona \"Space\"",
+     "style": "a\\b"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "filter.text": {
+       "$catalogInstance": "filter/text"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "text-style/style-value",
+   "op": "formatValue",
+   "value": "Argon Medium Italic",
+   "spec": {
+    "$catalogInstance": "filter/text",
+    "path": [
+     "globals",
+     "style"
+    ]
+   }
+  }
+ ]
+}

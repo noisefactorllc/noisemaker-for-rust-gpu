@@ -1,0 +1,1693 @@
+{
+ "profile": "test_portable_registration",
+ "setup": [
+  {
+   "op": "mergeIntoEnums",
+   "source": {
+    "portableExplicit": {
+     "Keep": {
+      "type": "Number",
+      "value": 7
+     }
+    }
+   }
+  }
+ ],
+ "cases": [
+  {
+   "id": "portable/contract",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableContract",
+    "func": "portableContract",
+    "globals": {},
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "type": "compute",
+      "drawMode": "points",
+      "count": 16,
+      "inputs": {
+       "previous": "history"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    },
+    "textures": {
+     "history": {
+      "width": 32,
+      "height": 32,
+      "format": "rgba16f"
+     }
+    },
+    "outputTex3d": {
+     "width": 8,
+     "height": 8,
+     "depth": 8
+    },
+    "outputGeo": {
+     "count": 16
+    },
+    "uniformLayout": {
+     "time": "float"
+    },
+    "uniformLayouts": {
+     "main": {
+      "time": "float"
+     }
+    },
+    "defaultProgram": "search user\nportableContract().write(o0)\nrender(o0)"
+   }
+  },
+  {
+   "id": "portable/params",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableParams",
+    "func": "portableParams",
+    "globals": {
+     "mode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "modeUniform",
+      "choices": {
+       "Modes:": -1,
+       "Soft Light": 3
+      }
+     },
+     "pinned": {
+      "type": "int",
+      "default": 0,
+      "uniform": "pinnedUniform",
+      "enumPath": "portableExplicit",
+      "choices": {
+       "Keep": 99
+      }
+     },
+     "primary": {
+      "type": "int",
+      "default": 0,
+      "uniform": "primaryUniform",
+      "enum": "portableExplicit",
+      "enumPath": "missing",
+      "choices": {
+       "Keep": 99
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    },
+    "paramAliases": {
+     "oldMode": "mode"
+    }
+   }
+  },
+  {
+   "id": "portable/input-0",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInput0",
+    "func": "portableInput0",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "inputTex"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/input-1",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInput1",
+    "func": "portableInput1",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "inputTex3d"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/input-2",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInput2",
+    "func": "portableInput2",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "inputGeo"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/input-3",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInput3",
+    "func": "portableInput3",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "inputXyz"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/input-4",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInput4",
+    "func": "portableInput4",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "inputVel"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/input-5",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInput5",
+    "func": "portableInput5",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "inputRgba"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/input-6",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInput6",
+    "func": "portableInput6",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "src"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/input-7",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInput7",
+    "func": "portableInput7",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "o0"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/input-8",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInput8",
+    "func": "portableInput8",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "o1"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/input-9",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInput9",
+    "func": "portableInput9",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "o2"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/input-10",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInput10",
+    "func": "portableInput10",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "o3"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/input-11",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInput11",
+    "func": "portableInput11",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "o4"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/input-12",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInput12",
+    "func": "portableInput12",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "o5"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/input-13",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInput13",
+    "func": "portableInput13",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "o6"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/input-14",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInput14",
+    "func": "portableInput14",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "o7"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/explicit-filter",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableExplicitFilter",
+    "func": "portableExplicitFilter",
+    "globals": {},
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    },
+    "starter": false
+   }
+  },
+  {
+   "id": "portable/explicit-starter",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableExplicitStarter",
+    "func": "portableExplicitStarter",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "source": "inputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    },
+    "starter": true
+   }
+  },
+  {
+   "id": "portable/inferred-starter",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInferredStarter",
+    "func": "portableInferredStarter",
+    "globals": {},
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/invalid-0",
+   "op": "validateEffectDefinition",
+   "definition": null
+  },
+  {
+   "id": "portable/invalid-1",
+   "op": "validateEffectDefinition",
+   "definition": []
+  },
+  {
+   "id": "portable/invalid-2",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "bad-name",
+    "func": "bad-name",
+    "globals": {},
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/invalid-3",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "synth",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {},
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/invalid-4",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {},
+    "passes": [],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/invalid-5",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {},
+    "passes": [
+     null
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/invalid-6",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "inputs": {
+       "src": 42
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/invalid-7",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "outputs": null
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/invalid-8",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {},
+    "passes": [
+     {
+      "program": "main",
+      "outputs": {
+       "color": ""
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/invalid-9",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {},
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {}
+   }
+  },
+  {
+   "id": "portable/invalid-10",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {},
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": " "
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/invalid-11",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {},
+    "passes": [
+     {
+      "program": "a"
+     },
+     {
+      "program": "b"
+     }
+    ],
+    "shaders": {
+     "a": {
+      "glsl": "source"
+     },
+     "b": {
+      "wgsl": "source"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/invalid-12",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {
+     "amount": null
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/invalid-13",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {},
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    },
+    "starter": "false"
+   }
+  },
+  {
+   "id": "portable/invalid-14",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {},
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    },
+    "paramAliases": "bad"
+   }
+  },
+  {
+   "id": "portable/invalid-15",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {},
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    },
+    "paramAliases": {
+     "old": 42
+    }
+   }
+  },
+  {
+   "id": "portable/invalid-16",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {},
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    },
+    "paramAliases": {
+     "old": "absent"
+    }
+   }
+  },
+  {
+   "id": "portable/invalid-17",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {
+     "mode": {
+      "type": "int",
+      "choices": "abc"
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/invalid-18",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {
+     "mode": {
+      "type": "int",
+      "choices": {
+       "Broken": {}
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/valid-after-invalid",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableInvalid",
+    "func": "portableInvalid",
+    "globals": {},
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/name-only",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableNameOnly",
+    "globals": {},
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/duplicate",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableDuplicate",
+    "func": "portableDuplicate",
+    "globals": {},
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    },
+    "starter": false
+   }
+  },
+  {
+   "id": "portable/reserved-__proto__-func",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "__proto__",
+    "func": "__proto__",
+    "globals": {
+     "mode": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "Choice": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-__proto__-global",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableReserved",
+    "func": "portableReserved",
+    "globals": {
+     "__proto__": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "Choice": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-__proto__-choice",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableReserved",
+    "func": "portableReserved",
+    "globals": {
+     "mode": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "__proto__": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-constructor-func",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "constructor",
+    "func": "constructor",
+    "globals": {
+     "mode": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "Choice": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-constructor-global",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableReserved",
+    "func": "portableReserved",
+    "globals": {
+     "constructor": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "Choice": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-constructor-choice",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableReserved",
+    "func": "portableReserved",
+    "globals": {
+     "mode": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "constructor": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-prototype-func",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "prototype",
+    "func": "prototype",
+    "globals": {
+     "mode": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "Choice": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-prototype-global",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableReserved",
+    "func": "portableReserved",
+    "globals": {
+     "prototype": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "Choice": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-prototype-choice",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableReserved",
+    "func": "portableReserved",
+    "globals": {
+     "mode": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "prototype": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-toString-func",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "toString",
+    "func": "toString",
+    "globals": {
+     "mode": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "Choice": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-toString-global",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableReserved",
+    "func": "portableReserved",
+    "globals": {
+     "toString": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "Choice": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-toString-choice",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableReserved",
+    "func": "portableReserved",
+    "globals": {
+     "mode": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "toString": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-valueOf-func",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "valueOf",
+    "func": "valueOf",
+    "globals": {
+     "mode": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "Choice": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-valueOf-global",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableReserved",
+    "func": "portableReserved",
+    "globals": {
+     "valueOf": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "Choice": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-valueOf-choice",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableReserved",
+    "func": "portableReserved",
+    "globals": {
+     "mode": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "valueOf": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-hasOwnProperty-func",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "hasOwnProperty",
+    "func": "hasOwnProperty",
+    "globals": {
+     "mode": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "Choice": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-hasOwnProperty-global",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableReserved",
+    "func": "portableReserved",
+    "globals": {
+     "hasOwnProperty": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "Choice": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  },
+  {
+   "id": "portable/reserved-hasOwnProperty-choice",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "namespace": "user",
+    "name": "portableReserved",
+    "func": "portableReserved",
+    "globals": {
+     "mode": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "hasOwnProperty": 1
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "main",
+      "program": "main",
+      "inputs": {},
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ],
+    "shaders": {
+     "main": {
+      "glsl": "#version 300 es\nvoid main() {}"
+     }
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,8 @@
+{
+  "profile": "host",
+  "setup": [],
+  "cases": [
+    {"generate": "catalog"},
+    {"generate": "predictions"}
+  ]
+}

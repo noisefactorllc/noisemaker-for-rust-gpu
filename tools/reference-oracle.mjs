@@ -46,7 +46,11 @@ function sortedDirs (dir) {
 
 export async function bootstrapReference () {
   const mod = await import(pathToFileURL(join(SHADERS, 'src', 'index.js')).href)
-  const { registerEffect, registerOp, registerStarterOps, mergeIntoEnums, stdEnums, sanitizeEnumName, isStarterEffect } = mod
+  const { registerEffect, registerOp, registerStarterOps, mergeIntoEnums, sanitizeEnumName, isStarterEffect } = mod
+  // The host merges the standard enums of lang/std_enums.js. (index.js also
+  // exports a `stdEnums`, but that one is the merged enum tree of lang/enums.js,
+  // which is still empty here.)
+  const { stdEnums } = await import(pathToFileURL(join(SHADERS, 'src', 'lang', 'std_enums.js')).href)
   const { registerParamAliases } = await import(pathToFileURL(join(SHADERS, 'src', 'lang', 'paramAliases.js')).href)
   const { registerEffectAlias } = await import(pathToFileURL(join(SHADERS, 'src', 'lang', 'effectAliases.js')).href)
   const manifest = JSON.parse(readFileSync(join(EFFECTS, 'manifest.json'), 'utf8'))

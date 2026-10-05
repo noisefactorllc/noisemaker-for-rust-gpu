@@ -1,0 +1,702 @@
+{
+ "profile": "host",
+ "setup": [],
+ "cases": [
+  {
+   "id": "edge/formatDslError-0",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "Unexpected token at line 3 col 10"
+   }
+  },
+  {
+   "id": "edge/formatDslError-1",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "x at line 1 column 1"
+   }
+  },
+  {
+   "id": "edge/formatDslError-2",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "x at line 11 col 3"
+   }
+  },
+  {
+   "id": "edge/formatDslError-3",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "x at line 12 col 1"
+   }
+  },
+  {
+   "id": "edge/formatDslError-4",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "x at line 40 col 2"
+   }
+  },
+  {
+   "id": "edge/formatDslError-5",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "x at line 0 col 0"
+   }
+  },
+  {
+   "id": "edge/formatDslError-6",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "x at line 5 col 0"
+   }
+  },
+  {
+   "id": "edge/formatDslError-7",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "multi at line 2 col 3 then at line 4 col 1"
+   }
+  },
+  {
+   "id": "edge/formatDslError-8",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "no location here"
+   }
+  },
+  {
+   "id": "edge/formatDslError-9",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "at line 2 col 3"
+   }
+  },
+  {
+   "id": "edge/formatDslError-10",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "  padded at line 2 col 3  "
+   }
+  },
+  {
+   "id": "edge/formatDslError-11",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "tabbed\tat line 2 col 3"
+   }
+  },
+  {
+   "id": "edge/formatDslError-12",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "x at line 02 col 007"
+   }
+  },
+  {
+   "id": "edge/formatDslError-13",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "x at line 1 colum 2"
+   }
+  },
+  {
+   "id": "edge/formatDslError-14",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "x at line 1 col"
+   }
+  },
+  {
+   "id": "edge/formatDslError-15",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "x at line 99999999999999999999 col 1"
+   }
+  },
+  {
+   "id": "edge/formatDslError-16",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "Output surface reference 'o9' is out of range; expected o0-o7 at line 4 col 10"
+   }
+  },
+  {
+   "id": "edge/formatDslError-17",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "midi() unknown parameter 'x' at line 2 col 1. Valid: channel"
+   }
+  },
+  {
+   "id": "edge/formatDslError-18",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": 0
+   }
+  },
+  {
+   "id": "edge/formatDslError-19",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": 1
+   }
+  },
+  {
+   "id": "edge/formatDslError-20",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": 3
+   }
+  },
+  {
+   "id": "edge/formatDslError-21",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": 10
+   }
+  },
+  {
+   "id": "edge/formatDslError-22",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": -1
+   }
+  },
+  {
+   "id": "edge/formatDslError-23",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": 1.5
+   }
+  },
+  {
+   "id": "edge/formatDslError-24",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": "2"
+   }
+  },
+  {
+   "id": "edge/formatDslError-25",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": ""
+   }
+  },
+  {
+   "id": "edge/formatDslError-26",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": null
+   }
+  },
+  {
+   "id": "edge/formatDslError-27",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": true
+   }
+  },
+  {
+   "id": "edge/formatDslError-28",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": false
+   }
+  },
+  {
+   "id": "edge/formatDslError-29",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": []
+   }
+  },
+  {
+   "id": "edge/formatDslError-30",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": [
+     3
+    ]
+   }
+  },
+  {
+   "id": "edge/formatDslError-31",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": {}
+   }
+  },
+  {
+   "id": "edge/formatDslError-32",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": {
+     "$js": "undefined"
+    }
+   }
+  },
+  {
+   "id": "edge/formatDslError-33",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": {
+     "$js": "NaN"
+    }
+   }
+  },
+  {
+   "id": "edge/formatDslError-34",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": {
+    "contextLines": {
+     "$js": "Infinity"
+    }
+   }
+  },
+  {
+   "id": "edge/formatDslError-35",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": null
+  },
+  {
+   "id": "edge/formatDslError-36",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 6 col 2"
+   },
+   "options": 5
+  },
+  {
+   "id": "edge/formatDslError-37",
+   "op": "formatDslError",
+   "source": "",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 2 col 1"
+   }
+  },
+  {
+   "id": "edge/formatDslError-38",
+   "op": "formatDslError",
+   "source": null,
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 2 col 1"
+   }
+  },
+  {
+   "id": "edge/formatDslError-39",
+   "op": "formatDslError",
+   "source": {
+    "$js": "undefined"
+   },
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 2 col 1"
+   }
+  },
+  {
+   "id": "edge/formatDslError-40",
+   "op": "formatDslError",
+   "source": 0,
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 2 col 1"
+   }
+  },
+  {
+   "id": "edge/formatDslError-41",
+   "op": "formatDslError",
+   "source": "single line",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 2 col 1"
+   }
+  },
+  {
+   "id": "edge/formatDslError-42",
+   "op": "formatDslError",
+   "source": "a\r\nb\r\nc",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 2 col 1"
+   }
+  },
+  {
+   "id": "edge/formatDslError-43",
+   "op": "formatDslError",
+   "source": 5,
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 2 col 1"
+   }
+  },
+  {
+   "id": "edge/formatDslError-44",
+   "op": "formatDslError",
+   "source": [
+    "x"
+   ],
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 2 col 1"
+   }
+  },
+  {
+   "id": "edge/formatDslError-45",
+   "op": "formatDslError",
+   "source": "\n\n\n",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "bad at line 2 col 1"
+   }
+  },
+  {
+   "id": "edge/formatDslError-46",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": null
+  },
+  {
+   "id": "edge/formatDslError-47",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "undefined"
+   }
+  },
+  {
+   "id": "edge/formatDslError-48",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": 0
+  },
+  {
+   "id": "edge/formatDslError-49",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": ""
+  },
+  {
+   "id": "edge/formatDslError-50",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": "plain string at line 1 col 1"
+  },
+  {
+   "id": "edge/formatDslError-51",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": 42
+  },
+  {
+   "id": "edge/formatDslError-52",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": true
+  },
+  {
+   "id": "edge/formatDslError-53",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "message": "obj at line 1 col 2"
+   }
+  },
+  {
+   "id": "edge/formatDslError-54",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "message": 5
+   }
+  },
+  {
+   "id": "edge/formatDslError-55",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {}
+  },
+  {
+   "id": "edge/formatDslError-56",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": []
+  },
+  {
+   "id": "edge/formatDslError-57",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "toString": 5
+   }
+  },
+  {
+   "id": "edge/formatDslError-58",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "TypeError",
+    "message": "type at line 1 col 1"
+   }
+  },
+  {
+   "id": "edge/formatDslError-59",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "Error",
+    "message": "generic"
+   }
+  },
+  {
+   "id": "edge/formatDslError-60",
+   "op": "formatDslError",
+   "source": "search synth\nnoise()\n  .bloom(\n  .write(o0)\nrender(o0)\nline6\nline7\nline8\nline9\nline10\nline11",
+   "error": {
+    "$js": "error",
+    "name": "RangeError",
+    "message": ""
+   }
+  },
+  {
+   "id": "edge/isDslSyntaxError-0",
+   "op": "isDslSyntaxError",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "x at line 1 col 1"
+   }
+  },
+  {
+   "id": "edge/isDslSyntaxError-1",
+   "op": "isDslSyntaxError",
+   "error": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "no location"
+   }
+  },
+  {
+   "id": "edge/isDslSyntaxError-2",
+   "op": "isDslSyntaxError",
+   "error": {
+    "$js": "error",
+    "name": "TypeError",
+    "message": "x at line 1 col 1"
+   }
+  },
+  {
+   "id": "edge/isDslSyntaxError-3",
+   "op": "isDslSyntaxError",
+   "error": {
+    "$js": "error",
+    "name": "Error",
+    "message": "x at line 1 column 2"
+   }
+  },
+  {
+   "id": "edge/isDslSyntaxError-4",
+   "op": "isDslSyntaxError",
+   "error": "x at line 1 col 1"
+  },
+  {
+   "id": "edge/isDslSyntaxError-5",
+   "op": "isDslSyntaxError",
+   "error": {
+    "message": "x at line 1 col 1",
+    "name": "SyntaxError"
+   }
+  },
+  {
+   "id": "edge/isDslSyntaxError-6",
+   "op": "isDslSyntaxError",
+   "error": null
+  },
+  {
+   "id": "edge/isDslSyntaxError-7",
+   "op": "isDslSyntaxError",
+   "error": {
+    "$js": "undefined"
+   }
+  }
+ ]
+}

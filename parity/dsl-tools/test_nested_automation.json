@@ -1,0 +1,963 @@
+{
+ "profile": "test_nested_automation",
+ "setup": [
+  {
+   "op": "registerOp",
+   "name": "synth.nestedAutomationProbe",
+   "spec": {
+    "name": "nestedAutomationProbe",
+    "args": [
+     {
+      "name": "amount",
+      "type": "float",
+      "default": 0,
+      "min": 0,
+      "max": 1
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerStarterOps",
+   "names": [
+    "synth.nestedAutomationProbe"
+   ]
+  }
+ ],
+ "cases": [
+  {
+   "id": "nested/referenced-oscillator",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nlet rate = osc(type: oscKind.sine, min: 0.25, max: 0.75)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)"
+   }
+  },
+  {
+   "id": "nested/referenced-oscillator:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "nested/referenced-oscillator"
+    }
+   }
+  },
+  {
+   "id": "nested/referenced-oscillator:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet rate = osc(type: oscKind.sine, min: 0.25, max: 0.75)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "nested/referenced-oscillator:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet rate = osc(type: oscKind.sine, min: 0.25, max: 0.75)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "nested/referenced-oscillator:raw-vars",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth\nlet rate = osc(type: oscKind.sine, min: 0.25, max: 0.75)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "vars",
+     0,
+     "expr"
+    ]
+   }
+  },
+  {
+   "id": "nested/audio-min-automation",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nlet movement = midi(channel: 1)\nlet gate = audio(band: audioBand.vol, min: movement)\nnestedAutomationProbe(amount: gate).write(o0)"
+   }
+  },
+  {
+   "id": "nested/audio-min-automation:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "nested/audio-min-automation"
+    }
+   }
+  },
+  {
+   "id": "nested/audio-min-automation:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet movement = midi(channel: 1)\nlet gate = audio(band: audioBand.vol, min: movement)\nnestedAutomationProbe(amount: gate).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "nested/audio-min-automation:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet movement = midi(channel: 1)\nlet gate = audio(band: audioBand.vol, min: movement)\nnestedAutomationProbe(amount: gate).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "nested/audio-min-automation:raw-vars",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth\nlet movement = midi(channel: 1)\nlet gate = audio(band: audioBand.vol, min: movement)\nnestedAutomationProbe(amount: gate).write(o0)",
+    "path": [
+     "vars",
+     0,
+     "expr"
+    ]
+   }
+  },
+  {
+   "id": "nested/audio-band-automation",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nlet movement = midi(channel: 1)\nlet gate = audio(band: movement)\nnestedAutomationProbe(amount: gate).write(o0)"
+   }
+  },
+  {
+   "id": "nested/audio-band-automation:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "nested/audio-band-automation"
+    }
+   }
+  },
+  {
+   "id": "nested/audio-band-automation:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet movement = midi(channel: 1)\nlet gate = audio(band: movement)\nnestedAutomationProbe(amount: gate).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "nested/audio-band-automation:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet movement = midi(channel: 1)\nlet gate = audio(band: movement)\nnestedAutomationProbe(amount: gate).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "nested/audio-band-automation:raw-vars",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth\nlet movement = midi(channel: 1)\nlet gate = audio(band: movement)\nnestedAutomationProbe(amount: gate).write(o0)",
+    "path": [
+     "vars",
+     0,
+     "expr"
+    ]
+   }
+  },
+  {
+   "id": "nested/audio-min-string",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nlet gate = audio(band: audioBand.vol, min: \"not-a-number\")\nnestedAutomationProbe(amount: gate).write(o0)"
+   }
+  },
+  {
+   "id": "nested/audio-min-string:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "nested/audio-min-string"
+    }
+   }
+  },
+  {
+   "id": "nested/audio-min-string:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet gate = audio(band: audioBand.vol, min: \"not-a-number\")\nnestedAutomationProbe(amount: gate).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "nested/audio-min-string:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet gate = audio(band: audioBand.vol, min: \"not-a-number\")\nnestedAutomationProbe(amount: gate).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "nested/audio-min-string:raw-vars",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth\nlet gate = audio(band: audioBand.vol, min: \"not-a-number\")\nnestedAutomationProbe(amount: gate).write(o0)",
+    "path": [
+     "vars",
+     0,
+     "expr"
+    ]
+   }
+  },
+  {
+   "id": "nested/audio-channel-string",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n    let gate = audio(band: audioBand.vol, channel: \"not-a-channel\", name: \"Input\")\nnestedAutomationProbe(amount: gate).write(o0)"
+   }
+  },
+  {
+   "id": "nested/audio-channel-string:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "nested/audio-channel-string"
+    }
+   }
+  },
+  {
+   "id": "nested/audio-channel-string:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\n    let gate = audio(band: audioBand.vol, channel: \"not-a-channel\", name: \"Input\")\nnestedAutomationProbe(amount: gate).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "nested/audio-channel-string:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\n    let gate = audio(band: audioBand.vol, channel: \"not-a-channel\", name: \"Input\")\nnestedAutomationProbe(amount: gate).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "nested/audio-channel-string:raw-vars",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth\n    let gate = audio(band: audioBand.vol, channel: \"not-a-channel\", name: \"Input\")\nnestedAutomationProbe(amount: gate).write(o0)",
+    "path": [
+     "vars",
+     0,
+     "expr"
+    ]
+   }
+  },
+  {
+   "id": "nested/cycle",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nlet first = osc(type: oscKind.sine, speed: second)\nlet second = osc(type: oscKind.tri, speed: first)\nnestedAutomationProbe(amount: first).write(o0)"
+   }
+  },
+  {
+   "id": "nested/cycle:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "nested/cycle"
+    }
+   }
+  },
+  {
+   "id": "nested/cycle:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet first = osc(type: oscKind.sine, speed: second)\nlet second = osc(type: oscKind.tri, speed: first)\nnestedAutomationProbe(amount: first).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "nested/cycle:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet first = osc(type: oscKind.sine, speed: second)\nlet second = osc(type: oscKind.tri, speed: first)\nnestedAutomationProbe(amount: first).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "nested/cycle:raw-vars",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth\nlet first = osc(type: oscKind.sine, speed: second)\nlet second = osc(type: oscKind.tri, speed: first)\nnestedAutomationProbe(amount: first).write(o0)",
+    "path": [
+     "vars",
+     0,
+     "expr"
+    ]
+   }
+  },
+  {
+   "id": "nested/nested-survives",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet rate = audio(band: audioBand.raw, min: 0.25, max: 0.75)\nlet carrier = osc(type: oscKind.sine, min: rate, speed: rate)\n\nnestedAutomationProbe(amount: carrier).write(o0)\nrender(o0)"
+   }
+  },
+  {
+   "id": "nested/nested-survives:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "nested/nested-survives"
+    }
+   }
+  },
+  {
+   "id": "nested/nested-survives:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\n\nlet rate = audio(band: audioBand.raw, min: 0.25, max: 0.75)\nlet carrier = osc(type: oscKind.sine, min: rate, speed: rate)\n\nnestedAutomationProbe(amount: carrier).write(o0)\nrender(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "nested/nested-survives:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\n\nlet rate = audio(band: audioBand.raw, min: 0.25, max: 0.75)\nlet carrier = osc(type: oscKind.sine, min: rate, speed: rate)\n\nnestedAutomationProbe(amount: carrier).write(o0)\nrender(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "nested/nested-survives:raw-vars",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth\n\nlet rate = audio(band: audioBand.raw, min: 0.25, max: 0.75)\nlet carrier = osc(type: oscKind.sine, min: rate, speed: rate)\n\nnestedAutomationProbe(amount: carrier).write(o0)\nrender(o0)",
+    "path": [
+     "vars",
+     0,
+     "expr"
+    ]
+   }
+  },
+  {
+   "id": "nested/inline-named-reference",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nlet rate = audio(band: audioBand.raw)\nnestedAutomationProbe(\n  amount: osc(type: oscKind.saw, speed: rate)\n).write(o0)"
+   }
+  },
+  {
+   "id": "nested/inline-named-reference:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "nested/inline-named-reference"
+    }
+   }
+  },
+  {
+   "id": "nested/inline-named-reference:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet rate = audio(band: audioBand.raw)\nnestedAutomationProbe(\n  amount: osc(type: oscKind.saw, speed: rate)\n).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "nested/inline-named-reference:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet rate = audio(band: audioBand.raw)\nnestedAutomationProbe(\n  amount: osc(type: oscKind.saw, speed: rate)\n).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "nested/inline-named-reference:raw-vars",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth\nlet rate = audio(band: audioBand.raw)\nnestedAutomationProbe(\n  amount: osc(type: oscKind.saw, speed: rate)\n).write(o0)",
+    "path": [
+     "vars",
+     0,
+     "expr"
+    ]
+   }
+  },
+  {
+   "id": "nested/numeric-kind",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nlet carrier = osc(type: 2)\nnestedAutomationProbe(amount: carrier).write(o0)"
+   }
+  },
+  {
+   "id": "nested/numeric-kind:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "nested/numeric-kind"
+    }
+   }
+  },
+  {
+   "id": "nested/numeric-kind:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet carrier = osc(type: 2)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "nested/numeric-kind:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet carrier = osc(type: 2)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "nested/numeric-kind:raw-vars",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth\nlet carrier = osc(type: 2)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "vars",
+     0,
+     "expr"
+    ]
+   }
+  },
+  {
+   "id": "nested/nested-selected-audio",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nlet inner = audio(\n  band: audioBand.raw,\n  channel: 2,\n  name: \"Inner Interface\",\n  id: \"inner-id\"\n)\nlet outer = audio(\n  band: audioBand.low,\n  min: inner,\n  channel: 1,\n  name: \"Outer Interface\",\n  id: \"outer-id\"\n)\nnestedAutomationProbe(amount: outer).write(o0)"
+   }
+  },
+  {
+   "id": "nested/nested-selected-audio:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "nested/nested-selected-audio"
+    }
+   }
+  },
+  {
+   "id": "nested/nested-selected-audio:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet inner = audio(\n  band: audioBand.raw,\n  channel: 2,\n  name: \"Inner Interface\",\n  id: \"inner-id\"\n)\nlet outer = audio(\n  band: audioBand.low,\n  min: inner,\n  channel: 1,\n  name: \"Outer Interface\",\n  id: \"outer-id\"\n)\nnestedAutomationProbe(amount: outer).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "nested/nested-selected-audio:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet inner = audio(\n  band: audioBand.raw,\n  channel: 2,\n  name: \"Inner Interface\",\n  id: \"inner-id\"\n)\nlet outer = audio(\n  band: audioBand.low,\n  min: inner,\n  channel: 1,\n  name: \"Outer Interface\",\n  id: \"outer-id\"\n)\nnestedAutomationProbe(amount: outer).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "nested/nested-selected-audio:raw-vars",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth\nlet inner = audio(\n  band: audioBand.raw,\n  channel: 2,\n  name: \"Inner Interface\",\n  id: \"inner-id\"\n)\nlet outer = audio(\n  band: audioBand.low,\n  min: inner,\n  channel: 1,\n  name: \"Outer Interface\",\n  id: \"outer-id\"\n)\nnestedAutomationProbe(amount: outer).write(o0)",
+    "path": [
+     "vars",
+     0,
+     "expr"
+    ]
+   }
+  },
+  {
+   "id": "nested/rate-modulation",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nlet rate = osc(type: oscKind.sine)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)"
+   }
+  },
+  {
+   "id": "nested/rate-modulation:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "nested/rate-modulation"
+    }
+   }
+  },
+  {
+   "id": "nested/rate-modulation:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet rate = osc(type: oscKind.sine)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "nested/rate-modulation:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet rate = osc(type: oscKind.sine)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "nested/rate-modulation:raw-vars",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth\nlet rate = osc(type: oscKind.sine)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "vars",
+     0,
+     "expr"
+    ]
+   }
+  },
+  {
+   "id": "nested/noise-rate",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nlet rate = osc(type: oscKind.noise, seed: 37)\nlet carrier = osc(type: oscKind.sine, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)"
+   }
+  },
+  {
+   "id": "nested/noise-rate:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "nested/noise-rate"
+    }
+   }
+  },
+  {
+   "id": "nested/noise-rate:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet rate = osc(type: oscKind.noise, seed: 37)\nlet carrier = osc(type: oscKind.sine, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "nested/noise-rate:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet rate = osc(type: oscKind.noise, seed: 37)\nlet carrier = osc(type: oscKind.sine, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "nested/noise-rate:raw-vars",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth\nlet rate = osc(type: oscKind.noise, seed: 37)\nlet carrier = osc(type: oscKind.sine, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "vars",
+     0,
+     "expr"
+    ]
+   }
+  },
+  {
+   "id": "nested/midi-rate",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nlet rate = midi(channel: 1, mode: midiMode.gateVelocity)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)"
+   }
+  },
+  {
+   "id": "nested/midi-rate:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "nested/midi-rate"
+    }
+   }
+  },
+  {
+   "id": "nested/midi-rate:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet rate = midi(channel: 1, mode: midiMode.gateVelocity)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "nested/midi-rate:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet rate = midi(channel: 1, mode: midiMode.gateVelocity)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "nested/midi-rate:raw-vars",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth\nlet rate = midi(channel: 1, mode: midiMode.gateVelocity)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "vars",
+     0,
+     "expr"
+    ]
+   }
+  },
+  {
+   "id": "nested/audio-rate",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nlet rate = audio(band: audioBand.raw)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)"
+   }
+  },
+  {
+   "id": "nested/audio-rate:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "nested/audio-rate"
+    }
+   }
+  },
+  {
+   "id": "nested/audio-rate:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet rate = audio(band: audioBand.raw)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "nested/audio-rate:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet rate = audio(band: audioBand.raw)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "nested/audio-rate:raw-vars",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth\nlet rate = audio(band: audioBand.raw)\nlet carrier = osc(type: oscKind.saw, speed: rate)\nnestedAutomationProbe(amount: carrier).write(o0)",
+    "path": [
+     "vars",
+     0,
+     "expr"
+    ]
+   }
+  },
+  {
+   "id": "nested/numeric-kinds-all",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nlet a = osc(type: 0)\nlet b = osc(type: 3)\nlet c = osc(type: 5)\nlet d = osc(type: 6)\nnestedAutomationProbe(amount: osc(type: 4, speed: a, min: b, max: c, offset: d)).write(o0)"
+   }
+  },
+  {
+   "id": "nested/numeric-kinds-all:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "nested/numeric-kinds-all"
+    }
+   }
+  },
+  {
+   "id": "nested/numeric-kinds-all:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet a = osc(type: 0)\nlet b = osc(type: 3)\nlet c = osc(type: 5)\nlet d = osc(type: 6)\nnestedAutomationProbe(amount: osc(type: 4, speed: a, min: b, max: c, offset: d)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "nested/numeric-kinds-all:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nlet a = osc(type: 0)\nlet b = osc(type: 3)\nlet c = osc(type: 5)\nlet d = osc(type: 6)\nnestedAutomationProbe(amount: osc(type: 4, speed: a, min: b, max: c, offset: d)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "nested/numeric-kinds-all:raw-vars",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth\nlet a = osc(type: 0)\nlet b = osc(type: 3)\nlet c = osc(type: 5)\nlet d = osc(type: 6)\nnestedAutomationProbe(amount: osc(type: 4, speed: a, min: b, max: c, offset: d)).write(o0)",
+    "path": [
+     "vars",
+     0,
+     "expr"
+    ]
+   }
+  },
+  {
+   "id": "nested/invalid-outer-config",
+   "op": "formatValue",
+   "value": {
+    "type": "Audio",
+    "band": 0,
+    "min": {
+     "type": "Audio",
+     "band": 0,
+     "min": 0,
+     "max": 1,
+     "channel": 1,
+     "name": "Inner Interface",
+     "id": "inner-id"
+    },
+    "max": 1,
+    "_invalid": true
+   }
+  }
+ ]
+}

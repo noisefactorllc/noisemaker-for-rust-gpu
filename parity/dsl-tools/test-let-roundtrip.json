@@ -1,0 +1,294 @@
+{
+ "profile": "test-let-roundtrip",
+ "setup": [
+  {
+   "op": "registerOp",
+   "name": "synth.noise",
+   "spec": {
+    "name": "noise",
+    "args": [
+     {
+      "name": "scale",
+      "type": "float",
+      "default": 75
+     },
+     {
+      "name": "rotation",
+      "type": "float",
+      "default": 0
+     },
+     {
+      "name": "seed",
+      "type": "int",
+      "default": 1
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerStarterOps",
+   "names": [
+    "synth.noise",
+    "noise"
+   ]
+  }
+ ],
+ "cases": [
+  {
+   "id": "let/osc",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet wobble = osc(type: oscKind.sine, min: 0, max: 360)\n\nnoise(rotation: wobble)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/osc:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/osc"
+    }
+   }
+  },
+  {
+   "id": "let/numeric",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet amount = 0.5\n\nnoise(scale: amount)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/numeric:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/numeric"
+    }
+   }
+  },
+  {
+   "id": "let/multiple",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet wobble = osc(type: oscKind.sine)\nlet amt = 0.5\n\nnoise(rotation: wobble, scale: amt)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/multiple:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/multiple"
+    }
+   }
+  },
+  {
+   "id": "let/call",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet myScale = 3\n\nnoise(scale: myScale)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/call:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/call"
+    }
+   }
+  },
+  {
+   "id": "let/enum",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet waveType = oscKind.sine\nlet wobble = osc(type: waveType)\n\nnoise(rotation: wobble)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/enum:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/enum"
+    }
+   }
+  },
+  {
+   "id": "let/midi",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet knob = midi(channel: 1)\n\nnoise(scale: knob)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/midi:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/midi"
+    }
+   }
+  },
+  {
+   "id": "let/audio",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet bass = audio(band: audioBand.low)\n\nnoise(scale: bass)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/audio:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/audio"
+    }
+   }
+  },
+  {
+   "id": "let/double",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet wobble = osc(type: oscKind.sine, min: 0, max: 360)\nlet amt = 0.5\n\nnoise(rotation: wobble, scale: amt)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/double:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/double"
+    }
+   }
+  },
+  {
+   "id": "let/midi-identity",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet knob = midi(name: \"Launch \\\"Control\\\" \\\\ XL\", id: \"port\\\\two\", channel: 1)\n\nnoise(scale: knob)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/midi-identity:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/midi-identity"
+    }
+   }
+  },
+  {
+   "id": "let/midi-mode-0",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet knob = midi(channel: 1, mode: 0)\n\nnoise(scale: knob)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/midi-mode-0:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/midi-mode-0"
+    }
+   }
+  },
+  {
+   "id": "let/midi-mode-1",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet knob = midi(channel: 1, mode: 1)\n\nnoise(scale: knob)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/midi-mode-1:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/midi-mode-1"
+    }
+   }
+  },
+  {
+   "id": "let/midi-mode-2",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet knob = midi(channel: 1, mode: 2)\n\nnoise(scale: knob)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/midi-mode-2:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/midi-mode-2"
+    }
+   }
+  },
+  {
+   "id": "let/midi-mode-3",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet knob = midi(channel: 1, mode: 3)\n\nnoise(scale: knob)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/midi-mode-3:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/midi-mode-3"
+    }
+   }
+  },
+  {
+   "id": "let/midi-mode-4",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet knob = midi(channel: 1, mode: 4)\n\nnoise(scale: knob)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/midi-mode-4:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/midi-mode-4"
+    }
+   }
+  },
+  {
+   "id": "let/single-quoted-identity",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet knob = midi(name: 'Keys \"Left\" Controller\\'s \\\\ Main', id: 'port\\\\one', channel: 1)\n\nnoise(scale: knob)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/single-quoted-identity:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/single-quoted-identity"
+    }
+   }
+  },
+  {
+   "id": "let/audio-identity",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\n\nlet cv = audio(band: audioBand.raw, channel: 4, name: \"Expert \\\"Sleepers\\\" \\\\ ES-9\", id: \"audio\\\\port\")\n\nnoise(scale: cv)\n  .write(o0)\n\nrender(o0)"
+   }
+  },
+  {
+   "id": "let/audio-identity:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "let/audio-identity"
+    }
+   }
+  }
+ ]
+}

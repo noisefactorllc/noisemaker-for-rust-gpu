@@ -1,0 +1,767 @@
+{
+ "profile": "test_array_literal_roundtrip",
+ "setup": [
+  {
+   "op": "registerOp",
+   "name": "synth.vecop",
+   "spec": {
+    "name": "vecop",
+    "args": [
+     {
+      "name": "pos3",
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "pos4",
+      "type": "vec4",
+      "default": [
+       0,
+       0,
+       0,
+       1
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerStarterOps",
+   "names": [
+    "synth.vecop"
+   ]
+  }
+ ],
+ "cases": [
+  {
+   "id": "array-literal/pos4",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nvecop(pos4: [0.05, 0.5, 0.95, 1.0]).write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      },
+      "vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "array-literal/pos4:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "array-literal/pos4"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      },
+      "vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "array-literal/pos4:plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nvecop(pos4: [0.05, 0.5, 0.95, 1.0]).write(o0)"
+   }
+  },
+  {
+   "id": "array-literal/pos4:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nvecop(pos4: [0.05, 0.5, 0.95, 1.0]).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "pos4"
+    ]
+   },
+   "spec": {
+    "type": "vec4",
+    "default": [
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   "sourceForm": "array"
+  },
+  {
+   "id": "array-literal/pos3",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nvecop(pos3: [0.1, 0.2, 0.3]).write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      },
+      "vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "array-literal/pos3:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "array-literal/pos3"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      },
+      "vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "array-literal/pos3:plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nvecop(pos3: [0.1, 0.2, 0.3]).write(o0)"
+   }
+  },
+  {
+   "id": "array-literal/pos3:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nvecop(pos3: [0.1, 0.2, 0.3]).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "pos3"
+    ]
+   },
+   "spec": {
+    "type": "vec3",
+    "default": [
+     0,
+     0,
+     0
+    ]
+   },
+   "sourceForm": "array"
+  },
+  {
+   "id": "array-literal/both",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nvecop(pos3: [0.1, 0.2, 0.3], pos4: [0.05, 0.5, 0.95, 1]).write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      },
+      "vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "array-literal/both:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "array-literal/both"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      },
+      "vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "array-literal/both:plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nvecop(pos3: [0.1, 0.2, 0.3], pos4: [0.05, 0.5, 0.95, 1]).write(o0)"
+   }
+  },
+  {
+   "id": "array-literal/both:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nvecop(pos3: [0.1, 0.2, 0.3], pos4: [0.05, 0.5, 0.95, 1]).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "pos3"
+    ]
+   },
+   "spec": {
+    "type": "vec3",
+    "default": [
+     0,
+     0,
+     0
+    ]
+   },
+   "sourceForm": "array"
+  },
+  {
+   "id": "array-literal/vec3call",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nvecop(pos3: vec3(0.1, 0.2, 0.3)).write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      },
+      "vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "array-literal/vec3call:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "array-literal/vec3call"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      },
+      "vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "array-literal/vec3call:plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nvecop(pos3: vec3(0.1, 0.2, 0.3)).write(o0)"
+   }
+  },
+  {
+   "id": "array-literal/vec3call:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nvecop(pos3: vec3(0.1, 0.2, 0.3)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "pos3"
+    ]
+   },
+   "spec": {
+    "type": "vec3",
+    "default": [
+     0,
+     0,
+     0
+    ]
+   },
+   "sourceForm": "array"
+  },
+  {
+   "id": "array-literal/short",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nvecop(pos3: [1, 2]).write(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      },
+      "vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "array-literal/short:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "array-literal/short"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      },
+      "vecop": {
+       "globals": {
+        "pos3": {
+         "type": "vec3",
+         "default": [
+          0,
+          0,
+          0
+         ]
+        },
+        "pos4": {
+         "type": "vec4",
+         "default": [
+          0,
+          0,
+          0,
+          1
+         ]
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "array-literal/short:plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nvecop(pos3: [1, 2]).write(o0)"
+   }
+  },
+  {
+   "id": "array-literal/short:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nvecop(pos3: [1, 2]).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "pos3"
+    ]
+   },
+   "spec": {
+    "type": "vec3",
+    "default": [
+     0,
+     0,
+     0
+    ]
+   },
+   "sourceForm": "array"
+  }
+ ]
+}

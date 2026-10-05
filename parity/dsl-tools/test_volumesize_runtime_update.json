@@ -1,0 +1,112 @@
+{
+ "profile": "host",
+ "setup": [],
+ "cases": [
+  {
+   "id": "volumesize/explicit-true",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, render\nheightmap3d(volumeSize: x128).renderLandscape3d(volumeSize: 64, viewMode: perspective).write(o0)\nrender(o0)"
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "registrySimple"
+    }
+   }
+  },
+  {
+   "id": "volumesize/explicit-true:registry",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, render\nheightmap3d(volumeSize: x128).renderLandscape3d(volumeSize: 64, viewMode: perspective).write(o0)\nrender(o0)"
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    }
+   }
+  },
+  {
+   "id": "volumesize/explicit-true:plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, render\nheightmap3d(volumeSize: x128).renderLandscape3d(volumeSize: 64, viewMode: perspective).write(o0)\nrender(o0)"
+   }
+  },
+  {
+   "id": "volumesize/explicit-true:override",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, render\nheightmap3d(volumeSize: x128).renderLandscape3d(volumeSize: 64, viewMode: perspective).write(o0)\nrender(o0)"
+   },
+   "overrides": {
+    "0": {
+     "volumeSize": 64
+    },
+    "1": {
+     "volumeSize": 32
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    }
+   }
+  },
+  {
+   "id": "volumesize/explicit-false",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, render\nheightmap3d(volumeSize: x128).renderLandscape3d(viewMode: perspective).write(o0)\nrender(o0)"
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "registrySimple"
+    }
+   }
+  },
+  {
+   "id": "volumesize/explicit-false:registry",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, render\nheightmap3d(volumeSize: x128).renderLandscape3d(viewMode: perspective).write(o0)\nrender(o0)"
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    }
+   }
+  },
+  {
+   "id": "volumesize/explicit-false:plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, render\nheightmap3d(volumeSize: x128).renderLandscape3d(viewMode: perspective).write(o0)\nrender(o0)"
+   }
+  },
+  {
+   "id": "volumesize/explicit-false:override",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, render\nheightmap3d(volumeSize: x128).renderLandscape3d(viewMode: perspective).write(o0)\nrender(o0)"
+   },
+   "overrides": {
+    "0": {
+     "volumeSize": 64
+    },
+    "1": {
+     "volumeSize": 32
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "registry"
+    }
+   }
+  }
+ ]
+}

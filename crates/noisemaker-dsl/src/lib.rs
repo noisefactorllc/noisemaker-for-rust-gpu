@@ -11,6 +11,8 @@
 
 pub mod compiler;
 pub mod diagnostics;
+pub mod effect_validator;
+pub mod error_formatter;
 pub mod error;
 pub mod expander;
 pub mod js;
@@ -19,6 +21,8 @@ pub mod palette;
 pub mod parser;
 pub mod registry;
 pub mod resources;
+pub mod transform;
+pub mod unparser;
 pub mod validator;
 pub mod value;
 

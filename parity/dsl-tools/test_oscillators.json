@@ -1,0 +1,1333 @@
+{
+ "profile": "test_oscillators",
+ "setup": [
+  {
+   "op": "registerOp",
+   "name": "synth.noise",
+   "spec": {
+    "name": "noise",
+    "args": [
+     {
+      "name": "scale",
+      "type": "float",
+      "default": 10
+     },
+     {
+      "name": "octaves",
+      "type": "int",
+      "default": 1
+     },
+     {
+      "name": "rotation",
+      "type": "float",
+      "default": 0
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "filter.bloom",
+   "spec": {
+    "name": "bloom",
+    "args": [
+     {
+      "name": "amount",
+      "type": "float",
+      "default": 0.5
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerStarterOps",
+   "names": [
+    "synth.noise"
+   ]
+  }
+ ],
+ "cases": [
+  {
+   "id": "osc/config-kind-0",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 0,
+    "min": 0,
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 1
+   }
+  },
+  {
+   "id": "osc/config-kind-1",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 1,
+    "min": 0,
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 1
+   }
+  },
+  {
+   "id": "osc/config-kind-2",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 2,
+    "min": 0,
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 1
+   }
+  },
+  {
+   "id": "osc/config-kind-3",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 3,
+    "min": 0,
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 1
+   }
+  },
+  {
+   "id": "osc/config-kind-4",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 4,
+    "min": 0,
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 1
+   }
+  },
+  {
+   "id": "osc/config-kind-5",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 5,
+    "min": 0,
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 1
+   }
+  },
+  {
+   "id": "osc/type-only",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/type-only:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/type-only"
+    }
+   }
+  },
+  {
+   "id": "osc/type-only:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/type-only:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/type-only:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(type: oscKind.sine)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/all-params",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.tri, min: 0.2, max: 0.8, speed: 2, offset: 0.25, seed: 42)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/all-params:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/all-params"
+    }
+   }
+  },
+  {
+   "id": "osc/all-params:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.tri, min: 0.2, max: 0.8, speed: 2, offset: 0.25, seed: 42)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/all-params:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.tri, min: 0.2, max: 0.8, speed: 2, offset: 0.25, seed: 42)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/all-params:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(type: oscKind.tri, min: 0.2, max: 0.8, speed: 2, offset: 0.25, seed: 42)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/positional",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(oscKind.saw, 0.1, 0.5)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/positional:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/positional"
+    }
+   }
+  },
+  {
+   "id": "osc/positional:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(oscKind.saw, 0.1, 0.5)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/positional:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(oscKind.saw, 0.1, 0.5)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/positional:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(oscKind.saw, 0.1, 0.5)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/variable",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nlet myOsc = osc(type: oscKind.sine, min: 0, max: 1)\nnoise(scale: myOsc).write(o0)"
+   }
+  },
+  {
+   "id": "osc/variable:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/variable"
+    }
+   }
+  },
+  {
+   "id": "osc/variable:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nlet myOsc = osc(type: oscKind.sine, min: 0, max: 1)\nnoise(scale: myOsc).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/variable:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nlet myOsc = osc(type: oscKind.sine, min: 0, max: 1)\nnoise(scale: myOsc).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/variable:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nlet myOsc = osc(type: oscKind.sine, min: 0, max: 1)\nnoise(scale: myOsc).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/min-max",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: 0.2, max: 0.8)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/min-max:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/min-max"
+    }
+   }
+  },
+  {
+   "id": "osc/min-max:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: 0.2, max: 0.8)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/min-max:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: 0.2, max: 0.8)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/min-max:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: 0.2, max: 0.8)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/clamped",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: -0.5, max: 2)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/clamped:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/clamped"
+    }
+   }
+  },
+  {
+   "id": "osc/clamped:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: -0.5, max: 2)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/clamped:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: -0.5, max: 2)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/clamped:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: -0.5, max: 2)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/in-range",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: 0.25, max: 0.75)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/in-range:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/in-range"
+    }
+   }
+  },
+  {
+   "id": "osc/in-range:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: 0.25, max: 0.75)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/in-range:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: 0.25, max: 0.75)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/in-range:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: 0.25, max: 0.75)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/noise2d",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.noise2d, seed: 42)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/noise2d:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/noise2d"
+    }
+   }
+  },
+  {
+   "id": "osc/noise2d:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.noise2d, seed: 42)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/noise2d:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.noise2d, seed: 42)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/noise2d:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(type: oscKind.noise2d, seed: 42)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/numeric-6",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: 6, seed: 7)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/numeric-6:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/numeric-6"
+    }
+   }
+  },
+  {
+   "id": "osc/numeric-6:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: 6, seed: 7)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/numeric-6:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: 6, seed: 7)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/numeric-6:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(type: 6, seed: 7)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/noise2d-roundtrip",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.noise2d, min: 0.2, max: 0.8, seed: 42)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/noise2d-roundtrip:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/noise2d-roundtrip"
+    }
+   }
+  },
+  {
+   "id": "osc/noise2d-roundtrip:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.noise2d, min: 0.2, max: 0.8, seed: 42)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/noise2d-roundtrip:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.noise2d, min: 0.2, max: 0.8, seed: 42)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/noise2d-roundtrip:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(type: oscKind.noise2d, min: 0.2, max: 0.8, seed: 42)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/integration",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: 0.2, max: 0.8)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/integration:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/integration"
+    }
+   }
+  },
+  {
+   "id": "osc/integration:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: 0.2, max: 0.8)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/integration:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: 0.2, max: 0.8)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/integration:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(type: oscKind.sine, min: 0.2, max: 0.8)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/complex-chain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nlet scaleOsc = osc(type: oscKind.saw, min: 0.1, max: 1, speed: 2)\nnoise(scale: scaleOsc).bloom(amount: 0.5).write(o0)"
+   }
+  },
+  {
+   "id": "osc/complex-chain:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/complex-chain"
+    }
+   }
+  },
+  {
+   "id": "osc/complex-chain:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nlet scaleOsc = osc(type: oscKind.saw, min: 0.1, max: 1, speed: 2)\nnoise(scale: scaleOsc).bloom(amount: 0.5).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/complex-chain:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nlet scaleOsc = osc(type: oscKind.saw, min: 0.1, max: 1, speed: 2)\nnoise(scale: scaleOsc).bloom(amount: 0.5).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/complex-chain:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nlet scaleOsc = osc(type: oscKind.saw, min: 0.1, max: 1, speed: 2)\nnoise(scale: scaleOsc).bloom(amount: 0.5).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-sine",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/kind-sine:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/kind-sine"
+    }
+   }
+  },
+  {
+   "id": "osc/kind-sine:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-sine:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sine)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-sine:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(type: oscKind.sine)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-tri",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.tri)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/kind-tri:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/kind-tri"
+    }
+   }
+  },
+  {
+   "id": "osc/kind-tri:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.tri)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-tri:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.tri)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-tri:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(type: oscKind.tri)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-saw",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.saw)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/kind-saw:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/kind-saw"
+    }
+   }
+  },
+  {
+   "id": "osc/kind-saw:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.saw)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-saw:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.saw)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-saw:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(type: oscKind.saw)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-sawInv",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sawInv)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/kind-sawInv:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/kind-sawInv"
+    }
+   }
+  },
+  {
+   "id": "osc/kind-sawInv:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sawInv)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-sawInv:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.sawInv)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-sawInv:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(type: oscKind.sawInv)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-square",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.square)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/kind-square:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/kind-square"
+    }
+   }
+  },
+  {
+   "id": "osc/kind-square:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.square)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-square:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.square)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-square:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(type: oscKind.square)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-noise",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.noise)).write(o0)"
+   }
+  },
+  {
+   "id": "osc/kind-noise:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "osc/kind-noise"
+    }
+   }
+  },
+  {
+   "id": "osc/kind-noise:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.noise)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-noise:runtime",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth, filter\nnoise(scale: osc(type: oscKind.noise)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "scale"
+    ],
+    "omit": [
+     "_ast"
+    ]
+   }
+  },
+  {
+   "id": "osc/kind-noise:raw",
+   "op": "formatValue",
+   "value": {
+    "$parse": "search synth, filter\nnoise(scale: osc(type: oscKind.noise)).write(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "kwargs",
+     "scale"
+    ]
+   }
+  },
+  {
+   "id": "osc/config",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 0,
+    "min": 0.2,
+    "max": 0.8,
+    "speed": 1,
+    "offset": 0,
+    "seed": 1
+   }
+  },
+  {
+   "id": "osc/config-defaults",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 0,
+    "min": 0,
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 1
+   }
+  },
+  {
+   "id": "osc/config-noise-seed",
+   "op": "formatValue",
+   "value": {
+    "type": "Oscillator",
+    "oscType": 5,
+    "min": 0,
+    "max": 1,
+    "speed": 1,
+    "offset": 0,
+    "seed": 9
+   }
+  },
+  {
+   "id": "osc/config-flag",
+   "op": "formatValue",
+   "value": {
+    "oscillator": true,
+    "oscType": 6,
+    "min": 0.5,
+    "max": 2,
+    "speed": -1,
+    "offset": 0.25,
+    "seed": 3
+   }
+  }
+ ]
+}

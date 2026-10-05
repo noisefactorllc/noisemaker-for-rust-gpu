@@ -1,0 +1,699 @@
+{
+ "profile": "test_transform",
+ "setup": [
+  {
+   "op": "registerOp",
+   "name": "synth.noise",
+   "spec": {
+    "name": "noise",
+    "args": [
+     {
+      "name": "scale",
+      "type": "float",
+      "default": 10
+     },
+     {
+      "name": "seed",
+      "type": "float",
+      "default": 1
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "synth.voronoi",
+   "spec": {
+    "name": "voronoi",
+    "args": [
+     {
+      "name": "scale",
+      "type": "float",
+      "default": 10
+     },
+     {
+      "name": "jitter",
+      "type": "float",
+      "default": 0.5
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "filter.kaleid",
+   "spec": {
+    "name": "kaleid",
+    "args": [
+     {
+      "name": "nSides",
+      "type": "float",
+      "default": 4
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "filter.bloom",
+   "spec": {
+    "name": "bloom",
+    "args": [
+     {
+      "name": "intensity",
+      "type": "float",
+      "default": 0.5
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "filter.blur",
+   "spec": {
+    "name": "blur",
+    "args": [
+     {
+      "name": "radius",
+      "type": "float",
+      "default": 5
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "synth.gradient",
+   "spec": {
+    "name": "gradient",
+    "args": [
+     {
+      "name": "angle",
+      "type": "float",
+      "default": 0
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "synth3d.fractal",
+   "spec": {
+    "name": "fractal",
+    "args": [
+     {
+      "name": "scale",
+      "type": "float",
+      "default": 10
+     },
+     {
+      "name": "octaves",
+      "type": "float",
+      "default": 4
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "synth3d.distort",
+   "spec": {
+    "name": "distort",
+    "args": [
+     {
+      "name": "amount",
+      "type": "float",
+      "default": 0.5
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "synth3d.heightmap",
+   "spec": {
+    "name": "heightmap",
+    "args": [
+     {
+      "name": "heightTex",
+      "type": "surface",
+      "default": "none"
+     },
+     {
+      "name": "tex",
+      "type": "surface",
+      "default": "none"
+     },
+     {
+      "name": "scale",
+      "type": "float",
+      "default": 1
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "synth.solid",
+   "spec": {
+    "name": "solid",
+    "args": [
+     {
+      "name": "color",
+      "type": "color",
+      "default": "#ff0000"
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerStarterOps",
+   "names": [
+    "synth.noise",
+    "synth.voronoi",
+    "synth.gradient",
+    "synth3d.fractal",
+    "synth3d.heightmap",
+    "synth.solid"
+   ]
+  },
+  {
+   "op": "registerOp",
+   "name": "filter.grain",
+   "spec": {
+    "name": "grain",
+    "args": [
+     {
+      "name": "amount",
+      "type": "float",
+      "default": 0.5,
+      "min": 0,
+      "max": 1
+     },
+     {
+      "name": "mode",
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "fine": 0,
+       "coarse": 1
+      }
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerEffect",
+   "name": "filter.grain",
+   "definition": {
+    "name": "Grain",
+    "namespace": "filter",
+    "func": "grain",
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "min": 0,
+      "max": 1
+     },
+     "mode": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "fine": 0,
+       "coarse": 1
+      }
+     }
+    },
+    "textures": {
+     "scratch": {
+      "width": "resolution",
+      "height": "resolution"
+     }
+    },
+    "passes": [
+     {
+      "name": "grain",
+      "program": "grain",
+      "inputs": {},
+      "outputs": {
+       "color": "outputTex"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerParamAliases",
+   "opName": "filter.grain",
+   "aliases": {
+    "amt": "amount"
+   }
+  }
+ ],
+ "cases": [
+  {
+   "id": "transform/steps-simple",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   }
+  },
+  {
+   "id": "transform/steps-multiple",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)\nvoronoi(5).bloom(0.5).write(o1)\n"
+   }
+  },
+  {
+   "id": "transform/starter-with-starter",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 0,
+   "newEffectName": "voronoi",
+   "newArgs": {
+    "scale": 20
+   }
+  },
+  {
+   "id": "transform/filter-with-filter",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "bloom",
+   "newArgs": {
+    "intensity": 0.8
+   }
+  },
+  {
+   "id": "transform/starter-with-filter",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 0,
+   "newEffectName": "kaleid"
+  },
+  {
+   "id": "transform/filter-with-starter",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "noise"
+  },
+  {
+   "id": "transform/nonexistent",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 0,
+   "newEffectName": "nonexistent_effect"
+  },
+  {
+   "id": "transform/invalid-index",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).write(o0)"
+   },
+   "stepIndex": 999,
+   "newEffectName": "voronoi"
+  },
+  {
+   "id": "transform/builtin-index",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "bloom"
+  },
+  {
+   "id": "transform/immutability",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 0,
+   "newEffectName": "voronoi"
+  },
+  {
+   "id": "transform/compatible-starter",
+   "op": "getCompatibleReplacements",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 0
+  },
+  {
+   "id": "transform/compatible-filter",
+   "op": "getCompatibleReplacements",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1
+  },
+  {
+   "id": "transform/compatible-invalid",
+   "op": "getCompatibleReplacements",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).write(o0)"
+   },
+   "stepIndex": 999
+  },
+  {
+   "id": "transform/compatible-builtin",
+   "op": "getCompatibleReplacements",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).write(o0)"
+   },
+   "stepIndex": 1
+  },
+  {
+   "id": "transform/cross-namespace-starter",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 0,
+   "newEffectName": "synth3d.fractal",
+   "newArgs": {
+    "scale": 20
+   }
+  },
+  {
+   "id": "transform/cross-namespace-filter",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "synth3d.distort",
+   "newArgs": {
+    "amount": 0.8
+   }
+  },
+  {
+   "id": "transform/cross-namespace-unparse",
+   "op": "replaceEffectUnparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 0,
+   "newEffectName": "synth3d.fractal"
+  },
+  {
+   "id": "transform/same-namespace",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 0,
+   "newEffectName": "synth.voronoi"
+  },
+  {
+   "id": "transform/inline-steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth, synth3d\nheightmap(heightTex: noise(), tex: gradient()).write(o0)"
+   }
+  },
+  {
+   "id": "transform/inline-replace-starter",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, synth3d\nheightmap(heightTex: noise(), tex: gradient()).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "solid"
+  },
+  {
+   "id": "transform/inline-replace-starter-unparse",
+   "op": "replaceEffectUnparse",
+   "compiled": {
+    "$compile": "search synth, synth3d\nheightmap(heightTex: noise(), tex: gradient()).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "solid"
+  },
+  {
+   "id": "transform/inline-replace-filter",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, synth3d, filter\nheightmap(heightTex: noise(), tex: gradient()).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "kaleid"
+  },
+  {
+   "id": "transform/predictions",
+   "op": "getCompatibleReplacements",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1
+  },
+  {
+   "id": "transform/predictions-manifest",
+   "op": "getCompatibleReplacements",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1,
+   "options": {
+    "manifest": {
+     "filter/grain": {
+      "description": "Grain",
+      "glsl": {
+       "grain": "combined"
+      },
+      "starter": false
+     }
+    }
+   }
+  },
+  {
+   "id": "transform/predictions-missing-entry",
+   "op": "getCompatibleReplacements",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1,
+   "options": {
+    "manifest": {
+     "filter/grain": {
+      "glsl": {},
+      "wgsl": {}
+     }
+    }
+   }
+  },
+  {
+   "id": "transform/preflight-blocked",
+   "op": "getCompatibleReplacements",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1,
+   "options": {
+    "preflight": true
+   }
+  },
+  {
+   "id": "transform/preflight-blocked-starter",
+   "op": "getCompatibleReplacements",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 0,
+   "options": {
+    "preflight": true,
+    "manifest": {
+     "filter/grain": {
+      "description": "Grain",
+      "glsl": {
+       "grain": "combined"
+      },
+      "starter": false
+     }
+    }
+   }
+  },
+  {
+   "id": "transform/default-unchanged",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "grain",
+   "newArgs": {
+    "amnt": 9
+   }
+  },
+  {
+   "id": "transform/preflight-unknown",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "grain",
+   "newArgs": {
+    "amnt": 0.9
+   },
+   "options": {
+    "preflight": true
+   }
+  },
+  {
+   "id": "transform/preflight-range",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "grain",
+   "newArgs": {
+    "amount": 5
+   },
+   "options": {
+    "preflight": true
+   }
+  },
+  {
+   "id": "transform/preflight-choice",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "grain",
+   "newArgs": {
+    "mode": 7
+   },
+   "options": {
+    "preflight": true
+   }
+  },
+  {
+   "id": "transform/preflight-type",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "grain",
+   "newArgs": {
+    "amount": "high"
+   },
+   "options": {
+    "preflight": true
+   }
+  },
+  {
+   "id": "transform/preflight-valid",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "grain",
+   "newArgs": {
+    "amount": 0.75
+   },
+   "options": {
+    "preflight": true
+   }
+  },
+  {
+   "id": "transform/alias",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "grain",
+   "newArgs": {
+    "amt": 0.9
+   }
+  },
+  {
+   "id": "transform/alias-preflight",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "grain",
+   "newArgs": {
+    "amt": 0.9
+   },
+   "options": {
+    "preflight": true
+   }
+  },
+  {
+   "id": "transform/alias-out-of-range",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(10).kaleid(6).write(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "grain",
+   "newArgs": {
+    "amt": 5
+   },
+   "options": {
+    "preflight": true
+   }
+  },
+  {
+   "id": "transform/predict-grain",
+   "op": "predictReplacement",
+   "resolvedName": "filter.grain",
+   "spec": {
+    "$op": "filter.grain"
+   },
+   "newArgs": {
+    "amt": 2,
+    "mode": 3,
+    "amount": "x",
+    "extra": true
+   },
+   "oldInstance": {
+    "$effect": "filter.kaleid"
+   },
+   "options": {
+    "manifest": {
+     "filter/grain": {
+      "description": "Grain",
+      "glsl": {
+       "grain": "combined"
+      },
+      "starter": false
+     }
+    }
+   }
+  },
+  {
+   "id": "transform/predict-unregistered",
+   "op": "predictReplacement",
+   "resolvedName": "filter.kaleid",
+   "spec": {
+    "$op": "filter.kaleid"
+   },
+   "newArgs": {
+    "nSides": -1
+   },
+   "oldInstance": null
+  }
+ ]
+}

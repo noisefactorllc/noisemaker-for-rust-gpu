@@ -1,0 +1,1344 @@
+{
+ "profile": "edge-transform",
+ "setup": [
+  {
+   "op": "registerParamAliases",
+   "opName": "filter.grain",
+   "aliases": {
+    "amt": "amount",
+    "old": "mode"
+   }
+  },
+  {
+   "op": "registerEffect",
+   "name": "nope.none",
+   "definition": {
+    "name": "Nope",
+    "passes": "not-an-array",
+    "textures": "abc"
+   }
+  }
+ ],
+ "cases": [
+  {
+   "id": "edge/replaceEffect-0",
+   "op": "replaceEffect",
+   "compiled": null,
+   "stepIndex": 0,
+   "newEffectName": "solid"
+  },
+  {
+   "id": "edge/replaceEffect-1",
+   "op": "replaceEffect",
+   "compiled": {},
+   "stepIndex": 0,
+   "newEffectName": "solid"
+  },
+  {
+   "id": "edge/replaceEffect-2",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": "0",
+   "newEffectName": "solid"
+  },
+  {
+   "id": "edge/replaceEffect-3",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 0,
+   "newEffectName": 5
+  },
+  {
+   "id": "edge/replaceEffect-4",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 0,
+   "newEffectName": {
+    "$js": "undefined"
+   }
+  },
+  {
+   "id": "edge/replaceEffect-5",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "blur",
+   "newArgs": null
+  },
+  {
+   "id": "edge/replaceEffect-6",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "blur",
+   "options": null
+  },
+  {
+   "id": "edge/replaceEffect-7",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "blur",
+   "newArgs": {
+    "radiusX": -0.0005
+   }
+  },
+  {
+   "id": "edge/replaceEffect-8",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "blur",
+   "newArgs": {
+    "radiusX": 1.0005
+   }
+  },
+  {
+   "id": "edge/replaceEffect-9",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "blur",
+   "newArgs": {
+    "radiusX": 0.00025
+   }
+  },
+  {
+   "id": "edge/replaceEffect-10",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "blur",
+   "newArgs": {
+    "radiusX": -0.00025
+   }
+  },
+  {
+   "id": "edge/replaceEffect-11",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "blur",
+   "newArgs": {
+    "radiusX": {
+     "$js": "NaN"
+    }
+   }
+  },
+  {
+   "id": "edge/replaceEffect-12",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "blur",
+   "newArgs": {
+    "radiusX": {
+     "$js": "Infinity"
+    }
+   }
+  },
+  {
+   "id": "edge/replaceEffect-13",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "blur",
+   "newArgs": {
+    "radiusX": 1e+21
+   }
+  },
+  {
+   "id": "edge/replaceEffect-14",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "blur",
+   "newArgs": {
+    "radiusX": 0.30000000000000004
+   }
+  },
+  {
+   "id": "edge/replaceEffect-15",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "blur",
+   "newArgs": {
+    "radiusX": "0.12345"
+   }
+  },
+  {
+   "id": "edge/replaceEffect-16",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "blur",
+   "newArgs": {
+    "radiusX": [
+     0.12345
+    ]
+   }
+  },
+  {
+   "id": "edge/replaceEffect-17",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "blur",
+   "newArgs": {
+    "__proto__": 1,
+    "constructor": 2
+   }
+  },
+  {
+   "id": "edge/replaceEffect-18",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 0,
+   "newEffectName": "noise",
+   "options": {
+    "searchOrder": [
+     "synth3d",
+     "synth"
+    ]
+   }
+  },
+  {
+   "id": "edge/replaceEffect-19",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 0,
+   "newEffectName": "noise",
+   "options": {
+    "searchOrder": "synth"
+   }
+  },
+  {
+   "id": "edge/replaceEffect-20",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 0,
+   "newEffectName": "heightmap3d"
+  },
+  {
+   "id": "edge/replaceEffect-21",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": ".blur"
+  },
+  {
+   "id": "edge/replaceEffect-22",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "filter."
+  },
+  {
+   "id": "edge/replaceEffect-23",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "nope.blur"
+  },
+  {
+   "id": "edge/replaceEffect-24",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "palette3d"
+  },
+  {
+   "id": "edge/replaceEffect-25",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "constructor"
+  },
+  {
+   "id": "edge/replaceEffect-26",
+   "op": "replaceEffect",
+   "compiled": {
+    "searchNamespaces": "synth, filter",
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "seed": 1
+        },
+        "from": null,
+        "temp": 0
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "radiusX": 2
+        },
+        "from": 0,
+        "temp": 1
+       },
+       {
+        "op": "_write",
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o0"
+         }
+        },
+        "from": 1,
+        "temp": 2,
+        "builtin": true
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "stepIndex": 0,
+   "newEffectName": "heightmap3d"
+  },
+  {
+   "id": "edge/replaceEffect-27",
+   "op": "replaceEffect",
+   "compiled": {
+    "searchNamespaces": "synth, filter",
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "seed": 1
+        },
+        "from": null,
+        "temp": 0
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "radiusX": 2
+        },
+        "from": 0,
+        "temp": 1
+       },
+       {
+        "op": "_write",
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o0"
+         }
+        },
+        "from": 1,
+        "temp": 2,
+        "builtin": true
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "stepIndex": 0,
+   "newEffectName": "solid"
+  },
+  {
+   "id": "edge/replaceEffect-28",
+   "op": "replaceEffect",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "seed": 1
+        },
+        "from": null,
+        "temp": 0
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "radiusX": 2
+        },
+        "from": 0,
+        "temp": 1
+       },
+       {
+        "op": "_write",
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o0"
+         }
+        },
+        "from": 1,
+        "temp": 2,
+        "builtin": true
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "stepIndex": 0,
+   "newEffectName": "heightmap3d"
+  },
+  {
+   "id": "edge/replaceEffect-29",
+   "op": "replaceEffect",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "seed": 1
+        },
+        "from": null,
+        "temp": 0
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "radiusX": 2
+        },
+        "from": 0,
+        "temp": 1
+       },
+       {
+        "op": "_write",
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o0"
+         }
+        },
+        "from": 1,
+        "temp": 2,
+        "builtin": true
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ],
+    "searchNamespaces": 7
+   },
+   "stepIndex": 0,
+   "newEffectName": "heightmap3d"
+  },
+  {
+   "id": "edge/replaceEffect-30",
+   "op": "replaceEffect",
+   "compiled": {
+    "plans": [
+     null,
+     {
+      "chain": null
+     },
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {}
+       }
+      ]
+     }
+    ],
+    "searchNamespaces": []
+   },
+   "stepIndex": {
+    "$js": "undefined"
+   },
+   "newEffectName": "solid"
+  },
+  {
+   "id": "edge/replaceEffect-31",
+   "op": "replaceEffect",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       null
+      ]
+     }
+    ]
+   },
+   "stepIndex": 0,
+   "newEffectName": "solid"
+  },
+  {
+   "id": "edge/replaceEffect-32",
+   "op": "replaceEffect",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       5
+      ]
+     }
+    ]
+   },
+   "stepIndex": {
+    "$js": "undefined"
+   },
+   "newEffectName": "solid"
+  },
+  {
+   "id": "edge/replaceEffect-33",
+   "op": "replaceEffect",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       "ab"
+      ]
+     }
+    ]
+   },
+   "stepIndex": {
+    "$js": "undefined"
+   },
+   "newEffectName": "solid"
+  },
+  {
+   "id": "edge/replaceEffect-34",
+   "op": "replaceEffect",
+   "compiled": {
+    "plans": {
+     "0": {
+      "chain": {
+       "0": {
+        "op": "synth.noise",
+        "temp": 0,
+        "args": {}
+       },
+       "length": 1
+      }
+     },
+     "length": 1
+    },
+    "searchNamespaces": []
+   },
+   "stepIndex": 0,
+   "newEffectName": "solid"
+  },
+  {
+   "id": "edge/replaceEffect-35",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "grain",
+   "newArgs": {
+    "amount": 5,
+    "mode": "x",
+    "bogus": 1,
+    "constructor": 1
+   },
+   "options": {
+    "preflight": true
+   }
+  },
+  {
+   "id": "edge/replaceEffect-36",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "grain",
+   "newArgs": {
+    "amount": 0.5
+   },
+   "options": {
+    "preflight": "yes"
+   }
+  },
+  {
+   "id": "edge/replaceEffect-37",
+   "op": "replaceEffect",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "newEffectName": "blur",
+   "newArgs": {
+    "radiusX": 9
+   },
+   "options": {
+    "preflight": true,
+    "manifest": {
+     "$manifest": true
+    }
+   }
+  },
+  {
+   "id": "edge/listSteps-0",
+   "op": "listSteps",
+   "compiled": null
+  },
+  {
+   "id": "edge/listSteps-1",
+   "op": "listSteps",
+   "compiled": {}
+  },
+  {
+   "id": "edge/listSteps-2",
+   "op": "listSteps",
+   "compiled": {
+    "plans": []
+   }
+  },
+  {
+   "id": "edge/listSteps-3",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   }
+  },
+  {
+   "id": "edge/listSteps-4",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "options": {
+    "searchOrder": [
+     "synth"
+    ]
+   }
+  },
+  {
+   "id": "edge/listSteps-5",
+   "op": "listSteps",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "seed": 1
+        },
+        "from": null,
+        "temp": 0
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "radiusX": 2
+        },
+        "from": 0,
+        "temp": 1
+       },
+       {
+        "op": "_write",
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o0"
+         }
+        },
+        "from": 1,
+        "temp": 2,
+        "builtin": true
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "options": {
+    "searchOrder": "x"
+   }
+  },
+  {
+   "id": "edge/listSteps-6",
+   "op": "listSteps",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise"
+       },
+       {
+        "op": "synth.solid",
+        "from": {
+         "$js": "undefined"
+        }
+       },
+       {
+        "op": "filter.blur",
+        "from": 0
+       },
+       {
+        "op": 7
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/listSteps-7",
+   "op": "listSteps",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise"
+       },
+       {
+        "op": "synth.solid",
+        "from": {
+         "$js": "undefined"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "searchOrder": []
+   }
+  },
+  {
+   "id": "edge/listSteps-8",
+   "op": "listSteps",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       null
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "edge/listSteps-9",
+   "op": "listSteps",
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise"
+       },
+       {
+        "op": "noise"
+       },
+       {
+        "op": "solid",
+        "from": null
+       }
+      ]
+     }
+    ],
+    "searchNamespaces": [
+     "synth"
+    ]
+   }
+  },
+  {
+   "id": "edge/compatible-0",
+   "op": "getCompatibleReplacements",
+   "compiled": null,
+   "stepIndex": 0
+  },
+  {
+   "id": "edge/compatible-1",
+   "op": "getCompatibleReplacements",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 5
+  },
+  {
+   "id": "edge/compatible-2",
+   "op": "getCompatibleReplacements",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 0,
+   "options": {
+    "preflight": true
+   }
+  },
+  {
+   "id": "edge/compatible-3",
+   "op": "getCompatibleReplacements",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).blur(radiusX: 2).write(o0)\nrender(o0)"
+   },
+   "stepIndex": 1,
+   "options": {
+    "preflight": true,
+    "manifest": {
+     "$manifest": true
+    }
+   }
+  },
+  {
+   "id": "edge/predict-0",
+   "op": "predictReplacement",
+   "resolvedName": "filter.grain",
+   "spec": {
+    "name": "grain",
+    "args": [
+     {
+      "name": "amount",
+      "type": "float",
+      "default": 0.5,
+      "min": 0,
+      "max": 1
+     },
+     {
+      "name": "mode",
+      "type": "int",
+      "choices": {
+       "fine": 0,
+       "coarse": 1,
+       "nan": {
+        "$js": "NaN"
+       }
+      }
+     },
+     {
+      "name": "c",
+      "type": "color"
+     },
+     {
+      "name": "b",
+      "type": "bool"
+     },
+     {
+      "name": "b2",
+      "type": "boolean"
+     },
+     {
+      "name": "s",
+      "type": "surface"
+     },
+     {
+      "name": "t",
+      "type": "tex"
+     },
+     {
+      "name": "n",
+      "type": "number"
+     },
+     {
+      "name": "i",
+      "type": "int",
+      "min": "2",
+      "max": [
+       5
+      ]
+     },
+     {
+      "name": "o",
+      "type": "other",
+      "min": {},
+      "max": null
+     }
+    ]
+   },
+   "newArgs": {
+    "amount": -1,
+    "mode": {
+     "$js": "NaN"
+    },
+    "c": "red",
+    "b": 1,
+    "b2": true,
+    "s": 5,
+    "t": "x",
+    "n": "1",
+    "i": 1,
+    "o": 3,
+    "unknown": 1,
+    "constructor": 2
+   },
+   "oldInstance": null
+  },
+  {
+   "id": "edge/predict-1",
+   "op": "predictReplacement",
+   "resolvedName": "filter.grain",
+   "spec": {
+    "name": "grain",
+    "args": [
+     {
+      "name": "amount",
+      "type": "float",
+      "default": 0.5,
+      "min": 0,
+      "max": 1
+     },
+     {
+      "name": "mode",
+      "type": "int",
+      "choices": {
+       "fine": 0,
+       "coarse": 1,
+       "nan": {
+        "$js": "NaN"
+       }
+      }
+     },
+     {
+      "name": "c",
+      "type": "color"
+     },
+     {
+      "name": "b",
+      "type": "bool"
+     },
+     {
+      "name": "b2",
+      "type": "boolean"
+     },
+     {
+      "name": "s",
+      "type": "surface"
+     },
+     {
+      "name": "t",
+      "type": "tex"
+     },
+     {
+      "name": "n",
+      "type": "number"
+     },
+     {
+      "name": "i",
+      "type": "int",
+      "min": "2",
+      "max": [
+       5
+      ]
+     },
+     {
+      "name": "o",
+      "type": "other",
+      "min": {},
+      "max": null
+     }
+    ]
+   },
+   "newArgs": {
+    "amount": 2,
+    "mode": 7,
+    "i": 9,
+    "c": "#fff",
+    "s": null,
+    "t": {
+     "$js": "undefined"
+    }
+   },
+   "oldInstance": {
+    "textures": {
+     "a": {}
+    },
+    "passes": [
+     {
+      "inputs": {
+       "x": "inputTex",
+       "y": 5
+      }
+     },
+     null
+    ]
+   }
+  },
+  {
+   "id": "edge/predict-2",
+   "op": "predictReplacement",
+   "resolvedName": "filter.grain",
+   "spec": null,
+   "newArgs": null,
+   "oldInstance": null
+  },
+  {
+   "id": "edge/predict-3",
+   "op": "predictReplacement",
+   "resolvedName": "filter.grain",
+   "spec": {
+    "args": 5
+   },
+   "newArgs": {},
+   "oldInstance": null
+  },
+  {
+   "id": "edge/predict-4",
+   "op": "predictReplacement",
+   "resolvedName": "filter.grain",
+   "spec": {
+    "args": [
+     null
+    ]
+   },
+   "newArgs": {},
+   "oldInstance": null
+  },
+  {
+   "id": "edge/predict-5",
+   "op": "predictReplacement",
+   "resolvedName": "filter.grain",
+   "spec": {
+    "args": [
+     {
+      "type": "float"
+     }
+    ]
+   },
+   "newArgs": {
+    "undefined": 1
+   },
+   "oldInstance": null
+  },
+  {
+   "id": "edge/predict-6",
+   "op": "predictReplacement",
+   "resolvedName": 5,
+   "spec": {
+    "name": "grain",
+    "args": [
+     {
+      "name": "amount",
+      "type": "float",
+      "default": 0.5,
+      "min": 0,
+      "max": 1
+     },
+     {
+      "name": "mode",
+      "type": "int",
+      "choices": {
+       "fine": 0,
+       "coarse": 1,
+       "nan": {
+        "$js": "NaN"
+       }
+      }
+     },
+     {
+      "name": "c",
+      "type": "color"
+     },
+     {
+      "name": "b",
+      "type": "bool"
+     },
+     {
+      "name": "b2",
+      "type": "boolean"
+     },
+     {
+      "name": "s",
+      "type": "surface"
+     },
+     {
+      "name": "t",
+      "type": "tex"
+     },
+     {
+      "name": "n",
+      "type": "number"
+     },
+     {
+      "name": "i",
+      "type": "int",
+      "min": "2",
+      "max": [
+       5
+      ]
+     },
+     {
+      "name": "o",
+      "type": "other",
+      "min": {},
+      "max": null
+     }
+    ]
+   },
+   "newArgs": {},
+   "oldInstance": null,
+   "options": {
+    "manifest": {
+     "$manifest": true
+    }
+   }
+  },
+  {
+   "id": "edge/predict-7",
+   "op": "predictReplacement",
+   "resolvedName": "nope.none",
+   "spec": {
+    "name": "grain",
+    "args": [
+     {
+      "name": "amount",
+      "type": "float",
+      "default": 0.5,
+      "min": 0,
+      "max": 1
+     },
+     {
+      "name": "mode",
+      "type": "int",
+      "choices": {
+       "fine": 0,
+       "coarse": 1,
+       "nan": {
+        "$js": "NaN"
+       }
+      }
+     },
+     {
+      "name": "c",
+      "type": "color"
+     },
+     {
+      "name": "b",
+      "type": "bool"
+     },
+     {
+      "name": "b2",
+      "type": "boolean"
+     },
+     {
+      "name": "s",
+      "type": "surface"
+     },
+     {
+      "name": "t",
+      "type": "tex"
+     },
+     {
+      "name": "n",
+      "type": "number"
+     },
+     {
+      "name": "i",
+      "type": "int",
+      "min": "2",
+      "max": [
+       5
+      ]
+     },
+     {
+      "name": "o",
+      "type": "other",
+      "min": {},
+      "max": null
+     }
+    ]
+   },
+   "newArgs": {},
+   "oldInstance": null
+  },
+  {
+   "id": "edge/predict-8",
+   "op": "predictReplacement",
+   "resolvedName": "synth.noise",
+   "spec": {
+    "$op": "synth.noise"
+   },
+   "newArgs": {
+    "scaleX": 1000000000,
+    "type": 99,
+    "seed": "x"
+   },
+   "oldInstance": {
+    "$effect": "filter.blur"
+   },
+   "options": {
+    "manifest": {
+     "$manifest": true
+    }
+   }
+  },
+  {
+   "id": "edge/predict-9",
+   "op": "predictReplacement",
+   "resolvedName": "synth.noise",
+   "spec": {
+    "$op": "synth.noise"
+   },
+   "newArgs": {},
+   "oldInstance": null,
+   "options": {
+    "manifest": {
+     "synth/noise": {
+      "glsl": "combined",
+      "wgsl": {}
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/predict-10",
+   "op": "predictReplacement",
+   "resolvedName": "synth.noise",
+   "spec": {
+    "$op": "synth.noise"
+   },
+   "newArgs": {},
+   "oldInstance": null,
+   "options": {
+    "manifest": {
+     "synth/noise": {
+      "glsl": {
+       "other": 1
+      },
+      "wgsl": {
+       "noise": 1
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/predict-11",
+   "op": "predictReplacement",
+   "resolvedName": "filter.blur",
+   "spec": {
+    "$op": "filter.blur"
+   },
+   "newArgs": {},
+   "oldInstance": null,
+   "options": {
+    "manifest": {
+     "filter/blur": {
+      "glsl": {
+       "blurH": 1
+      },
+      "wgsl": {
+       "blurH": 1,
+       "blurV": 1,
+       "constructor": 1
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/predict-12",
+   "op": "predictReplacement",
+   "resolvedName": "filter.blur",
+   "spec": {
+    "$op": "filter.blur"
+   },
+   "newArgs": {},
+   "oldInstance": null,
+   "options": {
+    "manifest": {
+     "filter/blur": {
+      "glsl": 0,
+      "wgsl": []
+     }
+    }
+   }
+  },
+  {
+   "id": "edge/predict-13",
+   "op": "predictReplacement",
+   "resolvedName": "filter.blur",
+   "spec": {
+    "$op": "filter.blur"
+   },
+   "newArgs": {},
+   "oldInstance": null,
+   "options": {
+    "manifest": "manifest"
+   }
+  },
+  {
+   "id": "edge/predict-14",
+   "op": "predictReplacement",
+   "resolvedName": "filter.blur",
+   "spec": {
+    "$op": "filter.blur"
+   },
+   "newArgs": {},
+   "oldInstance": null,
+   "options": null
+  }
+ ]
+}

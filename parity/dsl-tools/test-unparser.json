@@ -1,0 +1,2083 @@
+{
+ "profile": "test-unparser",
+ "setup": [
+  {
+   "op": "registerOp",
+   "name": "synth.solid",
+   "spec": {
+    "name": "solid",
+    "args": [
+     {
+      "name": "color",
+      "type": "color",
+      "default": [
+       0.5,
+       0.5,
+       0.5
+      ],
+      "uniform": "color",
+      "ui": {
+       "label": "color",
+       "control": "color"
+      }
+     },
+     {
+      "name": "alpha",
+      "type": "float",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "randMin": 0.5,
+      "uniform": "alpha",
+      "ui": {
+       "label": "opacity",
+       "control": "slider"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "filter.invert",
+   "spec": {
+    "name": "invert",
+    "args": [
+     {
+      "name": "mode",
+      "type": "int",
+      "default": 0,
+      "uniform": "mode",
+      "choices": {
+       "full": 0,
+       "solarize": 1
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "synth.noise",
+   "spec": {
+    "name": "noise",
+    "args": [
+     {
+      "name": "type",
+      "type": "int",
+      "default": 10,
+      "define": "NOISE_TYPE",
+      "choices": {
+       "constant": 0,
+       "linear": 1,
+       "hermite": 2,
+       "catmullRom3x3": 3,
+       "catmullRom4x4": 4,
+       "bSpline3x3": 5,
+       "bSpline4x4": 6,
+       "simplex": 10,
+       "sine": 11
+      },
+      "ui": {
+       "label": "noise type",
+       "control": "dropdown"
+      }
+     },
+     {
+      "name": "octaves",
+      "type": "int",
+      "default": 2,
+      "uniform": "octaves",
+      "min": 1,
+      "max": 8,
+      "ui": {
+       "label": "octaves",
+       "control": "slider"
+      }
+     },
+     {
+      "name": "scaleX",
+      "type": "float",
+      "default": 75,
+      "uniform": "scaleX",
+      "min": 1,
+      "max": 100,
+      "ui": {
+       "label": "horiz scale",
+       "control": "slider",
+       "category": "transform"
+      }
+     },
+     {
+      "name": "scaleY",
+      "type": "float",
+      "default": 75,
+      "uniform": "scaleY",
+      "min": 1,
+      "max": 100,
+      "ui": {
+       "label": "vert scale",
+       "control": "slider",
+       "category": "transform"
+      }
+     },
+     {
+      "name": "seed",
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100,
+      "ui": {
+       "label": "seed",
+       "control": "slider"
+      }
+     },
+     {
+      "name": "wrap",
+      "type": "boolean",
+      "default": true,
+      "uniform": "wrap",
+      "ui": {
+       "label": "wrap",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "type",
+        "notIn": [
+         10,
+         11
+        ]
+       }
+      }
+     },
+     {
+      "name": "ridges",
+      "type": "boolean",
+      "default": false,
+      "uniform": "ridges",
+      "ui": {
+       "label": "ridges",
+       "control": "checkbox"
+      }
+     },
+     {
+      "name": "loopOffset",
+      "type": "int",
+      "default": 300,
+      "define": "LOOP_OFFSET",
+      "choices": {
+       "Shapes:": null,
+       "circle": 10,
+       "triangle": 20,
+       "diamond": 30,
+       "square": 40,
+       "pentagon": 50,
+       "hexagon": 60,
+       "heptagon": 70,
+       "octagon": 80,
+       "nonagon": 90,
+       "decagon": 100,
+       "hendecagon": 110,
+       "dodecagon": 120,
+       "Directional:": null,
+       "horizontalScan": 200,
+       "verticalScan": 210,
+       "Misc:": null,
+       "noise": 300,
+       "rings": 400,
+       "sine": 410
+      },
+      "ui": {
+       "label": "loop offset",
+       "control": "dropdown",
+       "category": "animation"
+      }
+     },
+     {
+      "name": "loopScale",
+      "type": "float",
+      "default": 75,
+      "uniform": "loopScale",
+      "min": 1,
+      "max": 100,
+      "ui": {
+       "label": "loop scale",
+       "control": "slider",
+       "category": "animation"
+      }
+     },
+     {
+      "name": "speed",
+      "type": "int",
+      "default": 25,
+      "uniform": "speed",
+      "min": -100,
+      "max": 100,
+      "zero": 0,
+      "ui": {
+       "label": "speed",
+       "control": "slider",
+       "category": "animation"
+      }
+     },
+     {
+      "name": "colorMode",
+      "type": "int",
+      "default": 1,
+      "uniform": "colorMode",
+      "choices": {
+       "mono": 0,
+       "rgb": 1
+      },
+      "ui": {
+       "label": "color mode",
+       "control": "dropdown"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "filter.scale",
+   "spec": {
+    "name": "scale",
+    "args": [
+     {
+      "name": "x",
+      "type": "float",
+      "default": 0.5,
+      "min": 0,
+      "max": 10,
+      "zero": 1,
+      "uniform": "scaleX",
+      "ui": {
+       "label": "scale x"
+      }
+     },
+     {
+      "name": "y",
+      "type": "float",
+      "default": 0.5,
+      "min": 0,
+      "max": 10,
+      "zero": 1,
+      "uniform": "scaleY",
+      "ui": {
+       "label": "scale y"
+      }
+     },
+     {
+      "name": "centerX",
+      "type": "float",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "uniform": "centerX",
+      "ui": {
+       "label": "center x"
+      }
+     },
+     {
+      "name": "centerY",
+      "type": "float",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "uniform": "centerY",
+      "ui": {
+       "label": "center y"
+      }
+     },
+     {
+      "name": "wrap",
+      "type": "int",
+      "default": 1,
+      "uniform": "wrap",
+      "choices": {
+       "mirror": 0,
+       "repeat": 1,
+       "clamp": 2
+      },
+      "randChoices": [
+       0,
+       1
+      ],
+      "ui": {
+       "label": "wrap",
+       "control": "dropdown"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "synth3d.heightmap3d",
+   "spec": {
+    "name": "heightmap3d",
+    "args": [
+     {
+      "name": "heightTex",
+      "type": "surface",
+      "default": "none",
+      "ui": {
+       "label": "height image"
+      }
+     },
+     {
+      "name": "tex",
+      "type": "surface",
+      "default": "none",
+      "ui": {
+       "label": "color image"
+      }
+     },
+     {
+      "name": "volumeSize",
+      "type": "int",
+      "default": 64,
+      "uniform": "volumeSize",
+      "choices": {
+       "x16": 16,
+       "x32": 32,
+       "x64": 64,
+       "x128": 128
+      },
+      "randChoices": [
+       16,
+       32,
+       64
+      ],
+      "ui": {
+       "label": "volume size",
+       "control": "dropdown"
+      }
+     },
+     {
+      "name": "heightScale",
+      "type": "float",
+      "default": 0.35,
+      "min": 0,
+      "max": 1,
+      "uniform": "heightScale",
+      "ui": {
+       "label": "height scale",
+       "control": "slider"
+      }
+     },
+     {
+      "name": "baseHeight",
+      "type": "float",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "uniform": "baseHeight",
+      "ui": {
+       "label": "base height",
+       "control": "slider"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerOp",
+   "name": "render.renderLandscape3d",
+   "spec": {
+    "name": "renderLandscape3d",
+    "args": [
+     {
+      "name": "volumeSize",
+      "type": "int",
+      "default": 64,
+      "uniform": "volumeSize",
+      "ui": {
+       "label": "volume size",
+       "control": false
+      }
+     },
+     {
+      "name": "threshold",
+      "type": "float",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "uniform": "threshold",
+      "ui": {
+       "label": "density threshold",
+       "control": false
+      }
+     },
+     {
+      "name": "densitySource",
+      "type": "int",
+      "default": 0,
+      "choices": {
+       "geometry": 0
+      },
+      "ui": {
+       "label": "density source",
+       "control": false
+      }
+     },
+     {
+      "name": "zoom",
+      "type": "float",
+      "default": 1,
+      "min": 0.25,
+      "max": 4,
+      "uniform": "zoom",
+      "ui": {
+       "label": "zoom",
+       "control": "slider"
+      }
+     },
+     {
+      "name": "panX",
+      "type": "float",
+      "default": 0,
+      "min": -1,
+      "max": 1,
+      "uniform": "panX",
+      "ui": {
+       "label": "pan x",
+       "control": "slider"
+      }
+     },
+     {
+      "name": "panY",
+      "type": "float",
+      "default": 0,
+      "min": -1,
+      "max": 1,
+      "uniform": "panY",
+      "ui": {
+       "label": "pan y",
+       "control": "slider"
+      }
+     },
+     {
+      "name": "lightDirection",
+      "type": "vec3",
+      "default": [
+       -0.4,
+       0.85,
+       0.6
+      ],
+      "uniform": "lightDirection",
+      "min": -1,
+      "max": 1,
+      "ui": {
+       "label": "light direction",
+       "control": "vector3"
+      }
+     },
+     {
+      "name": "ambient",
+      "type": "float",
+      "default": 0.35,
+      "min": 0,
+      "max": 1,
+      "uniform": "ambient",
+      "ui": {
+       "label": "ambient light",
+       "control": "slider"
+      }
+     },
+     {
+      "name": "diffuseIntensity",
+      "type": "float",
+      "default": 0.85,
+      "min": 0,
+      "max": 2,
+      "uniform": "diffuseIntensity",
+      "ui": {
+       "label": "diffuse light",
+       "control": "slider"
+      }
+     },
+     {
+      "name": "specularIntensity",
+      "type": "float",
+      "default": 0.12,
+      "min": 0,
+      "max": 1,
+      "uniform": "specularIntensity",
+      "ui": {
+       "label": "specular light",
+       "control": "slider"
+      }
+     },
+     {
+      "name": "bgColor",
+      "type": "color",
+      "default": [
+       0.025,
+       0.045,
+       0.075
+      ],
+      "uniform": "bgColor",
+      "ui": {
+       "label": "background color",
+       "control": "color"
+      }
+     },
+     {
+      "name": "bgAlpha",
+      "type": "float",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "uniform": "bgAlpha",
+      "ui": {
+       "label": "background opacity",
+       "control": "slider"
+      }
+     },
+     {
+      "name": "viewMode",
+      "type": "int",
+      "default": 1,
+      "define": "VIEW_MODE",
+      "choices": {
+       "ortho": 1,
+       "perspective": 2
+      },
+      "ui": {
+       "label": "view",
+       "control": "dropdown",
+       "category": "view"
+      }
+     },
+     {
+      "name": "rotateX",
+      "type": "float",
+      "default": 0.3,
+      "min": 0,
+      "max": 6.283185,
+      "step": 0.01,
+      "uniform": "rotateX",
+      "ui": {
+       "label": "rotate x",
+       "control": "slider",
+       "category": "view",
+       "enabledBy": {
+        "param": "viewMode",
+        "eq": 2
+       }
+      }
+     },
+     {
+      "name": "rotateY",
+      "type": "float",
+      "default": 0,
+      "min": 0,
+      "max": 6.283185,
+      "step": 0.01,
+      "uniform": "rotateY",
+      "ui": {
+       "label": "rotate y",
+       "control": "slider",
+       "category": "view",
+       "enabledBy": {
+        "param": "viewMode",
+        "eq": 2
+       }
+      }
+     },
+     {
+      "name": "rotateZ",
+      "type": "float",
+      "default": 0,
+      "min": 0,
+      "max": 6.283185,
+      "step": 0.01,
+      "uniform": "rotateZ",
+      "ui": {
+       "label": "rotate z",
+       "control": "slider",
+       "category": "view",
+       "enabledBy": {
+        "param": "viewMode",
+        "eq": 2
+       }
+      }
+     },
+     {
+      "name": "viewScale",
+      "type": "float",
+      "default": 0.8,
+      "min": 0.1,
+      "max": 10,
+      "step": 0.01,
+      "uniform": "viewScale",
+      "ui": {
+       "label": "zoom",
+       "control": false
+      }
+     },
+     {
+      "name": "posX",
+      "type": "float",
+      "default": 0,
+      "min": -50,
+      "max": 50,
+      "step": 0.1,
+      "uniform": "posX",
+      "ui": {
+       "label": "pos x",
+       "control": "slider",
+       "category": "view",
+       "enabledBy": {
+        "param": "viewMode",
+        "eq": 2
+       }
+      }
+     },
+     {
+      "name": "posY",
+      "type": "float",
+      "default": 0,
+      "min": -50,
+      "max": 50,
+      "step": 0.1,
+      "uniform": "posY",
+      "ui": {
+       "label": "pos y",
+       "control": "slider",
+       "category": "view",
+       "enabledBy": {
+        "param": "viewMode",
+        "eq": 2
+       }
+      }
+     },
+     {
+      "name": "posZ",
+      "type": "float",
+      "default": 0,
+      "min": -200,
+      "max": 200,
+      "step": 0.1,
+      "uniform": "posZ",
+      "ui": {
+       "label": "pos z",
+       "control": "slider",
+       "category": "view",
+       "enabledBy": {
+        "param": "viewMode",
+        "eq": 2
+       }
+      }
+     },
+     {
+      "name": "fieldOfView",
+      "type": "float",
+      "default": 60,
+      "min": 10,
+      "max": 150,
+      "step": 1,
+      "uniform": "fieldOfView",
+      "ui": {
+       "label": "field of view",
+       "control": "slider",
+       "category": "view",
+       "enabledBy": {
+        "param": "viewMode",
+        "eq": 2
+       }
+      }
+     },
+     {
+      "name": "filtering",
+      "type": "int",
+      "default": 1,
+      "define": "FILTERING",
+      "choices": {
+       "isosurface": 0,
+       "voxel": 1
+      },
+      "ui": {
+       "label": "filtering",
+       "control": "dropdown"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerStarterOps",
+   "names": [
+    "synth.solid",
+    "synth.noise",
+    "synth3d.heightmap3d"
+   ]
+  },
+  {
+   "op": "registerOp",
+   "name": "synth.stateRoundtrip",
+   "spec": {
+    "name": "stateRoundtrip",
+    "args": [
+     {
+      "name": "amount",
+      "type": "float",
+      "default": 0,
+      "min": 0,
+      "max": 100
+     }
+    ]
+   }
+  },
+  {
+   "op": "registerStarterOps",
+   "names": [
+    "synth.stateRoundtrip"
+   ]
+  }
+ ],
+ "cases": [
+  {
+   "id": "unparser/basic",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scale": 3
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/step-overrides",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scale": 3,
+         "seed": 1
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o1"
+      }
+     },
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scale": 5,
+         "seed": 2
+        }
+       },
+       {
+        "op": "synth.add",
+        "args": {
+         "amount": 0.5
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {
+    "0": {
+     "scale": 10,
+     "seed": 1
+    }
+   },
+   "options": {}
+  },
+  {
+   "id": "unparser/namespace-stripping",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "nm",
+     "nu"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "nm.blur",
+        "args": {
+         "radius": 5
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/multiple-namespaces",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scale": 3
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "radius": 5
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/multiline-kwargs",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scale": 3
+        }
+       },
+       {
+        "op": "filter.warp",
+        "args": {
+         "displacement": 0.5,
+         "octaves": 3,
+         "freq": 2
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/output-object",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scale": 3
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o5"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/no-search",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scale": 3
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/render-o1",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "render": "o1",
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scale": 3
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o1"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/render-o0",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "render": "o0",
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scale": 3
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/render-null",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "render": null,
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scale": 3
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/read-starts-chain",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth",
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "scale": 3
+        }
+       },
+       {
+        "op": "_write",
+        "builtin": true,
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o0"
+         }
+        }
+       },
+       {
+        "op": "_read",
+        "builtin": true,
+        "args": {
+         "tex": {
+          "kind": "output",
+          "name": "o0"
+         }
+        }
+       },
+       {
+        "op": "filter.blur",
+        "args": {
+         "radius": 5
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o1"
+      }
+     }
+    ],
+    "render": "o1"
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/array-not-bare",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.effect",
+        "args": {
+         "pos": [
+          0.5,
+          0.5,
+          0.5
+         ]
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/float32array",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.effect",
+        "args": {
+         "color": {
+          "$js": "Float32Array",
+          "values": [
+           0.5,
+           0.5,
+           0.5
+          ]
+         }
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/raw-comma-banned-0",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.effect",
+        "args": {
+         "color": [
+          0.5,
+          0.5,
+          0.5
+         ]
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/raw-comma-banned-1",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.effect",
+        "args": {
+         "color": {
+          "$js": "Float32Array",
+          "values": [
+           0.5,
+           0.5,
+           0.5
+          ]
+         }
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/raw-comma-banned-2",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.effect",
+        "args": {
+         "pos": [
+          1,
+          2,
+          3
+         ]
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/enum-names",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.effect",
+        "args": {
+         "preset": 16,
+         "mode": 2
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.effect": {
+       "globals": {
+        "preset": {
+         "type": "int",
+         "default": 0,
+         "choices": {
+          "none": 0,
+          "sunset": 16,
+          "vintage": 8,
+          "noir": 9
+         }
+        },
+        "mode": {
+         "type": "int",
+         "default": 0,
+         "choices": {
+          "linear": 0,
+          "cubic": 1,
+          "smooth": 2
+         }
+        }
+       }
+      },
+      "effect": {
+       "globals": {
+        "preset": {
+         "type": "int",
+         "default": 0,
+         "choices": {
+          "none": 0,
+          "sunset": 16,
+          "vintage": 8,
+          "noir": 9
+         }
+        },
+        "mode": {
+         "type": "int",
+         "default": 0,
+         "choices": {
+          "linear": 0,
+          "cubic": 1,
+          "smooth": 2
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/vec3-spec",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "filter.grade",
+        "args": {
+         "shadowTint": [
+          0.3,
+          0.4,
+          0.5
+         ],
+         "highlightTint": {
+          "$js": "Float32Array",
+          "values": [
+           0.6000000238418579,
+           0.699999988079071,
+           0.800000011920929
+          ]
+         }
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "filter.grade": {
+       "globals": {
+        "shadowTint": {
+         "type": "vec3",
+         "default": [
+          0.5,
+          0.5,
+          0.5
+         ]
+        },
+        "highlightTint": {
+         "type": "vec3",
+         "default": [
+          0.5,
+          0.5,
+          0.5
+         ]
+        }
+       }
+      },
+      "grade": {
+       "globals": {
+        "shadowTint": {
+         "type": "vec3",
+         "default": [
+          0.5,
+          0.5,
+          0.5
+         ]
+        },
+        "highlightTint": {
+         "type": "vec3",
+         "default": [
+          0.5,
+          0.5,
+          0.5
+         ]
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/quoted-spaces",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "filter.fxaa",
+        "args": {
+         "name": "dla particles",
+         "id": "sc1"
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/identifiers-unquoted",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "synth"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "synth.noise",
+        "args": {
+         "mode": "perlin",
+         "seed": "my_seed_123"
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/digit-strings-quoted",
+   "op": "unparse",
+   "compiled": {
+    "searchNamespaces": [
+     "filter"
+    ],
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "filter.fxaa",
+        "args": {
+         "id": "0vjd"
+        }
+       }
+      ],
+      "write": {
+       "kind": "output",
+       "name": "o0"
+      }
+     }
+    ]
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/inline-producer-edits",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter, synth3d, render\nheightmap3d(heightTex: solid(color: #00ff00).invert(), tex: solid(color: #ff0000)).renderLandscape3d().write(o0)\nrender(o0)"
+   },
+   "overrides": {
+    "0": {
+     "color": [
+      1,
+      0,
+      0
+     ]
+    },
+    "2": {
+     "color": [
+      0,
+      0,
+      1
+     ]
+    },
+    "4": {
+     "viewMode": 2
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.solid": {
+       "$catalogInstance": "synth/solid"
+      },
+      "filter.invert": {
+       "$catalogInstance": "filter/invert"
+      },
+      "synth.noise": {
+       "$catalogInstance": "synth/noise"
+      },
+      "filter.scale": {
+       "$catalogInstance": "filter/scale"
+      },
+      "synth3d.heightmap3d": {
+       "$catalogInstance": "synth3d/heightmap3d"
+      },
+      "render.renderLandscape3d": {
+       "$catalogInstance": "render/renderLandscape3d"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/inline-producer-expected",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter, synth3d, render\nheightmap3d(heightTex: solid(color: #ff0000).invert(), tex: solid(color: #0000ff)).renderLandscape3d(viewMode: perspective).write(o0)\nrender(o0)"
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.solid": {
+       "$catalogInstance": "synth/solid"
+      },
+      "filter.invert": {
+       "$catalogInstance": "filter/invert"
+      },
+      "synth.noise": {
+       "$catalogInstance": "synth/noise"
+      },
+      "filter.scale": {
+       "$catalogInstance": "filter/scale"
+      },
+      "synth3d.heightmap3d": {
+       "$catalogInstance": "synth3d/heightmap3d"
+      },
+      "render.renderLandscape3d": {
+       "$catalogInstance": "render/renderLandscape3d"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/inline-producer-removed",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter, synth3d, render\nheightmap3d(heightTex: solid(color: #00ff00).invert(), tex: solid(color: #ff0000)).renderLandscape3d().write(o0)\nrender(o0)"
+   },
+   "overrides": {
+    "3": {
+     "heightTex": "none"
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.solid": {
+       "$catalogInstance": "synth/solid"
+      },
+      "filter.invert": {
+       "$catalogInstance": "filter/invert"
+      },
+      "synth.noise": {
+       "$catalogInstance": "synth/noise"
+      },
+      "filter.scale": {
+       "$catalogInstance": "filter/scale"
+      },
+      "synth3d.heightmap3d": {
+       "$catalogInstance": "synth3d/heightmap3d"
+      },
+      "render.renderLandscape3d": {
+       "$catalogInstance": "render/renderLandscape3d"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/inline-producer-plain",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter, synth3d, render\nheightmap3d(heightTex: solid(color: #00ff00).invert(), tex: solid(color: #ff0000)).renderLandscape3d().write(o0)\nrender(o0)"
+   }
+  },
+  {
+   "id": "unparser/inline-producer-steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth, filter, synth3d, render\nheightmap3d(heightTex: solid(color: #00ff00).invert(), tex: solid(color: #ff0000)).renderLandscape3d().write(o0)\nrender(o0)"
+   }
+  },
+  {
+   "id": "unparser/numeric-literals",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth, filter\nnoise(seed: 1).scale(x: 1.7778, y: 0.33333, centerY: 0.0004, centerX: osc(type: oscKind.sine, min: 0.1234, max: 0.5678)).write(o0)\nrender(o0)"
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.solid": {
+       "$catalogInstance": "synth/solid"
+      },
+      "filter.invert": {
+       "$catalogInstance": "filter/invert"
+      },
+      "synth.noise": {
+       "$catalogInstance": "synth/noise"
+      },
+      "filter.scale": {
+       "$catalogInstance": "filter/scale"
+      },
+      "synth3d.heightmap3d": {
+       "$catalogInstance": "synth3d/heightmap3d"
+      },
+      "render.renderLandscape3d": {
+       "$catalogInstance": "render/renderLandscape3d"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/numeric-literals:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "unparser/numeric-literals"
+    }
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.solid": {
+       "$catalogInstance": "synth/solid"
+      },
+      "filter.invert": {
+       "$catalogInstance": "filter/invert"
+      },
+      "synth.noise": {
+       "$catalogInstance": "synth/noise"
+      },
+      "filter.scale": {
+       "$catalogInstance": "filter/scale"
+      },
+      "synth3d.heightmap3d": {
+       "$catalogInstance": "synth3d/heightmap3d"
+      },
+      "render.renderLandscape3d": {
+       "$catalogInstance": "render/renderLandscape3d"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/inherited-volumeSize",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, render\nheightmap3d(volumeSize: x128).renderLandscape3d(viewMode: perspective, rotateX: 1.5708).write(o0)\nrender(o0)"
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.solid": {
+       "$catalogInstance": "synth/solid"
+      },
+      "filter.invert": {
+       "$catalogInstance": "filter/invert"
+      },
+      "synth.noise": {
+       "$catalogInstance": "synth/noise"
+      },
+      "filter.scale": {
+       "$catalogInstance": "filter/scale"
+      },
+      "synth3d.heightmap3d": {
+       "$catalogInstance": "synth3d/heightmap3d"
+      },
+      "render.renderLandscape3d": {
+       "$catalogInstance": "render/renderLandscape3d"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/inherited-volumeSize-override",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, render\nheightmap3d(volumeSize: x128).renderLandscape3d(viewMode: perspective, rotateX: 1.5708).write(o0)\nrender(o0)"
+   },
+   "overrides": {
+    "1": {
+     "volumeSize": 128,
+     "rotateX": 1.5708
+    }
+   },
+   "options": {
+    "getEffectDef": {
+     "kind": "map",
+     "defs": {
+      "synth.solid": {
+       "$catalogInstance": "synth/solid"
+      },
+      "filter.invert": {
+       "$catalogInstance": "filter/invert"
+      },
+      "synth.noise": {
+       "$catalogInstance": "synth/noise"
+      },
+      "filter.scale": {
+       "$catalogInstance": "filter/scale"
+      },
+      "synth3d.heightmap3d": {
+       "$catalogInstance": "synth3d/heightmap3d"
+      },
+      "render.renderLandscape3d": {
+       "$catalogInstance": "render/renderLandscape3d"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/inherited-volumeSize-playground",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth3d, render\nheightmap3d(volumeSize: x128).renderLandscape3d(viewMode: perspective, rotateX: 1.5708).write(o0)\nrender(o0)"
+   },
+   "overrides": {},
+   "options": {}
+  },
+  {
+   "id": "unparser/state-seed",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nstateRoundtrip(amount: seed).write(o0)\nrender(o0)"
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "constant",
+     "def": {
+      "globals": {
+       "amount": {
+        "type": "float",
+        "default": 0,
+        "min": 0,
+        "max": 100
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/state-seed:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "unparser/state-seed"
+    }
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "constant",
+     "def": {
+      "globals": {
+       "amount": {
+        "type": "float",
+        "default": 0,
+        "min": 0,
+        "max": 100
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/state-seed:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nstateRoundtrip(amount: seed).write(o0)\nrender(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   },
+   "spec": {
+    "type": "float",
+    "default": 0,
+    "min": 0,
+    "max": 100
+   }
+  },
+  {
+   "id": "unparser/state-time",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nstateRoundtrip(amount: time).write(o0)\nrender(o0)"
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "constant",
+     "def": {
+      "globals": {
+       "amount": {
+        "type": "float",
+        "default": 0,
+        "min": 0,
+        "max": 100
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/state-time:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "unparser/state-time"
+    }
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "constant",
+     "def": {
+      "globals": {
+       "amount": {
+        "type": "float",
+        "default": 0,
+        "min": 0,
+        "max": 100
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/state-time:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nstateRoundtrip(amount: time).write(o0)\nrender(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   },
+   "spec": {
+    "type": "float",
+    "default": 0,
+    "min": 0,
+    "max": 100
+   }
+  },
+  {
+   "id": "unparser/state-frame",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nstateRoundtrip(amount: frame).write(o0)\nrender(o0)"
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "constant",
+     "def": {
+      "globals": {
+       "amount": {
+        "type": "float",
+        "default": 0,
+        "min": 0,
+        "max": 100
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/state-frame:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "unparser/state-frame"
+    }
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "constant",
+     "def": {
+      "globals": {
+       "amount": {
+        "type": "float",
+        "default": 0,
+        "min": 0,
+        "max": 100
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/state-frame:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nstateRoundtrip(amount: frame).write(o0)\nrender(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   },
+   "spec": {
+    "type": "float",
+    "default": 0,
+    "min": 0,
+    "max": 100
+   }
+  },
+  {
+   "id": "unparser/state-u1",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nstateRoundtrip(amount: u1).write(o0)\nrender(o0)"
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "constant",
+     "def": {
+      "globals": {
+       "amount": {
+        "type": "float",
+        "default": 0,
+        "min": 0,
+        "max": 100
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/state-u1:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "unparser/state-u1"
+    }
+   },
+   "overrides": {},
+   "options": {
+    "getEffectDef": {
+     "kind": "constant",
+     "def": {
+      "globals": {
+       "amount": {
+        "type": "float",
+        "default": 0,
+        "min": 0,
+        "max": 100
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "unparser/state-u1:value",
+   "op": "formatValue",
+   "value": {
+    "$compile": "search synth\nstateRoundtrip(amount: u1).write(o0)\nrender(o0)",
+    "path": [
+     "plans",
+     0,
+     "chain",
+     0,
+     "args",
+     "amount"
+    ]
+   },
+   "spec": {
+    "type": "float",
+    "default": 0,
+    "min": 0,
+    "max": 100
+   }
+  }
+ ]
+}

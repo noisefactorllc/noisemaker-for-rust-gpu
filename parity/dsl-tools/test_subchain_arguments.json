@@ -1,0 +1,226 @@
+{
+ "profile": "test_subchain_arguments",
+ "setup": [
+  {
+   "op": "registerOp",
+   "name": "synth.subchainProbe",
+   "spec": {
+    "name": "subchainProbe",
+    "args": []
+   }
+  },
+  {
+   "op": "registerStarterOps",
+   "names": [
+    "synth.subchainProbe"
+   ]
+  },
+  {
+   "op": "registerOp",
+   "name": "synth.subchainFilter",
+   "spec": {
+    "name": "subchainFilter",
+    "args": []
+   }
+  }
+ ],
+ "cases": [
+  {
+   "id": "subchain/clean",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain(name: \"ok\") {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/clean:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "subchain/clean"
+    }
+   }
+  },
+  {
+   "id": "subchain/clean:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain(name: \"ok\") {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/dirty",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain(nme: \"typo\", name: \"ok\") {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/dirty:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "subchain/dirty"
+    }
+   }
+  },
+  {
+   "id": "subchain/dirty:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain(nme: \"typo\", name: \"ok\") {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/duplicate",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain(name: \"first\", name: \"second\") {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/duplicate:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "subchain/duplicate"
+    }
+   }
+  },
+  {
+   "id": "subchain/duplicate:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain(name: \"first\", name: \"second\") {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/duplicate-id",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain(id: \"a\", id: \"b\", name: \"n\") {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/duplicate-id:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "subchain/duplicate-id"
+    }
+   }
+  },
+  {
+   "id": "subchain/duplicate-id:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain(id: \"a\", id: \"b\", name: \"n\") {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/positional",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain(\"shorthand\") {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/positional:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "subchain/positional"
+    }
+   }
+  },
+  {
+   "id": "subchain/positional:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain(\"shorthand\") {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/empty",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain() {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/empty:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "subchain/empty"
+    }
+   }
+  },
+  {
+   "id": "subchain/empty:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain() {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/id-only",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain(id: \"x\") {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/id-only:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "subchain/id-only"
+    }
+   }
+  },
+  {
+   "id": "subchain/id-only:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain(id: \"x\") {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/quotes",
+   "op": "unparse",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain(name: \"a\\\"b\") {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/quotes:twice",
+   "op": "unparse",
+   "compiled": {
+    "$compile": {
+     "$resultOf": "subchain/quotes"
+    }
+   }
+  },
+  {
+   "id": "subchain/quotes:steps",
+   "op": "listSteps",
+   "compiled": {
+    "$compile": "search synth\nsubchainProbe()\n  .subchain(name: \"a\\\"b\") {\n    .subchainFilter()\n  }\n  .write(o0)"
+   }
+  },
+  {
+   "id": "subchain/strict",
+   "op": "formatDslError",
+   "source": "search synth\nsubchainProbe()\n  .subchain(nme: \"typo\", name: \"ok\") {\n    .subchainFilter()\n  }\n  .write(o0)",
+   "error": {
+    "$errorOf": {
+     "$compile": "search synth\nsubchainProbe()\n  .subchain(nme: \"typo\", name: \"ok\") {\n    .subchainFilter()\n  }\n  .write(o0)",
+     "options": {
+      "subchainArguments": "strict"
+     }
+    }
+   }
+  }
+ ]
+}

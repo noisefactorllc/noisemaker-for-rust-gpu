@@ -1,0 +1,7 @@
+{
+  "profile": "host",
+  "setup": [],
+  "cases": [
+    {"generate": "formatValue", "dirs": ["parity/programs", "parity/corpus"]}
+  ]
+}

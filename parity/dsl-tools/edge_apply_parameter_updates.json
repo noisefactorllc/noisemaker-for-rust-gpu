@@ -1,0 +1,223 @@
+{
+ "profile": "host",
+ "setup": [],
+ "cases": [
+  {
+   "id": "edge/applyParameterUpdates-0",
+   "op": "applyParameterUpdates",
+   "dsl": "search synth, filter\nnoise(seed: 1, scaleX: 50).blur(radiusX: 2).write(o0)\nrender(o0)",
+   "updates": {
+    "0": {
+     "seed": 5
+    },
+    "1": {
+     "radiusX": 9.5
+    }
+   }
+  },
+  {
+   "id": "edge/applyParameterUpdates-1",
+   "op": "applyParameterUpdates",
+   "dsl": "search  synth ,  filter \nnoise(seed: 1, scaleX: 50).blur(radiusX: 2).write(o0)\nrender(o0)",
+   "updates": {
+    "0": {
+     "seed": 5
+    },
+    "1": {
+     "radiusX": 9.5
+    }
+   }
+  },
+  {
+   "id": "edge/applyParameterUpdates-2",
+   "op": "applyParameterUpdates",
+   "dsl": "// note\nsearch synth,filter\nnoise(seed: 1, scaleX: 50).blur(radiusX: 2).write(o0)\nrender(o0)",
+   "updates": {
+    "0": {
+     "seed": 5
+    },
+    "1": {
+     "radiusX": 9.5
+    }
+   }
+  },
+  {
+   "id": "edge/applyParameterUpdates-3",
+   "op": "applyParameterUpdates",
+   "dsl": "search\n\nsynth, filter\nnoise(seed: 1, scaleX: 50).blur(radiusX: 2).write(o0)\nrender(o0)",
+   "updates": {
+    "0": {
+     "seed": 5
+    },
+    "1": {
+     "radiusX": 9.5
+    }
+   }
+  },
+  {
+   "id": "edge/applyParameterUpdates-4",
+   "op": "applyParameterUpdates",
+   "dsl": "search synth, filter\r\nnoise(seed: 1, scaleX: 50).blur(radiusX: 2).write(o0)\nrender(o0)",
+   "updates": {
+    "0": {
+     "seed": 5
+    },
+    "1": {
+     "radiusX": 9.5
+    }
+   }
+  },
+  {
+   "id": "edge/applyParameterUpdates-5",
+   "op": "applyParameterUpdates",
+   "dsl": "search synth, filter // trailing\nnoise(seed: 1, scaleX: 50).blur(radiusX: 2).write(o0)\nrender(o0)",
+   "updates": {
+    "0": {
+     "seed": 5
+    },
+    "1": {
+     "radiusX": 9.5
+    }
+   }
+  },
+  {
+   "id": "edge/applyParameterUpdates-6",
+   "op": "applyParameterUpdates",
+   "dsl": "search synth,, filter\nnoise(seed: 1, scaleX: 50).blur(radiusX: 2).write(o0)\nrender(o0)",
+   "updates": {
+    "0": {
+     "seed": 5
+    },
+    "1": {
+     "radiusX": 9.5
+    }
+   }
+  },
+  {
+   "id": "edge/applyParameterUpdates-7",
+   "op": "applyParameterUpdates",
+   "dsl": "searchsynth\nsearch synth, filter\nnoise(seed: 1, scaleX: 50).blur(radiusX: 2).write(o0)\nrender(o0)",
+   "updates": {
+    "0": {
+     "seed": 5
+    },
+    "1": {
+     "radiusX": 9.5
+    }
+   }
+  },
+  {
+   "id": "edge/applyParameterUpdates-8",
+   "op": "applyParameterUpdates",
+   "dsl": "  search synth, filter\nnoise(seed: 1, scaleX: 50).blur(radiusX: 2).write(o0)\nrender(o0)",
+   "updates": {
+    "0": {
+     "seed": 5
+    },
+    "1": {
+     "radiusX": 9.5
+    }
+   }
+  },
+  {
+   "id": "edge/applyParameterUpdates-9",
+   "op": "applyParameterUpdates",
+   "dsl": "search synth, filter\nnoise(seed: 1, scaleX: 50).blur(radiusX: 2).write(o0)\nrender(o0)",
+   "updates": {}
+  },
+  {
+   "id": "edge/applyParameterUpdates-10",
+   "op": "applyParameterUpdates",
+   "dsl": "search synth, filter\nnoise(seed: 1, scaleX: 50).blur(radiusX: 2).write(o0)\nrender(o0)",
+   "updates": {
+    "$js": "undefined"
+   }
+  },
+  {
+   "id": "edge/applyParameterUpdates-11",
+   "op": "applyParameterUpdates",
+   "dsl": "search synth, filter\nnoise(seed: 1, scaleX: 50).blur(radiusX: 2).write(o0)\nrender(o0)",
+   "updates": null
+  },
+  {
+   "id": "edge/applyParameterUpdates-12",
+   "op": "applyParameterUpdates",
+   "dsl": "search synth, filter\nnoise(seed: 1, scaleX: 50).blur(radiusX: 2).write(o0)\nrender(o0)",
+   "updates": {
+    "2": {
+     "_skip": true
+    }
+   }
+  },
+  {
+   "id": "edge/applyParameterUpdates-13",
+   "op": "applyParameterUpdates",
+   "dsl": "anything",
+   "updates": {},
+   "compiled": null
+  },
+  {
+   "id": "edge/applyParameterUpdates-14",
+   "op": "applyParameterUpdates",
+   "dsl": "anything",
+   "updates": {},
+   "compiled": {}
+  },
+  {
+   "id": "edge/applyParameterUpdates-15",
+   "op": "applyParameterUpdates",
+   "dsl": "anything",
+   "updates": {},
+   "compiled": {
+    "plans": 0
+   }
+  },
+  {
+   "id": "edge/applyParameterUpdates-16",
+   "op": "applyParameterUpdates",
+   "dsl": "search a, b\nx",
+   "updates": {},
+   "compiled": {
+    "plans": [
+     {
+      "chain": [
+       {
+        "op": "a.fx",
+        "args": {
+         "v": 1
+        }
+       }
+      ]
+     }
+    ],
+    "searchNamespaces": [
+     "zzz"
+    ]
+   }
+  },
+  {
+   "id": "edge/applyParameterUpdates-17",
+   "op": "applyParameterUpdates",
+   "dsl": "anything",
+   "updates": {},
+   "compileError": {
+    "$js": "error",
+    "name": "SyntaxError",
+    "message": "Unexpected token at line 1 col 1"
+   }
+  },
+  {
+   "id": "edge/applyParameterUpdates-18",
+   "op": "applyParameterUpdates",
+   "dsl": "anything",
+   "updates": {},
+   "compileError": "thrown string"
+  },
+  {
+   "id": "edge/applyParameterUpdates-19",
+   "op": "applyParameterUpdates",
+   "dsl": "search synth\nnoise(.write(o0)",
+   "updates": {}
+  }
+ ]
+}

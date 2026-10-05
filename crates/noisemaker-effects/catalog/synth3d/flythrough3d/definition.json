@@ -1,0 +1,172 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Flythrough3D",
+  "namespace": "synth3d",
+  "func": "flythrough3d",
+  "description": "3D fractal flythrough with camera-relative volume",
+  "tags": [
+    "3d",
+    "fractal"
+  ],
+  "globals": {
+    "volumeSize": {
+      "type": "int",
+      "default": 64,
+      "uniform": "volumeSize",
+      "choices": {
+        "x16": 16,
+        "x32": 32,
+        "x64": 64,
+        "x128": 128
+      },
+      "randChoices": [
+        16,
+        32,
+        64
+      ],
+      "ui": {
+        "label": "volume size",
+        "control": "dropdown"
+      }
+    },
+    "type": {
+      "type": "int",
+      "default": 0,
+      "uniform": "noiseType",
+      "choices": {
+        "mandelbulb": 0,
+        "mandelbox": 1
+      },
+      "ui": {
+        "label": "fractal type",
+        "control": "dropdown"
+      }
+    },
+    "power": {
+      "type": "float",
+      "default": 8,
+      "min": -3,
+      "max": 16,
+      "uniform": "power",
+      "ui": {
+        "label": "power/scale",
+        "control": "slider",
+        "category": "fractal"
+      }
+    },
+    "iterations": {
+      "type": "int",
+      "default": 12,
+      "min": 4,
+      "max": 24,
+      "uniform": "iterations",
+      "ui": {
+        "label": "iterations",
+        "control": "slider",
+        "category": "fractal"
+      }
+    },
+    "bailout": {
+      "type": "float",
+      "default": 4,
+      "min": 1,
+      "max": 16,
+      "uniform": "bailout",
+      "ui": {
+        "label": "bailout",
+        "control": "slider",
+        "category": "fractal"
+      }
+    },
+    "speed": {
+      "type": "float",
+      "default": 0.2,
+      "min": 0,
+      "max": 1,
+      "zero": 0,
+      "uniform": "speed",
+      "ui": {
+        "label": "speed",
+        "control": "slider",
+        "category": "camera"
+      }
+    },
+    "voiSize": {
+      "type": "float",
+      "default": 0.5,
+      "min": 0.1,
+      "max": 2,
+      "uniform": "voiSize",
+      "ui": {
+        "label": "view size",
+        "control": "slider",
+        "category": "camera"
+      }
+    },
+    "seed": {
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 100,
+      "uniform": "seed",
+      "ui": {
+        "control": false
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "precompute",
+      "program": "precompute",
+      "drawBuffers": 2,
+      "viewport": {
+        "width": {
+          "param": "volumeSize",
+          "default": 64
+        },
+        "height": {
+          "param": "volumeSize",
+          "power": 2,
+          "default": 4096
+        }
+      },
+      "inputs": {},
+      "outputs": {
+        "color": "volumeCache",
+        "geoOut": "geoBuffer"
+      }
+    }
+  ],
+  "textures": {
+    "volumeCache": {
+      "width": {
+        "param": "volumeSize",
+        "default": 64
+      },
+      "height": {
+        "param": "volumeSize",
+        "power": 2,
+        "default": 4096
+      },
+      "format": "rgba16f"
+    },
+    "geoBuffer": {
+      "width": {
+        "param": "volumeSize",
+        "default": 64
+      },
+      "height": {
+        "param": "volumeSize",
+        "power": 2,
+        "default": 4096
+      },
+      "format": "rgba16f"
+    }
+  },
+  "outputTex3d": "volumeCache",
+  "outputGeo": "geoBuffer",
+  "paramAliases": {
+    "fractalType": "type"
+  }
+}

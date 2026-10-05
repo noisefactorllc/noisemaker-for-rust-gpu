@@ -1,0 +1,258 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Cellular Automata",
+  "func": "cellularAutomata",
+  "description": "2D cellular automata with rule presets",
+  "tags": [
+    "sim"
+  ],
+  "globals": {
+    "tex": {
+      "type": "surface",
+      "default": "none",
+      "ui": {
+        "label": "texture",
+        "category": "input"
+      }
+    },
+    "zoom": {
+      "type": "int",
+      "default": 32,
+      "choices": {
+        "x1": 1,
+        "x2": 2,
+        "x4": 4,
+        "x8": 8,
+        "x16": 16,
+        "x32": 32,
+        "x64": 64
+      },
+      "randChoices": [
+        4,
+        8,
+        16,
+        32,
+        64
+      ],
+      "ui": {
+        "label": "zoom",
+        "control": "dropdown"
+      }
+    },
+    "ruleIndex": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+        "classicLife": 0,
+        "highlife": 1,
+        "seeds": 2,
+        "coral": 3,
+        "dayNight": 4,
+        "lifeWithoutDeath": 5,
+        "replicator": 6,
+        "amoeba": 7,
+        "maze": 8,
+        "gliderWalk": 9,
+        "diamoeba": 10,
+        "size2x2": 11,
+        "morley": 12,
+        "anneal": 13,
+        "size34Life": 14,
+        "simpleReplicator": 15,
+        "waffles": 16,
+        "pondLife": 17
+      },
+      "ui": {
+        "label": "rules",
+        "control": "dropdown"
+      },
+      "uniform": "ruleIndex"
+    },
+    "smoothing": {
+      "type": "int",
+      "default": 0,
+      "choices": {
+        "constant": 0,
+        "linear": 1,
+        "hermite": 2,
+        "catmullRom3x3": 3,
+        "catmullRom4x4": 4,
+        "bSpline3x3": 5,
+        "bSpline4x4": 6
+      },
+      "ui": {
+        "label": "smoothing",
+        "control": "dropdown"
+      },
+      "uniform": "smoothing"
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "min": 1,
+      "max": 100,
+      "ui": {
+        "label": "seed",
+        "control": false
+      },
+      "uniform": "seed"
+    },
+    "speed": {
+      "type": "float",
+      "default": 10,
+      "min": 1,
+      "max": 100,
+      "ui": {
+        "label": "speed",
+        "control": "slider"
+      },
+      "uniform": "speed"
+    },
+    "resetState": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "resetState",
+      "ui": {
+        "control": "button",
+        "buttonLabel": "reset",
+        "label": "state"
+      }
+    },
+    "weight": {
+      "type": "float",
+      "default": 0,
+      "min": 0,
+      "max": 100,
+      "randChance": 0,
+      "ui": {
+        "label": "input weight",
+        "control": "slider",
+        "category": "input",
+        "enabledBy": {
+          "param": "tex",
+          "neq": "none"
+        }
+      },
+      "uniform": "weight"
+    },
+    "source": {
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 7,
+      "ui": {
+        "control": false
+      },
+      "uniform": "source"
+    }
+  },
+  "passes": [
+    {
+      "name": "update",
+      "program": "caFb",
+      "inputs": {
+        "bufTex": "global_ca_state",
+        "tex": "tex"
+      },
+      "outputs": {
+        "fragColor": "global_ca_state"
+      }
+    },
+    {
+      "name": "render",
+      "program": "ca",
+      "inputs": {
+        "fbTex": "global_ca_state",
+        "prevFrameTex": "global_ca_state",
+        "bufTex": "global_ca_state",
+        "tex": "tex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "global_ca_state": {
+      "width": {
+        "screenDivide": "zoom",
+        "default": 32
+      },
+      "height": {
+        "screenDivide": "zoom",
+        "default": 32
+      }
+    }
+  },
+  "uniformLayouts": {
+    "ca": {
+      "resolution": {
+        "slot": 0,
+        "components": "xy"
+      },
+      "time": {
+        "slot": 0,
+        "components": "z"
+      },
+      "smoothing": {
+        "slot": 1,
+        "components": "y"
+      }
+    },
+    "caFb": {
+      "deltaTime": {
+        "slot": 0,
+        "components": "y"
+      },
+      "seed": {
+        "slot": 0,
+        "components": "z"
+      },
+      "resetState": {
+        "slot": 0,
+        "components": "w"
+      },
+      "ruleIndex": {
+        "slot": 1,
+        "components": "x"
+      },
+      "speed": {
+        "slot": 1,
+        "components": "y"
+      },
+      "weight": {
+        "slot": 1,
+        "components": "z"
+      },
+      "bornMask0": {
+        "slot": 2,
+        "components": "xyzw"
+      },
+      "bornMask1": {
+        "slot": 3,
+        "components": "xyzw"
+      },
+      "bornMask2": {
+        "slot": 4,
+        "components": "x"
+      },
+      "surviveMask0": {
+        "slot": 4,
+        "components": "yzw"
+      },
+      "surviveMask1": {
+        "slot": 5,
+        "components": "xyzw"
+      },
+      "surviveMask2": {
+        "slot": 6,
+        "components": "xy"
+      },
+      "source": {
+        "slot": 6,
+        "components": "z"
+      }
+    }
+  }
+}

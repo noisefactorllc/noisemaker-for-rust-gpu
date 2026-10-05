@@ -1,0 +1,132 @@
+// Deposit Shader - Scatter agents to trail texture
+
+struct Uniforms {
+    resolution: vec2<f32>,
+    density: f32,
+    rotateX: f32,
+    rotateY: f32,
+    rotateZ: f32,
+    viewScale: f32,
+    posX: f32,
+    posY: f32,
+    posZ: f32,
+    fieldOfView: f32,
+};
+
+struct VertexOutput {
+    @builtin(position) position: vec4<f32>,
+    @location(0) color: vec4<f32>,
+};
+
+@group(0) @binding(0) var<uniform> u: Uniforms;
+@group(0) @binding(1) var xyzTex: texture_2d<f32>;
+@group(0) @binding(2) var rgbaTex: texture_2d<f32>;
+
+@vertex
+fn vertexMain(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
+    var out: VertexOutput;
+    
+    // Get state size from xyz texture dimensions (inherited from pointsEmit)
+    let texSize = textureDimensions(xyzTex, 0);
+    let stateSize = i32(texSize.x);
+    let totalAgents = stateSize * stateSize;
+    
+    // Cull vertices beyond texture size
+    if (i32(vertexIndex) >= totalAgents) {
+        out.position = vec4<f32>(2.0, 2.0, 0.0, 1.0);
+        out.color = vec4<f32>(0.0);
+        return out;
+    }
+    
+    // Density-based culling
+    let cullThreshold = u.density / 100.0;
+    let particleRandom = fract(f32(vertexIndex) * 0.618033988749895);
+    if (particleRandom > cullThreshold) {
+        out.position = vec4<f32>(2.0, 2.0, 0.0, 1.0);
+        out.color = vec4<f32>(0.0);
+        return out;
+    }
+    
+    // Calculate UV for this agent
+    let x = i32(vertexIndex) % stateSize;
+    let y = i32(vertexIndex) / stateSize;
+    
+    // Read agent position and color
+    let pos = textureLoad(xyzTex, vec2<i32>(x, y), 0);
+    let col = textureLoad(rgbaTex, vec2<i32>(x, y), 0);
+    
+    // Check if agent is alive (pos.w >= 0.5 means alive)
+    if (pos.w < 0.5) {
+        out.position = vec4<f32>(2.0, 2.0, 0.0, 1.0);
+        out.color = vec4<f32>(0.0);
+        return out;
+    }
+    
+    var clipPos: vec2<f32>;
+    
+    if (VIEW_MODE == 0) {
+        // 2D mode: positions are normalized 0..1
+        clipPos = vec2<f32>(pos.x * 2.0 - 1.0, 1.0 - pos.y * 2.0);
+    } else {
+        // 3D mode: rotate world coordinates before camera projection
+        var p = pos.xyz;
+        
+        // Detect if this is a 2D system (coords in 0-1) or 3D attractor (coords ±40)
+        // 2D systems have Z near 0 and XY in 0-1 range
+        let is2DSystem = VIEW_MODE == 1 && abs(p.z) < 1.0 && p.x >= 0.0 && p.x <= 1.0 && p.y >= 0.0 && p.y <= 1.0;
+        
+        if (is2DSystem) {
+            // Center 2D coords around origin: 0-1 -> -0.5 to 0.5
+            p = vec3<f32>(p.x - 0.5, p.y - 0.5, 0.0);
+        }
+        
+        // Apply rotation around X axis
+        let cosX = cos(u.rotateX);
+        let sinX = sin(u.rotateX);
+        p = vec3<f32>(p.x, p.y * cosX - p.z * sinX, p.y * sinX + p.z * cosX);
+        
+        // Apply rotation around Y axis
+        let cosY = cos(u.rotateY);
+        let sinY = sin(u.rotateY);
+        p = vec3<f32>(p.x * cosY + p.z * sinY, p.y, -p.x * sinY + p.z * cosY);
+        
+        // Apply rotation around Z axis
+        let cosZ = cos(u.rotateZ);
+        let sinZ = sin(u.rotateZ);
+        p = vec3<f32>(p.x * cosZ - p.y * sinZ, p.x * sinZ + p.y * cosZ, p.z);
+        
+        // Apply X/Y offset after rotation (pan in screen space)
+        p.x = p.x + u.posX;
+        p.y = p.y + u.posY;
+        
+        if (VIEW_MODE == 2) {
+            // Match the billboard camera at Z=80, looking down negative Z.
+            let cameraDepth = 80.0 - (p.z + u.posZ);
+            if (cameraDepth <= 0.1) {
+                out.position = vec4<f32>(2.0, 2.0, 0.0, 1.0);
+                out.color = vec4<f32>(0.0);
+                return out;
+            }
+            let focalLength = 1.0 / tan(clamp(u.fieldOfView, 10.0, 150.0) * 0.00872664626);
+            clipPos = p.xy * focalLength * u.viewScale / cameraDepth;
+            clipPos.x = clipPos.x * u.resolution.y / u.resolution.x;
+        } else if (is2DSystem) {
+            // 2D systems: coords are now ±0.5, scale to fill viewport
+            // Use 3.5x multiplier for close-up view that's nice to pan around
+            clipPos = p.xy * 3.5 * u.viewScale;
+        } else {
+            // 3D attractors: coords range roughly ±40, normalize then scale
+            clipPos = p.xy / 40.0 * u.viewScale;
+        }
+        clipPos.y = -clipPos.y;
+    }
+    
+    out.position = vec4<f32>(clipPos, 0.0, 1.0);
+    out.color = vec4<f32>(col.rgb, col.a);
+    return out;
+}
+
+@fragment
+fn fragmentMain(in: VertexOutput) -> @location(0) vec4<f32> {
+    return in.color;
+}

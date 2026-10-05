@@ -1,0 +1,77 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Alpha Mask",
+  "namespace": "mixer",
+  "func": "alphaMask",
+  "description": "Alpha transparency blend",
+  "tags": [
+    "blend"
+  ],
+  "globals": {
+    "tex": {
+      "type": "surface",
+      "default": "none",
+      "ui": {
+        "label": "source b"
+      }
+    },
+    "baseTex": {
+      "type": "surface",
+      "default": "none",
+      "ui": {
+        "label": "mask background",
+        "enabledBy": {
+          "param": "maskMode",
+          "eq": true
+        }
+      }
+    },
+    "mix": {
+      "type": "float",
+      "default": 0,
+      "uniform": "mixAmt",
+      "min": -100,
+      "max": 100,
+      "ui": {
+        "label": "mix",
+        "control": "slider",
+        "enabledBy": {
+          "param": "maskMode",
+          "eq": false
+        }
+      }
+    },
+    "maskMode": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "maskMode",
+      "ui": {
+        "label": "grayscale mask",
+        "control": "checkbox"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "alphaMask",
+      "inputs": {
+        "inputTex": "inputTex",
+        "tex": "tex",
+        "baseTex": "baseTex"
+      },
+      "uniforms": {
+        "mixAmt": "mix",
+        "maskMode": "maskMode"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "paramAliases": {
+    "mixAmt": "mix"
+  },
+  "defaultProgram": "search mixer, synth\n\npolygon(smooth: 0, bgAlpha: 0)\n  .write(o0)\n\n noise(scaleX: 100, scaleY: 100)\n  .alphaMask(tex: read(o0))\n  .write(o1)\n"
+}

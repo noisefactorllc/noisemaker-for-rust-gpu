@@ -1,0 +1,163 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Relief",
+  "namespace": "filter",
+  "func": "relief",
+  "description": "Two-tone ink/paper relief carving: Bas Relief, Plaster, and Note Paper sketch renderings",
+  "tags": [
+    "blur",
+    "edges",
+    "artist"
+  ],
+  "globals": {
+    "mode": {
+      "type": "int",
+      "default": 0,
+      "define": "MODE",
+      "choices": {
+        "basRelief": 0,
+        "plaster": 1,
+        "notePaper": 2
+      },
+      "ui": {
+        "label": "mode",
+        "control": "dropdown"
+      }
+    },
+    "smoothness": {
+      "type": "float",
+      "default": 30,
+      "uniform": "smoothness",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "smoothness",
+        "control": "slider"
+      }
+    },
+    "detail": {
+      "type": "float",
+      "default": 50,
+      "uniform": "detail",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "detail",
+        "control": "slider"
+      }
+    },
+    "lightAngle": {
+      "type": "float",
+      "default": 135,
+      "uniform": "lightAngle",
+      "min": -180,
+      "max": 180,
+      "ui": {
+        "label": "light angle",
+        "control": "slider"
+      }
+    },
+    "balance": {
+      "type": "float",
+      "default": 50,
+      "uniform": "balance",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "balance",
+        "control": "slider",
+        "enabledBy": {
+          "param": "mode",
+          "eq": 2
+        }
+      }
+    },
+    "graininess": {
+      "type": "float",
+      "default": 30,
+      "uniform": "graininess",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "graininess",
+        "control": "slider",
+        "enabledBy": {
+          "param": "mode",
+          "eq": 2
+        }
+      }
+    },
+    "inkColor": {
+      "type": "color",
+      "default": [
+        0.1,
+        0.1,
+        0.1
+      ],
+      "uniform": "inkColor",
+      "ui": {
+        "label": "ink color",
+        "control": "color"
+      }
+    },
+    "paperColor": {
+      "type": "color",
+      "default": [
+        0.96,
+        0.94,
+        0.88
+      ],
+      "uniform": "paperColor",
+      "ui": {
+        "label": "paper color",
+        "control": "color"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "blurH",
+      "program": "rlBlurH",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "_rlBlurH"
+      }
+    },
+    {
+      "name": "blurV",
+      "program": "rlBlurV",
+      "inputs": {
+        "inputTex": "_rlBlurH"
+      },
+      "outputs": {
+        "fragColor": "_rlBlur"
+      }
+    },
+    {
+      "name": "shade",
+      "program": "rlShade",
+      "inputs": {
+        "inputTex": "inputTex",
+        "blurTex": "_rlBlur"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "_rlBlurH": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    },
+    "_rlBlur": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    }
+  }
+}

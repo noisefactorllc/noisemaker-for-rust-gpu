@@ -1,0 +1,15 @@
+[package]
+name = "noisemaker-dsl"
+description = "The Polymorphic DSL of the Noisemaker rendering engine: lexer, parser, validator, expander and render-graph compiler"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+indexmap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+noisemaker-effects = { path = "../noisemaker-effects", version = "0.1.0" }

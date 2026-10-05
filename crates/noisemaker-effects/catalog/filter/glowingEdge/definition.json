@@ -1,0 +1,71 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Glowing Edge",
+  "namespace": "filter",
+  "func": "glowingEdge",
+  "description": "Glowing edge detection",
+  "tags": [
+    "edges"
+  ],
+  "globals": {
+    "shape": {
+      "type": "int",
+      "default": 0,
+      "uniform": "sobelMetric",
+      "choices": {
+        "circle": 0,
+        "diamond": 1,
+        "square": 2,
+        "star": 3
+      },
+      "ui": {
+        "label": "shape",
+        "control": "dropdown"
+      }
+    },
+    "width": {
+      "type": "int",
+      "default": 1,
+      "uniform": "width",
+      "min": 0,
+      "max": 10,
+      "zero": 0,
+      "randMin": 1,
+      "randMax": 3,
+      "ui": {
+        "label": "width",
+        "control": "slider"
+      }
+    },
+    "alpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "alpha",
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "ui": {
+        "label": "alpha",
+        "control": "slider"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "glowingEdge",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "shape": "sobelMetric",
+        "alpha": "alpha",
+        "width": "width"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ]
+}

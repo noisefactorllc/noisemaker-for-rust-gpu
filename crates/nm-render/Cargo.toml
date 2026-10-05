@@ -1,0 +1,18 @@
+[package]
+name = "nm-render"
+description = "Command-line renderer and parity tool for noisemaker-for-rust-gpu"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "nm-render"
+path = "src/main.rs"
+
+[dependencies]
+noisemaker-for-rust-gpu = { path = "../noisemaker-gpu", version = "0.1.0" }
+noisemaker-dsl = { path = "../noisemaker-dsl", version = "0.1.0" }
+serde_json.workspace = true
+clap = { version = "4.6.7", features = ["derive"] }

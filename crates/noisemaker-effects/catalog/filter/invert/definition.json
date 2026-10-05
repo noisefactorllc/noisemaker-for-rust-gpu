@@ -1,0 +1,38 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Invert",
+  "namespace": "filter",
+  "func": "invert",
+  "description": "Invert image luminance",
+  "tags": [
+    "color"
+  ],
+  "globals": {
+    "mode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "mode",
+      "choices": {
+        "full": 0,
+        "solarize": 1
+      },
+      "ui": {
+        "label": "mode",
+        "control": "dropdown"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "inv",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ]
+}

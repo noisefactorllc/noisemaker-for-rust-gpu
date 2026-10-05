@@ -1,0 +1,108 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Photocopy",
+  "namespace": "filter",
+  "func": "photocopy",
+  "description": "Ink-on-paper via edge and tonal difference-of-Gaussians, like a bad photocopy",
+  "tags": [
+    "blur",
+    "edges",
+    "artist"
+  ],
+  "globals": {
+    "detail": {
+      "type": "float",
+      "default": 30,
+      "uniform": "detail",
+      "min": 1,
+      "max": 100,
+      "ui": {
+        "label": "detail",
+        "control": "slider"
+      }
+    },
+    "darkness": {
+      "type": "float",
+      "default": 75,
+      "uniform": "darkness",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "darkness",
+        "control": "slider"
+      }
+    },
+    "inkColor": {
+      "type": "color",
+      "default": [
+        0.1,
+        0.1,
+        0.1
+      ],
+      "uniform": "inkColor",
+      "ui": {
+        "label": "ink color",
+        "control": "color"
+      }
+    },
+    "paperColor": {
+      "type": "color",
+      "default": [
+        0.96,
+        0.94,
+        0.88
+      ],
+      "uniform": "paperColor",
+      "ui": {
+        "label": "paper color",
+        "control": "color"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "blurH",
+      "program": "pcBlurH",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "_pcBlurH"
+      }
+    },
+    {
+      "name": "blurV",
+      "program": "pcBlurV",
+      "inputs": {
+        "inputTex": "_pcBlurH"
+      },
+      "outputs": {
+        "fragColor": "_pcBlur"
+      }
+    },
+    {
+      "name": "combine",
+      "program": "pcCombine",
+      "inputs": {
+        "inputTex": "inputTex",
+        "blurTex": "_pcBlur"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "_pcBlurH": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    },
+    "_pcBlur": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    }
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Plastic Wrap",
+  "namespace": "filter",
+  "func": "plasticWrap",
+  "description": "Glossy specular plastic film hugging image contours",
+  "tags": [
+    "blur",
+    "edges",
+    "artist"
+  ],
+  "globals": {
+    "highlight": {
+      "type": "float",
+      "default": 60,
+      "uniform": "highlight",
+      "min": 0,
+      "max": 100,
+      "zero": 0,
+      "ui": {
+        "label": "highlight",
+        "control": "slider"
+      }
+    },
+    "detail": {
+      "type": "float",
+      "default": 40,
+      "uniform": "detail",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "detail",
+        "control": "slider"
+      }
+    },
+    "smoothness": {
+      "type": "float",
+      "default": 30,
+      "uniform": "smoothness",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "smoothness",
+        "control": "slider"
+      }
+    },
+    "lightDirection": {
+      "type": "vec3",
+      "default": [
+        -0.4,
+        0.6,
+        0.7
+      ],
+      "uniform": "lightDirection",
+      "ui": {
+        "label": "direction",
+        "control": "vector3"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "blurH",
+      "program": "pwBlurH",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "_pwBlurH"
+      }
+    },
+    {
+      "name": "blurV",
+      "program": "pwBlurV",
+      "inputs": {
+        "inputTex": "_pwBlurH"
+      },
+      "outputs": {
+        "fragColor": "_pwBlur"
+      }
+    },
+    {
+      "name": "spec",
+      "program": "pwSpec",
+      "inputs": {
+        "inputTex": "inputTex",
+        "blurTex": "_pwBlur"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "_pwBlurH": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    },
+    "_pwBlur": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    }
+  }
+}

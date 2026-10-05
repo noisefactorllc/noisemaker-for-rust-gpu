@@ -1,0 +1,49 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "LoopBegin",
+  "namespace": "render",
+  "func": "loopBegin",
+  "description": "Start accumulator loop, read from feedback buffer",
+  "tags": [
+    "util",
+    "sim"
+  ],
+  "globals": {
+    "alpha": {
+      "type": "float",
+      "default": 50,
+      "min": 0,
+      "max": 100,
+      "uniform": "alpha",
+      "ui": {
+        "label": "alpha",
+        "control": "slider"
+      }
+    },
+    "intensity": {
+      "type": "float",
+      "default": 100,
+      "min": 0,
+      "max": 100,
+      "uniform": "intensity",
+      "ui": {
+        "label": "intensity",
+        "control": "slider"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "accumBlend",
+      "program": "loopBegin",
+      "inputs": {
+        "inputTex": "inputTex",
+        "accumTex": "global_accum"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ]
+}

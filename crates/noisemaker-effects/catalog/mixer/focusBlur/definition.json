@@ -1,0 +1,83 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Focus Blur",
+  "namespace": "mixer",
+  "func": "focusBlur",
+  "description": "Focus blur using luminance depth map",
+  "tags": [
+    "blend",
+    "blur"
+  ],
+  "globals": {
+    "tex": {
+      "type": "surface",
+      "default": "none",
+      "ui": {
+        "label": "source b"
+      }
+    },
+    "depthSource": {
+      "type": "int",
+      "default": 1,
+      "uniform": "depthSource",
+      "choices": {
+        "sourceA": 0,
+        "sourceB": 1
+      },
+      "ui": {
+        "label": "depth source",
+        "control": "dropdown"
+      }
+    },
+    "focalDistance": {
+      "type": "float",
+      "default": 50,
+      "uniform": "focalDistance",
+      "min": 1,
+      "max": 100,
+      "randMin": 5,
+      "randMax": 75,
+      "ui": {
+        "label": "focal dist",
+        "control": "slider"
+      }
+    },
+    "aperture": {
+      "type": "float",
+      "default": 4,
+      "uniform": "aperture",
+      "min": 1,
+      "max": 10,
+      "randMax": 3,
+      "ui": {
+        "label": "aperture",
+        "control": "slider"
+      }
+    },
+    "sampleBias": {
+      "type": "float",
+      "default": 12,
+      "uniform": "sampleBias",
+      "min": 2,
+      "max": 64,
+      "ui": {
+        "label": "bias",
+        "control": "slider"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "focusBlur",
+      "inputs": {
+        "inputTex": "inputTex",
+        "tex": "tex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ]
+}

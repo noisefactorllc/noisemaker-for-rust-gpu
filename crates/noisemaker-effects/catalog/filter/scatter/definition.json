@@ -1,0 +1,92 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Scatter",
+  "namespace": "filter",
+  "func": "scatter",
+  "description": "Random per-pixel scatter with darken/lighten/anisotropic/clumped modes (Diffuse, Spatter)",
+  "tags": [
+    "noise",
+    "artist"
+  ],
+  "globals": {
+    "radius": {
+      "type": "float",
+      "default": 12,
+      "uniform": "radius",
+      "min": 1,
+      "max": 25,
+      "ui": {
+        "label": "radius",
+        "control": "slider"
+      }
+    },
+    "mode": {
+      "type": "int",
+      "default": 0,
+      "define": "MODE",
+      "choices": {
+        "normal": 0,
+        "darkenOnly": 1,
+        "lightenOnly": 2,
+        "anisotropic": 3,
+        "clumped": 4
+      },
+      "ui": {
+        "label": "mode",
+        "control": "dropdown"
+      }
+    },
+    "smoothness": {
+      "type": "float",
+      "default": 0,
+      "uniform": "smoothness",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "smoothness",
+        "control": "slider"
+      }
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100,
+      "ui": {
+        "label": "seed",
+        "control": "slider"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "scatterJitter",
+      "program": "scatterJitter",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "_scatterTmp"
+      }
+    },
+    {
+      "name": "scatterSmooth",
+      "program": "scatterSmooth",
+      "inputs": {
+        "inputTex": "_scatterTmp"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "_scatterTmp": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    }
+  }
+}

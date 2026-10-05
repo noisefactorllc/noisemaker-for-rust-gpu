@@ -1,0 +1,94 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Hydraulic",
+  "namespace": "points",
+  "func": "hydraulic",
+  "description": "Hydraulic erosion flow simulation (gradient descent)",
+  "tags": [
+    "sim"
+  ],
+  "globals": {
+    "stride": {
+      "type": "float",
+      "default": 10,
+      "uniform": "stride",
+      "min": 1,
+      "max": 1000,
+      "step": 1,
+      "ui": {
+        "label": "stride",
+        "control": "slider",
+        "category": "agents"
+      }
+    },
+    "quantize": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "quantize",
+      "ui": {
+        "label": "quantize",
+        "control": "checkbox",
+        "category": "agents"
+      }
+    },
+    "inverse": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "inverse",
+      "ui": {
+        "label": "inverse",
+        "control": "checkbox",
+        "category": "agents"
+      }
+    },
+    "inputWeight": {
+      "type": "float",
+      "default": 100,
+      "uniform": "inputWeight",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "ui": {
+        "label": "input weight",
+        "control": "slider",
+        "category": "agents"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "agent",
+      "program": "agent",
+      "drawBuffers": 3,
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "velTex": "global_vel",
+        "rgbaTex": "global_rgba",
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "stride": "stride",
+        "quantize": "quantize",
+        "inverse": "inverse",
+        "inputWeight": "inputWeight"
+      },
+      "outputs": {
+        "outXYZ": "global_xyz",
+        "outVel": "global_vel",
+        "outRGBA": "global_rgba"
+      }
+    },
+    {
+      "name": "passthrough",
+      "program": "passthrough",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

@@ -1,0 +1,188 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Lighting",
+  "namespace": "filter",
+  "func": "lighting",
+  "description": "Applies 3D lighting effects",
+  "tags": [
+    "color"
+  ],
+  "globals": {
+    "normalStrength": {
+      "type": "float",
+      "default": 1.5,
+      "uniform": "normalStrength",
+      "min": 0,
+      "max": 5,
+      "step": 0.01,
+      "ui": {
+        "label": "depth",
+        "control": "slider",
+        "category": "general"
+      }
+    },
+    "smoothing": {
+      "type": "float",
+      "default": 1,
+      "uniform": "smoothing",
+      "min": 1,
+      "max": 10,
+      "step": 0.1,
+      "randMax": 5,
+      "ui": {
+        "label": "smoothing",
+        "control": "slider",
+        "category": "general"
+      }
+    },
+    "diffuseColor": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "diffuseColor",
+      "ui": {
+        "label": "color",
+        "control": "color",
+        "category": "diffuse"
+      }
+    },
+    "specularColor": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "specularColor",
+      "ui": {
+        "label": "color",
+        "control": "color",
+        "category": "specular"
+      }
+    },
+    "specularIntensity": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "specularIntensity",
+      "min": 0,
+      "max": 2,
+      "step": 0.01,
+      "randMax": 1,
+      "ui": {
+        "label": "intensity",
+        "control": "slider",
+        "category": "specular"
+      }
+    },
+    "shininess": {
+      "type": "float",
+      "default": 64,
+      "uniform": "shininess",
+      "min": 8,
+      "max": 256,
+      "step": 1,
+      "ui": {
+        "label": "shininess",
+        "control": "slider",
+        "category": "specular"
+      }
+    },
+    "ambientColor": {
+      "type": "color",
+      "default": [
+        0.2,
+        0.2,
+        0.2
+      ],
+      "uniform": "ambientColor",
+      "ui": {
+        "label": "ambient",
+        "control": "color"
+      }
+    },
+    "lightDirection": {
+      "type": "vec3",
+      "default": [
+        0.5,
+        0.5,
+        1
+      ],
+      "uniform": "lightDirection",
+      "ui": {
+        "label": "direction",
+        "control": "vector3",
+        "category": "diffuse"
+      }
+    },
+    "reflection": {
+      "type": "float",
+      "default": 0,
+      "uniform": "reflection",
+      "min": 0,
+      "max": 100,
+      "step": 0.1,
+      "randMax": 25,
+      "ui": {
+        "label": "reflection",
+        "control": "slider",
+        "category": "reflection"
+      }
+    },
+    "refraction": {
+      "type": "float",
+      "default": 0,
+      "uniform": "refraction",
+      "min": 0,
+      "max": 100,
+      "step": 0.1,
+      "randMax": 25,
+      "ui": {
+        "label": "refraction",
+        "control": "slider"
+      }
+    },
+    "aberration": {
+      "type": "float",
+      "default": 0,
+      "uniform": "aberration",
+      "min": 0,
+      "max": 100,
+      "step": 0.1,
+      "ui": {
+        "label": "aberration",
+        "control": "slider",
+        "category": "reflection",
+        "enabledBy": {
+          "param": "reflection",
+          "gt": 0
+        }
+      }
+    },
+    "heightMap": {
+      "type": "surface",
+      "default": "inputTex",
+      "ui": {
+        "label": "height map",
+        "category": "general"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "lighting",
+      "inputs": {
+        "inputTex": "inputTex",
+        "heightMap": "heightMap"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "defaultProgram": "search filter, synth\n\nnoise(ridges: true)\n.lighting(normalStrength: 2)\n.write(o0)"
+}

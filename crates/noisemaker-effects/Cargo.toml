@@ -1,0 +1,11 @@
+[package]
+name = "noisemaker-effects"
+description = "The Noisemaker effect catalog (definitions and WGSL shaders) embedded as static data"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+include = ["Cargo.toml", "build.rs", "src/**", "catalog/**"]
+
+[dependencies]

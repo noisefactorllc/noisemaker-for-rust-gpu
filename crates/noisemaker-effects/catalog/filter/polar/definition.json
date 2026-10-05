@@ -1,0 +1,90 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Polar",
+  "namespace": "filter",
+  "func": "polar",
+  "description": "Polar and vortex coordinate transforms",
+  "tags": [
+    "distort"
+  ],
+  "globals": {
+    "mode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "polarMode",
+      "choices": {
+        "polar": 0,
+        "vortex": 1
+      },
+      "ui": {
+        "label": "mode",
+        "control": "dropdown"
+      }
+    },
+    "scale": {
+      "type": "float",
+      "default": 0,
+      "uniform": "scale",
+      "min": -2,
+      "max": 2,
+      "step": 0.1,
+      "ui": {
+        "label": "scale",
+        "control": "slider"
+      }
+    },
+    "rotation": {
+      "type": "int",
+      "default": 0,
+      "uniform": "rotation",
+      "min": -2,
+      "max": 2,
+      "ui": {
+        "label": "rot speed",
+        "control": "slider"
+      }
+    },
+    "speed": {
+      "type": "int",
+      "default": 0,
+      "uniform": "speed",
+      "min": -2,
+      "max": 2,
+      "ui": {
+        "label": "polar speed",
+        "control": "slider"
+      }
+    },
+    "aspectLens": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "aspectLens",
+      "ui": {
+        "label": "1:1 aspect",
+        "control": "checkbox"
+      }
+    },
+    "antialias": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "antialias",
+      "ui": {
+        "label": "antialias",
+        "control": "checkbox"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "polar",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ]
+}

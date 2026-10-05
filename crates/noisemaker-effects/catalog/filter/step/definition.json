@@ -1,0 +1,49 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Step",
+  "namespace": "filter",
+  "func": "step",
+  "description": "Hard threshold at specified value",
+  "tags": [
+    "edges",
+    "util"
+  ],
+  "globals": {
+    "threshold": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "threshold",
+      "min": 0,
+      "max": 1,
+      "randMin": 0.25,
+      "randMax": 0.75,
+      "step": 0.01,
+      "ui": {
+        "label": "threshold",
+        "control": "slider"
+      }
+    },
+    "antialias": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "antialias",
+      "ui": {
+        "label": "antialias",
+        "control": "checkbox"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "step",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ]
+}

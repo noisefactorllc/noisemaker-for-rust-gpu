@@ -1,0 +1,80 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Morphology",
+  "namespace": "filter",
+  "func": "morphology",
+  "description": "Grayscale morphology dilate/erode (Maximum/Minimum)",
+  "tags": [
+    "blur",
+    "artist"
+  ],
+  "globals": {
+    "mode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "mode",
+      "choices": {
+        "dilate": 0,
+        "erode": 1
+      },
+      "ui": {
+        "label": "mode",
+        "control": "dropdown"
+      }
+    },
+    "radius": {
+      "type": "float",
+      "default": 4,
+      "uniform": "radius",
+      "min": 1,
+      "max": 32,
+      "ui": {
+        "label": "radius",
+        "control": "slider"
+      }
+    },
+    "shape": {
+      "type": "int",
+      "default": 0,
+      "define": "SHAPE",
+      "choices": {
+        "square": 0,
+        "round": 1
+      },
+      "ui": {
+        "label": "shape",
+        "control": "dropdown"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "morphA",
+      "program": "morphA",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "_morphTmp"
+      }
+    },
+    {
+      "name": "morphB",
+      "program": "morphB",
+      "inputs": {
+        "inputTex": "_morphTmp"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "_morphTmp": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    }
+  }
+}

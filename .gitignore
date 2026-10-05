@@ -1,0 +1,7 @@
+/target
+/parity/out/
+/parity/.cache/
+/parity/.venv/
+__pycache__/
+*.pyc
+.DS_Store

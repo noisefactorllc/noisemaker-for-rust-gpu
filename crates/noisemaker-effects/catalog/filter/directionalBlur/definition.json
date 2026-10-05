@@ -1,0 +1,48 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Directional Blur",
+  "namespace": "filter",
+  "func": "directionalBlur",
+  "description": "Linear motion blur along a single direction (Motion Blur)",
+  "tags": [
+    "blur",
+    "artist"
+  ],
+  "globals": {
+    "angle": {
+      "type": "float",
+      "default": 0,
+      "uniform": "angle",
+      "min": -180,
+      "max": 180,
+      "ui": {
+        "label": "angle",
+        "control": "slider"
+      }
+    },
+    "distance": {
+      "type": "float",
+      "default": 60,
+      "uniform": "blurDistance",
+      "min": 1,
+      "max": 200,
+      "ui": {
+        "label": "distance",
+        "control": "slider"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "directionalBlur",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ]
+}

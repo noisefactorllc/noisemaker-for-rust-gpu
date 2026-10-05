@@ -1,0 +1,23 @@
+[package]
+name = "noisemaker-for-rust-gpu"
+description = "GPU renderer for the Noisemaker effect catalog: the Polymorphic DSL and the reference WebGPU pipeline on wgpu"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "noisemaker_gpu"
+
+[dependencies]
+noisemaker-dsl = { path = "../noisemaker-dsl", version = "0.1.0" }
+noisemaker-effects = { path = "../noisemaker-effects", version = "0.1.0" }
+indexmap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+wgpu.workspace = true
+pollster.workspace = true
+half.workspace = true
+png.workspace = true

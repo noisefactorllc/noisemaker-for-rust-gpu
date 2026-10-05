@@ -1,0 +1,24 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Normal Map",
+  "namespace": "filter",
+  "func": "normalMap",
+  "description": "Normal map generation",
+  "tags": [
+    "color"
+  ],
+  "globals": {},
+  "passes": [
+    {
+      "name": "main",
+      "program": "normalMap",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ]
+}

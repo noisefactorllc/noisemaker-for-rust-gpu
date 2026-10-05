@@ -1,0 +1,40 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Vaseline",
+  "namespace": "filter",
+  "func": "vaseline",
+  "description": "Vaseline lens blur effect",
+  "tags": [
+    "blur"
+  ],
+  "globals": {
+    "alpha": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "alpha",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "ui": {
+        "label": "alpha",
+        "control": "slider"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "upsample",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "alpha": "alpha"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ]
+}

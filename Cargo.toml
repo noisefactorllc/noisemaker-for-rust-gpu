@@ -1,0 +1,25 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/noisemaker-dsl",
+    "crates/noisemaker-effects",
+    "crates/noisemaker-gpu",
+    "crates/nm-render",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+repository = "https://github.com/noisefactorllc/noisemaker-for-rust-gpu"
+
+[workspace.dependencies]
+indexmap = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+thiserror = "2"
+wgpu = "30"
+pollster = "0.4"
+half = "2"
+png = "0.18"

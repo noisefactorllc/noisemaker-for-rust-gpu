@@ -1,0 +1,119 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Stamp",
+  "namespace": "filter",
+  "func": "stamp",
+  "description": "Two-tone ink/paper stamp impression from a blurred-luminance threshold, with a torn-edge roughness knob",
+  "tags": [
+    "blur",
+    "edges",
+    "artist"
+  ],
+  "globals": {
+    "smoothness": {
+      "type": "float",
+      "default": 30,
+      "uniform": "smoothness",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "smoothness",
+        "control": "slider"
+      }
+    },
+    "balance": {
+      "type": "float",
+      "default": 50,
+      "uniform": "balance",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "balance",
+        "control": "slider"
+      }
+    },
+    "roughness": {
+      "type": "float",
+      "default": 0,
+      "uniform": "roughness",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "roughness",
+        "control": "slider"
+      }
+    },
+    "inkColor": {
+      "type": "color",
+      "default": [
+        0.1,
+        0.1,
+        0.1
+      ],
+      "uniform": "inkColor",
+      "ui": {
+        "label": "ink color",
+        "control": "color"
+      }
+    },
+    "paperColor": {
+      "type": "color",
+      "default": [
+        0.96,
+        0.94,
+        0.88
+      ],
+      "uniform": "paperColor",
+      "ui": {
+        "label": "paper color",
+        "control": "color"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "blurH",
+      "program": "stBlurH",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "_stBlurH"
+      }
+    },
+    {
+      "name": "blurV",
+      "program": "stBlurV",
+      "inputs": {
+        "inputTex": "_stBlurH"
+      },
+      "outputs": {
+        "fragColor": "_stBlur"
+      }
+    },
+    {
+      "name": "threshold",
+      "program": "stThreshold",
+      "inputs": {
+        "inputTex": "inputTex",
+        "blurTex": "_stBlur"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "_stBlurH": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    },
+    "_stBlur": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    }
+  }
+}

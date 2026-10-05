@@ -1,0 +1,157 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Points Emit",
+  "namespace": "render",
+  "func": "pointsEmit",
+  "description": "Initialize and maintain agent state for particle systems",
+  "tags": [
+    "agents"
+  ],
+  "globals": {
+    "stateSize": {
+      "type": "int",
+      "default": 256,
+      "min": 64,
+      "max": 2048,
+      "uniform": "stateSize",
+      "ui": {
+        "label": "state size",
+        "control": "dropdown"
+      },
+      "choices": {
+        "x64": 64,
+        "x128": 128,
+        "x256": 256,
+        "x512": 512,
+        "x1024": 1024,
+        "x2048": 2048
+      },
+      "randChoices": [
+        64,
+        128,
+        256,
+        512
+      ]
+    },
+    "layout": {
+      "type": "int",
+      "default": 0,
+      "uniform": "layout",
+      "ui": {
+        "label": "layout",
+        "control": "dropdown",
+        "resetOnChange": true
+      },
+      "choices": {
+        "random": 0,
+        "grid": 1,
+        "center": 2,
+        "ring": 3,
+        "clusters": 4,
+        "spiral": 5
+      }
+    },
+    "seed": {
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 100,
+      "uniform": "seed",
+      "ui": {
+        "label": "seed",
+        "control": "slider",
+        "resetOnChange": true
+      }
+    },
+    "attrition": {
+      "type": "float",
+      "default": 0,
+      "min": 0,
+      "max": 10,
+      "uniform": "attrition",
+      "ui": {
+        "label": "attrition",
+        "control": "slider"
+      }
+    },
+    "resetState": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "resetState",
+      "ui": {
+        "control": "button",
+        "buttonLabel": "reset",
+        "label": "reset"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "init",
+      "program": "init",
+      "drawBuffers": 3,
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "velTex": "global_vel",
+        "rgbaTex": "global_rgba",
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "layoutMode": "layout",
+        "attrition": "attrition",
+        "resetState": "resetState"
+      },
+      "outputs": {
+        "outXYZ": "global_xyz",
+        "outVel": "global_vel",
+        "outRGBA": "global_rgba"
+      }
+    },
+    {
+      "name": "passthrough",
+      "program": "passthrough",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "global_xyz": {
+      "width": {
+        "param": "stateSize",
+        "default": 256
+      },
+      "height": {
+        "param": "stateSize",
+        "default": 256
+      },
+      "format": "rgba32f"
+    },
+    "global_vel": {
+      "width": {
+        "param": "stateSize",
+        "default": 256
+      },
+      "height": {
+        "param": "stateSize",
+        "default": 256
+      },
+      "format": "rgba32f"
+    },
+    "global_rgba": {
+      "width": {
+        "param": "stateSize",
+        "default": 256
+      },
+      "height": {
+        "param": "stateSize",
+        "default": 256
+      },
+      "format": "rgba8"
+    }
+  }
+}

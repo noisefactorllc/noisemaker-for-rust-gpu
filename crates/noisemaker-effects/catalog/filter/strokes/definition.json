@@ -1,0 +1,128 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Strokes",
+  "namespace": "filter",
+  "func": "strokes",
+  "description": "Directional brush-mark engine with angled, sprayed, dark, sumi-e, and smudge modes",
+  "tags": [
+    "blur",
+    "edges",
+    "artist"
+  ],
+  "globals": {
+    "mode": {
+      "type": "int",
+      "default": 0,
+      "define": "MODE",
+      "choices": {
+        "angled": 0,
+        "sprayed": 1,
+        "dark": 2,
+        "sumiE": 3,
+        "smudge": 4
+      },
+      "ui": {
+        "label": "mode",
+        "control": "dropdown"
+      }
+    },
+    "length": {
+      "type": "float",
+      "default": 40,
+      "uniform": "strokeLength",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "length",
+        "control": "slider"
+      }
+    },
+    "balance": {
+      "type": "float",
+      "default": 50,
+      "uniform": "balance",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "balance",
+        "control": "slider",
+        "enabledBy": {
+          "param": "mode",
+          "in": [
+            0,
+            2
+          ]
+        }
+      }
+    },
+    "intensity": {
+      "type": "float",
+      "default": 50,
+      "uniform": "intensity",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "intensity",
+        "control": "slider",
+        "enabledBy": {
+          "param": "mode",
+          "in": [
+            1,
+            2,
+            3
+          ]
+        }
+      }
+    },
+    "sharpness": {
+      "type": "float",
+      "default": 30,
+      "uniform": "sharpness",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "sharpness",
+        "control": "slider"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "smear",
+      "program": "stkSmear",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "strokeLength": "strokeLength",
+        "balance": "balance",
+        "intensity": "intensity"
+      },
+      "outputs": {
+        "fragColor": "_stkTmp"
+      }
+    },
+    {
+      "name": "post",
+      "program": "stkPost",
+      "inputs": {
+        "inputTex": "inputTex",
+        "smearTex": "_stkTmp"
+      },
+      "uniforms": {
+        "sharpness": "sharpness"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "_stkTmp": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    }
+  }
+}

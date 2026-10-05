@@ -1,0 +1,89 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Watercolor",
+  "namespace": "filter",
+  "func": "watercolor",
+  "description": "Simplified color washes with pigment pooling at edges and paper granulation",
+  "tags": [
+    "blur",
+    "edges",
+    "artist"
+  ],
+  "globals": {
+    "detail": {
+      "type": "float",
+      "default": 50,
+      "uniform": "detail",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "detail",
+        "control": "slider"
+      }
+    },
+    "shadowIntensity": {
+      "type": "float",
+      "default": 40,
+      "uniform": "shadowIntensity",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "shadow intensity",
+        "control": "slider"
+      }
+    },
+    "paperTexture": {
+      "type": "float",
+      "default": 30,
+      "uniform": "paperTexture",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "paper texture",
+        "control": "slider"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "seed",
+      "program": "wcSeed",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "global_wc_state"
+      }
+    },
+    {
+      "name": "wcSimplify",
+      "program": "wcSimplify",
+      "repeat": 2,
+      "inputs": {
+        "inputTex": "global_wc_state"
+      },
+      "outputs": {
+        "fragColor": "global_wc_state"
+      }
+    },
+    {
+      "name": "wcComposite",
+      "program": "wcComposite",
+      "inputs": {
+        "inputTex": "inputTex",
+        "simplifiedTex": "global_wc_state"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "global_wc_state": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba16f"
+    }
+  }
+}

@@ -1,0 +1,333 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "TetraCosine",
+  "namespace": "filter",
+  "func": "tetraCosine",
+  "description": "Apply Tetra cosine palettes based on luminance",
+  "tags": [
+    "color",
+    "palette"
+  ],
+  "globals": {
+    "colorMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "colorMode",
+      "choices": {
+        "rgb": 0,
+        "hsv": 1,
+        "oklab": 2,
+        "oklch": 3
+      },
+      "ui": {
+        "label": "color mode",
+        "control": "dropdown"
+      }
+    },
+    "offsetR": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "offsetR",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "ui": {
+        "label": "offset r",
+        "control": "slider",
+        "category": "offset"
+      }
+    },
+    "offsetG": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "offsetG",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "ui": {
+        "label": "offset g",
+        "control": "slider",
+        "category": "offset"
+      }
+    },
+    "offsetB": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "offsetB",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "ui": {
+        "label": "offset b",
+        "control": "slider",
+        "category": "offset"
+      }
+    },
+    "ampR": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "ampR",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "ui": {
+        "label": "amp r",
+        "control": "slider",
+        "category": "amplitude"
+      }
+    },
+    "ampG": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "ampG",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "ui": {
+        "label": "amp g",
+        "control": "slider",
+        "category": "amplitude"
+      }
+    },
+    "ampB": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "ampB",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "ui": {
+        "label": "amp b",
+        "control": "slider",
+        "category": "amplitude"
+      }
+    },
+    "freqR": {
+      "type": "int",
+      "default": 1,
+      "uniform": "freqR",
+      "min": 0,
+      "max": 4,
+      "ui": {
+        "label": "freq r",
+        "control": "slider",
+        "category": "frequency"
+      }
+    },
+    "freqG": {
+      "type": "int",
+      "default": 1,
+      "uniform": "freqG",
+      "min": 0,
+      "max": 4,
+      "ui": {
+        "label": "freq g",
+        "control": "slider",
+        "category": "frequency"
+      }
+    },
+    "freqB": {
+      "type": "int",
+      "default": 1,
+      "uniform": "freqB",
+      "min": 0,
+      "max": 4,
+      "ui": {
+        "label": "freq b",
+        "control": "slider",
+        "category": "frequency"
+      }
+    },
+    "phaseR": {
+      "type": "float",
+      "default": 0,
+      "uniform": "phaseR",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "ui": {
+        "label": "phase r",
+        "control": "slider",
+        "category": "phase"
+      }
+    },
+    "phaseG": {
+      "type": "float",
+      "default": 0.33,
+      "uniform": "phaseG",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "ui": {
+        "label": "phase g",
+        "control": "slider",
+        "category": "phase"
+      }
+    },
+    "phaseB": {
+      "type": "float",
+      "default": 0.67,
+      "uniform": "phaseB",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "ui": {
+        "label": "phase b",
+        "control": "slider",
+        "category": "phase"
+      }
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotation",
+      "choices": {
+        "none": 0,
+        "fwd": 1,
+        "back": -1
+      },
+      "ui": {
+        "label": "rotation",
+        "control": "dropdown"
+      }
+    },
+    "repeat": {
+      "type": "float",
+      "default": 1,
+      "uniform": "repeat",
+      "min": 0,
+      "max": 10,
+      "randChoices": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "step": 0.01,
+      "ui": {
+        "label": "repeat",
+        "control": "slider",
+        "category": "mapping"
+      }
+    },
+    "offset": {
+      "type": "float",
+      "default": 0,
+      "uniform": "offset",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "ui": {
+        "label": "offset",
+        "control": "slider",
+        "category": "mapping"
+      }
+    },
+    "alpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "alpha",
+      "min": 0,
+      "max": 1,
+      "randMin": 0.5,
+      "step": 0.01,
+      "ui": {
+        "label": "alpha",
+        "control": "slider"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "tetraCosine",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "uniformLayout": {
+    "offsetR": {
+      "slot": 0,
+      "components": "x"
+    },
+    "offsetG": {
+      "slot": 0,
+      "components": "y"
+    },
+    "offsetB": {
+      "slot": 0,
+      "components": "z"
+    },
+    "colorMode": {
+      "slot": 0,
+      "components": "w"
+    },
+    "ampR": {
+      "slot": 1,
+      "components": "x"
+    },
+    "ampG": {
+      "slot": 1,
+      "components": "y"
+    },
+    "ampB": {
+      "slot": 1,
+      "components": "z"
+    },
+    "repeat": {
+      "slot": 1,
+      "components": "w"
+    },
+    "freqR": {
+      "slot": 2,
+      "components": "x"
+    },
+    "freqG": {
+      "slot": 2,
+      "components": "y"
+    },
+    "freqB": {
+      "slot": 2,
+      "components": "z"
+    },
+    "offset": {
+      "slot": 2,
+      "components": "w"
+    },
+    "phaseR": {
+      "slot": 3,
+      "components": "x"
+    },
+    "phaseG": {
+      "slot": 3,
+      "components": "y"
+    },
+    "phaseB": {
+      "slot": 3,
+      "components": "z"
+    },
+    "alpha": {
+      "slot": 3,
+      "components": "w"
+    },
+    "rotation": {
+      "slot": 4,
+      "components": "x"
+    },
+    "time": {
+      "slot": 4,
+      "components": "y"
+    }
+  },
+  "openCategories": [
+    "general",
+    "mapping"
+  ],
+  "defaultProgram": "search filter, synth\n\nnoise()\n  .tetraCosine()\n  .write(o0)"
+}

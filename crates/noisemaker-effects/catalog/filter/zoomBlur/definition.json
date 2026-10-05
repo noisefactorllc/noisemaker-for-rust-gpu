@@ -1,0 +1,37 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "ZoomBlur",
+  "namespace": "filter",
+  "func": "zoomBlur",
+  "description": "Radial blur emanating from center",
+  "tags": [
+    "blur"
+  ],
+  "globals": {
+    "strength": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "strength",
+      "min": 0,
+      "max": 1,
+      "zero": 0,
+      "ui": {
+        "label": "strength",
+        "control": "slider"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "zoomBlur",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ]
+}

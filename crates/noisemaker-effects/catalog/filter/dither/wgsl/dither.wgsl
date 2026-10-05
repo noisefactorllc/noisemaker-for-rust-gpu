@@ -1,0 +1,513 @@
+/*
+ * Ordered dithering effect
+ * Applies various dithering patterns and color palettes for retro aesthetics
+ */
+
+struct Uniforms {
+    ditherType: i32,
+    palette: i32,
+    _pad0: i32,
+    levels: i32,
+    threshold: f32,
+    matrixScale: f32,
+    time: f32,
+    mixAmount: f32,
+}
+
+@group(0) @binding(0) var inputSampler: sampler;
+@group(0) @binding(1) var inputTex: texture_2d<f32>;
+@group(0) @binding(2) var<uniform> uniforms: Uniforms;
+
+// Dither type constants
+const DITHER_BAYER_2X2: i32 = 0;
+const DITHER_BAYER_4X4: i32 = 1;
+const DITHER_BAYER_8X8: i32 = 2;
+const DITHER_DOT: i32 = 3;
+const DITHER_LINE: i32 = 4;
+const DITHER_CROSSHATCH: i32 = 5;
+const DITHER_NOISE: i32 = 6;
+const DITHER_ERROR_DIFFUSION: i32 = 7;
+
+// Palette constants
+const PALETTE_INPUT: i32 = 0;
+const PALETTE_MONOCHROME: i32 = 1;
+const PALETTE_DOT_MATRIX_GREEN: i32 = 2;
+const PALETTE_AMBER: i32 = 3;
+const PALETTE_PICO8: i32 = 4;
+const PALETTE_C64: i32 = 5;
+const PALETTE_CGA: i32 = 6;
+const PALETTE_ZX_SPECTRUM: i32 = 7;
+const PALETTE_APPLE_II: i32 = 8;
+const PALETTE_EGA: i32 = 9;
+
+// Bayer 2x2 matrix values
+fn getBayer2x2(x: i32, y: i32) -> f32 {
+    let bayer = array<f32, 4>(
+        0.0/4.0, 2.0/4.0,
+        3.0/4.0, 1.0/4.0
+    );
+    let idx = (y & 1) * 2 + (x & 1);
+    return bayer[idx];
+}
+
+// Bayer 4x4 matrix values
+fn getBayer4x4(x: i32, y: i32) -> f32 {
+    let bayer = array<f32, 16>(
+         0.0/16.0,  8.0/16.0,  2.0/16.0, 10.0/16.0,
+        12.0/16.0,  4.0/16.0, 14.0/16.0,  6.0/16.0,
+         3.0/16.0, 11.0/16.0,  1.0/16.0,  9.0/16.0,
+        15.0/16.0,  7.0/16.0, 13.0/16.0,  5.0/16.0
+    );
+    let idx = (y & 3) * 4 + (x & 3);
+    return bayer[idx];
+}
+
+// 8x8 Bayer matrix - using lookup for correctness
+fn getBayer8x8(x: i32, y: i32) -> f32 {
+    let xm = x & 7;
+    let ym = y & 7;
+    
+    // Standard 8x8 ordered dither matrix
+    let bayer8 = array<f32, 64>(
+         0.0/64.0, 32.0/64.0,  8.0/64.0, 40.0/64.0,  2.0/64.0, 34.0/64.0, 10.0/64.0, 42.0/64.0,
+        48.0/64.0, 16.0/64.0, 56.0/64.0, 24.0/64.0, 50.0/64.0, 18.0/64.0, 58.0/64.0, 26.0/64.0,
+        12.0/64.0, 44.0/64.0,  4.0/64.0, 36.0/64.0, 14.0/64.0, 46.0/64.0,  6.0/64.0, 38.0/64.0,
+        60.0/64.0, 28.0/64.0, 52.0/64.0, 20.0/64.0, 62.0/64.0, 30.0/64.0, 54.0/64.0, 22.0/64.0,
+         3.0/64.0, 35.0/64.0, 11.0/64.0, 43.0/64.0,  1.0/64.0, 33.0/64.0,  9.0/64.0, 41.0/64.0,
+        51.0/64.0, 19.0/64.0, 59.0/64.0, 27.0/64.0, 49.0/64.0, 17.0/64.0, 57.0/64.0, 25.0/64.0,
+        15.0/64.0, 47.0/64.0,  7.0/64.0, 39.0/64.0, 13.0/64.0, 45.0/64.0,  5.0/64.0, 37.0/64.0,
+        63.0/64.0, 31.0/64.0, 55.0/64.0, 23.0/64.0, 61.0/64.0, 29.0/64.0, 53.0/64.0, 21.0/64.0
+    );
+    
+    return bayer8[ym * 8 + xm];
+}
+
+// PCG PRNG
+fn pcg(seed: vec3<u32>) -> vec3<u32> {
+    var v = seed * 1664525u + 1013904223u;
+    v.x = v.x + v.y * v.z;
+    v.y = v.y + v.z * v.x;
+    v.z = v.z + v.x * v.y;
+    v = v ^ (v >> vec3<u32>(16u));
+    v.x = v.x + v.y * v.z;
+    v.y = v.y + v.z * v.x;
+    v.z = v.z + v.x * v.y;
+    return v;
+}
+
+// Hash function for noise dithering
+fn hash(p: vec2<f32>) -> f32 {
+    let v = pcg(vec3<u32>(
+        u32(select(-p.x * 2.0 + 1.0, p.x * 2.0, p.x >= 0.0)),
+        u32(select(-p.y * 2.0 + 1.0, p.y * 2.0, p.y >= 0.0)),
+        0u
+    ));
+    return f32(v.x) / f32(0xffffffffu);
+}
+
+// Dot pattern dithering
+fn dotPattern(uv: vec2<f32>, scale: f32) -> f32 {
+    let p = uv * scale;
+    let d = length(fract(p) - 0.5);
+    return smoothstep(0.5, 0.0, d);
+}
+
+// Line pattern dithering
+fn linePattern(uv: vec2<f32>, scale: f32) -> f32 {
+    let p = uv.y * scale;
+    return abs(fract(p) - 0.5) * 2.0;
+}
+
+// Crosshatch pattern
+fn crosshatchPattern(uv: vec2<f32>, scale: f32) -> f32 {
+    let p = uv * scale;
+    let line1 = abs(fract(p.x + p.y) - 0.5) * 2.0;
+    let line2 = abs(fract(p.x - p.y) - 0.5) * 2.0;
+    return min(line1, line2);
+}
+
+// Get dither threshold based on type and position
+// matrixScale determines how many screen pixels each matrix cell covers
+// e.g., scale=1 means 1:1, scale=2 means each cell is 2x2 screen pixels
+fn getDitherThreshold(pixelCoord: vec2<f32>, ditherType: i32, scale: f32, time: f32) -> f32 {
+    // Scale the pixel coordinate - larger scale = bigger pattern cells
+    let scaledCoord = floor(pixelCoord / scale);
+    let x = i32(scaledCoord.x);
+    let y = i32(scaledCoord.y);
+    
+    if (ditherType == DITHER_BAYER_2X2) {
+        return getBayer2x2(x, y);
+    } else if (ditherType == DITHER_BAYER_4X4) {
+        return getBayer4x4(x, y);
+    } else if (ditherType == DITHER_BAYER_8X8) {
+        return getBayer8x8(x, y);
+    } else if (ditherType == DITHER_DOT) {
+        // Dot pattern with 8-pixel base, scaled (larger scale = bigger dots)
+        return dotPattern(pixelCoord, 1.0 / (8.0 * scale));
+    } else if (ditherType == DITHER_LINE) {
+        // Line pattern with 8-pixel base
+        return linePattern(pixelCoord, 1.0 / (8.0 * scale));
+    } else if (ditherType == DITHER_CROSSHATCH) {
+        // Crosshatch pattern with 8-pixel base
+        return crosshatchPattern(pixelCoord, 1.0 / (8.0 * scale));
+    } else if (ditherType == DITHER_NOISE) {
+        // Noise pattern: scale determines block size
+        return hash(scaledCoord + time * 0.001);
+    }
+    
+    return 0.5;
+}
+
+
+// Quantize color to specified levels with dithering
+fn quantizeWithDither(color: vec3<f32>, levels: f32, ditherValue: f32, thresh: f32) -> vec3<f32> {
+    let adjustedDither = ditherValue - 0.5 + thresh;
+    let dithered = color + adjustedDither / levels;
+    return floor(dithered * levels) / (levels - 1.0);
+}
+
+// Color distance in RGB space
+fn colorDistance(a: vec3<f32>, b: vec3<f32>) -> f32 {
+    let diff = a - b;
+    return dot(diff, diff);
+}
+
+// Palette color arrays
+fn getDotMatrixGreen(i: i32) -> vec3<f32> {
+    switch(i) {
+        case 0: { return vec3<f32>(0.06, 0.22, 0.06); }
+        case 1: { return vec3<f32>(0.19, 0.38, 0.19); }
+        case 2: { return vec3<f32>(0.55, 0.67, 0.06); }
+        default: { return vec3<f32>(0.61, 0.74, 0.06); }
+    }
+}
+
+fn getAmber(i: i32) -> vec3<f32> {
+    switch(i) {
+        case 0: { return vec3<f32>(0.0, 0.0, 0.0); }
+        case 1: { return vec3<f32>(0.4, 0.2, 0.0); }
+        case 2: { return vec3<f32>(0.8, 0.4, 0.0); }
+        default: { return vec3<f32>(1.0, 0.6, 0.0); }
+    }
+}
+
+fn getCGA(i: i32) -> vec3<f32> {
+    switch(i) {
+        case 0: { return vec3<f32>(0.0, 0.0, 0.0); }
+        case 1: { return vec3<f32>(0.0, 1.0, 1.0); }
+        case 2: { return vec3<f32>(1.0, 0.0, 1.0); }
+        default: { return vec3<f32>(1.0, 1.0, 1.0); }
+    }
+}
+
+fn getPico8(i: i32) -> vec3<f32> {
+    switch(i) {
+        case 0: { return vec3<f32>(0.0, 0.0, 0.0); }
+        case 1: { return vec3<f32>(0.114, 0.169, 0.325); }
+        case 2: { return vec3<f32>(0.494, 0.145, 0.325); }
+        case 3: { return vec3<f32>(0.0, 0.529, 0.318); }
+        case 4: { return vec3<f32>(0.671, 0.322, 0.212); }
+        case 5: { return vec3<f32>(0.373, 0.341, 0.310); }
+        case 6: { return vec3<f32>(0.761, 0.765, 0.780); }
+        case 7: { return vec3<f32>(1.0, 0.945, 0.910); }
+        case 8: { return vec3<f32>(1.0, 0.0, 0.302); }
+        case 9: { return vec3<f32>(1.0, 0.639, 0.0); }
+        case 10: { return vec3<f32>(1.0, 0.925, 0.153); }
+        case 11: { return vec3<f32>(0.0, 0.894, 0.212); }
+        case 12: { return vec3<f32>(0.161, 0.678, 1.0); }
+        case 13: { return vec3<f32>(0.514, 0.463, 0.612); }
+        case 14: { return vec3<f32>(1.0, 0.467, 0.659); }
+        default: { return vec3<f32>(1.0, 0.8, 0.667); }
+    }
+}
+
+fn getC64(i: i32) -> vec3<f32> {
+    switch(i) {
+        case 0: { return vec3<f32>(0.0, 0.0, 0.0); }
+        case 1: { return vec3<f32>(1.0, 1.0, 1.0); }
+        case 2: { return vec3<f32>(0.533, 0.0, 0.0); }
+        case 3: { return vec3<f32>(0.667, 1.0, 0.933); }
+        case 4: { return vec3<f32>(0.8, 0.267, 0.8); }
+        case 5: { return vec3<f32>(0.0, 0.8, 0.333); }
+        case 6: { return vec3<f32>(0.0, 0.0, 0.667); }
+        case 7: { return vec3<f32>(0.933, 0.933, 0.467); }
+        case 8: { return vec3<f32>(0.867, 0.533, 0.333); }
+        case 9: { return vec3<f32>(0.4, 0.267, 0.0); }
+        case 10: { return vec3<f32>(1.0, 0.467, 0.467); }
+        case 11: { return vec3<f32>(0.2, 0.2, 0.2); }
+        case 12: { return vec3<f32>(0.467, 0.467, 0.467); }
+        case 13: { return vec3<f32>(0.667, 1.0, 0.4); }
+        case 14: { return vec3<f32>(0.0, 0.533, 1.0); }
+        default: { return vec3<f32>(0.6, 0.6, 0.6); }
+    }
+}
+
+fn getZXSpectrum(i: i32) -> vec3<f32> {
+    switch(i) {
+        case 0: { return vec3<f32>(0.0, 0.0, 0.0); }
+        case 1: { return vec3<f32>(0.0, 0.0, 0.839); }
+        case 2: { return vec3<f32>(0.839, 0.0, 0.0); }
+        case 3: { return vec3<f32>(0.839, 0.0, 0.839); }
+        case 4: { return vec3<f32>(0.0, 0.839, 0.0); }
+        case 5: { return vec3<f32>(0.0, 0.839, 0.839); }
+        case 6: { return vec3<f32>(0.839, 0.839, 0.0); }
+        case 7: { return vec3<f32>(0.839, 0.839, 0.839); }
+        case 8: { return vec3<f32>(0.0, 0.0, 1.0); }
+        case 9: { return vec3<f32>(1.0, 0.0, 0.0); }
+        case 10: { return vec3<f32>(1.0, 0.0, 1.0); }
+        case 11: { return vec3<f32>(0.0, 1.0, 0.0); }
+        case 12: { return vec3<f32>(0.0, 1.0, 1.0); }
+        case 13: { return vec3<f32>(1.0, 1.0, 0.0); }
+        default: { return vec3<f32>(1.0, 1.0, 1.0); }
+    }
+}
+
+fn getAppleII(i: i32) -> vec3<f32> {
+    switch(i) {
+        case 0: { return vec3<f32>(0.0, 0.0, 0.0); }
+        case 1: { return vec3<f32>(0.882, 0.0, 0.494); }
+        case 2: { return vec3<f32>(0.247, 0.0, 0.682); }
+        case 3: { return vec3<f32>(1.0, 0.0, 1.0); }
+        case 4: { return vec3<f32>(0.0, 0.494, 0.263); }
+        case 5: { return vec3<f32>(0.502, 0.502, 0.502); }
+        case 6: { return vec3<f32>(0.0, 0.325, 1.0); }
+        case 7: { return vec3<f32>(0.667, 0.671, 1.0); }
+        case 8: { return vec3<f32>(0.502, 0.302, 0.0); }
+        case 9: { return vec3<f32>(1.0, 0.467, 0.0); }
+        case 10: { return vec3<f32>(0.502, 0.502, 0.502); }
+        case 11: { return vec3<f32>(1.0, 0.616, 0.667); }
+        case 12: { return vec3<f32>(0.0, 0.831, 0.0); }
+        case 13: { return vec3<f32>(1.0, 1.0, 0.0); }
+        case 14: { return vec3<f32>(0.333, 1.0, 0.557); }
+        default: { return vec3<f32>(1.0, 1.0, 1.0); }
+    }
+}
+
+fn getEGA(i: i32) -> vec3<f32> {
+    switch(i) {
+        case 0: { return vec3<f32>(0.0, 0.0, 0.0); }
+        case 1: { return vec3<f32>(0.0, 0.0, 0.667); }
+        case 2: { return vec3<f32>(0.0, 0.667, 0.0); }
+        case 3: { return vec3<f32>(0.0, 0.667, 0.667); }
+        case 4: { return vec3<f32>(0.667, 0.0, 0.0); }
+        case 5: { return vec3<f32>(0.667, 0.0, 0.667); }
+        case 6: { return vec3<f32>(0.667, 0.333, 0.0); }
+        case 7: { return vec3<f32>(0.667, 0.667, 0.667); }
+        case 8: { return vec3<f32>(0.333, 0.333, 0.333); }
+        case 9: { return vec3<f32>(0.333, 0.333, 1.0); }
+        case 10: { return vec3<f32>(0.333, 1.0, 0.333); }
+        case 11: { return vec3<f32>(0.333, 1.0, 1.0); }
+        case 12: { return vec3<f32>(1.0, 0.333, 0.333); }
+        case 13: { return vec3<f32>(1.0, 0.333, 1.0); }
+        case 14: { return vec3<f32>(1.0, 1.0, 0.333); }
+        default: { return vec3<f32>(1.0, 1.0, 1.0); }
+    }
+}
+
+// Find closest color in palette
+fn findClosestPaletteColor(color: vec3<f32>, paletteType: i32) -> vec3<f32> {
+    if (paletteType == PALETTE_MONOCHROME) {
+        let luma = dot(color, vec3<f32>(0.299, 0.587, 0.114));
+        if (luma > 0.5) {
+            return vec3<f32>(1.0);
+        } else {
+            return vec3<f32>(0.0);
+        }
+    }
+    
+    var closest = vec3<f32>(0.0);
+    var minDist = 999999.0;
+    var count = 16;
+    
+    if (paletteType == PALETTE_DOT_MATRIX_GREEN || paletteType == PALETTE_AMBER || paletteType == PALETTE_CGA) {
+        count = 4;
+    } else if (paletteType == PALETTE_ZX_SPECTRUM) {
+        count = 15;
+    }
+    
+    for (var i = 0; i < count; i = i + 1) {
+        var palColor = vec3<f32>(0.0);
+        
+        if (paletteType == PALETTE_DOT_MATRIX_GREEN) {
+            palColor = getDotMatrixGreen(i);
+        } else if (paletteType == PALETTE_AMBER) {
+            palColor = getAmber(i);
+        } else if (paletteType == PALETTE_PICO8) {
+            palColor = getPico8(i);
+        } else if (paletteType == PALETTE_C64) {
+            palColor = getC64(i);
+        } else if (paletteType == PALETTE_CGA) {
+            palColor = getCGA(i);
+        } else if (paletteType == PALETTE_ZX_SPECTRUM) {
+            palColor = getZXSpectrum(i);
+        } else if (paletteType == PALETTE_APPLE_II) {
+            palColor = getAppleII(i);
+        } else if (paletteType == PALETTE_EGA) {
+            palColor = getEGA(i);
+        }
+        
+        let dist = colorDistance(color, palColor);
+        if (dist < minDist) {
+            minDist = dist;
+            closest = palColor;
+        }
+    }
+    
+    return closest;
+}
+
+// Apply palette-based dithering
+fn ditherWithPalette(color: vec3<f32>, ditherValue: f32, thresh: f32, paletteType: i32) -> vec3<f32> {
+    let dithered = clamp(color + (ditherValue - 0.5 + thresh) * 0.25, vec3<f32>(0.0), vec3<f32>(1.0));
+    return findClosestPaletteColor(dithered, paletteType);
+}
+
+// Error diffusion (Floyd-Steinberg). Fragments cannot share sequential state,
+// so each fragment re-simulates the raster scan over its containing block of
+// FS_BLOCK x FS_BLOCK diffusion cells, extended by a burn-in apron on the
+// left and top so the error state entering the block is driven by the
+// neighboring image content; without it the severed error flow at block
+// edges reads as a square grid. Three details keep the block structure
+// statistically invisible: the apron length is jittered per block (flat
+// regions otherwise phase-lock to the shared scan origin), apron rows are
+// seeded with hash noise of typical steady-state magnitude (an all-zero
+// start is atypical and phase-aligned), and rows extend FS_RPAD cells past
+// the block's right edge (the right column otherwise never receives its
+// down-left error taps). A cell covers matrixScale screen pixels, like the
+// ordered pattern cells.
+const FS_BLOCK: i32 = 4;
+const FS_APRON_MIN: i32 = 4;
+const FS_APRON_MAX: i32 = 11;
+const FS_RPAD: i32 = 2;
+// error row width: block + max apron + right pad + one left pad cell
+const FS_ERR_W: i32 = FS_BLOCK + FS_APRON_MAX + FS_RPAD + 1;
+
+// Quantize for error diffusion: nearest palette color, or nearest of
+// `levels` evenly spaced per-channel levels when palette == input.
+fn fsQuantize(v: vec3<f32>, paletteType: i32, levels: f32) -> vec3<f32> {
+    if (paletteType == PALETTE_INPUT) {
+        let maxLevel = levels - 1.0;
+        // floor(x + 0.5) instead of round(): GLSL leaves round-half direction
+        // implementation-defined while WGSL rounds half to even, and the
+        // chaotic error feedback amplifies any halfway-tie mismatch.
+        return floor(v * maxLevel + 0.5) / maxLevel;
+    }
+    return findClosestPaletteColor(v, paletteType);
+}
+
+// Working-value scale shared by the threshold bias and the block seeds,
+// matching the ordered paths' scaling at their neutral dither value.
+fn fsScale(paletteType: i32, levels: f32) -> f32 {
+    if (paletteType == PALETTE_INPUT) {
+        return 1.0 / levels;
+    }
+    return 0.25;
+}
+
+// Per-block, per-lane noise in [-0.5, 0.5) for seeding error state.
+// Lanes 0..FS_ERR_W-1 seed the incoming error row; higher lanes seed each
+// scan row's right-flowing error.
+fn fsSeedNoise(blockOrigin: vec2<i32>, lane: i32) -> vec3<f32> {
+    let v = pcg(vec3<u32>(u32(blockOrigin.x + 1), u32(blockOrigin.y + 1), u32(lane + 1)));
+    return vec3<f32>(v) / f32(0xffffffffu) - 0.5;
+}
+
+// Source color for a diffusion cell: its center pixel, clamped to the texture.
+fn fsFetchCell(cell: vec2<i32>, cellSize: f32, texSize: vec2<i32>) -> vec3<f32> {
+    let pGlobal = (vec2<f32>(cell) + 0.5) * cellSize;
+    let p = clamp(vec2<i32>(floor(pGlobal)), vec2<i32>(0), texSize - 1);
+    return textureLoad(inputTex, p, 0).rgb;
+}
+
+fn errorDiffusion(pixelCoord: vec2<f32>, cellSize: f32, paletteType: i32, levelsInt: i32, thresh: f32) -> vec3<f32> {
+    let texSize = vec2<i32>(textureDimensions(inputTex));
+    let levels = f32(levelsInt);
+    let cell = vec2<i32>(floor(pixelCoord / cellSize));
+    let blockOrigin = (cell / FS_BLOCK) * FS_BLOCK;
+    let lx = cell.x - blockOrigin.x;
+    let ly = cell.y - blockOrigin.y;
+
+    // Per-block scan-start jitter
+    let jitterHash = pcg(vec3<u32>(u32(blockOrigin.x + 1), u32(blockOrigin.y + 1), 0x517cc1b7u));
+    let apronX = FS_APRON_MIN + i32(jitterHash.x % u32(FS_APRON_MAX - FS_APRON_MIN + 1));
+    let apronY = FS_APRON_MIN + i32(jitterHash.y % u32(FS_APRON_MAX - FS_APRON_MIN + 1));
+
+    let stepScale = fsScale(paletteType, levels);
+    let bias = vec3<f32>(thresh * stepScale);
+    // Single in-place error row; array index = cell x + FS_APRON_MAX + 1 so
+    // every index is a compile-time constant once the inner loop unrolls,
+    // letting the row state live in registers instead of scratch memory.
+    // Jitter is applied by masking cells left of -apronX instead of by
+    // changing the loop bounds.
+    var errRow: array<vec3<f32>, 18>;
+    for (var i = 0; i < FS_ERR_W; i = i + 1) {
+        errRow[i] = fsSeedNoise(blockOrigin, i) * stepScale;
+    }
+
+    var carried = vec3<f32>(0.0);
+    for (var r = -FS_APRON_MAX; r <= ly; r = r + 1) {
+        if (r < -apronY) {
+            continue;
+        }
+        let lastRow = r == ly;
+        var rightErr = fsSeedNoise(blockOrigin, FS_ERR_W + FS_APRON_MAX + r) * stepScale;
+        var diag = vec3<f32>(0.0);
+        for (var c = -FS_APRON_MAX; c < FS_BLOCK + FS_RPAD; c = c + 1) {
+            if (c >= -apronX && !(lastRow && c >= lx)) {
+                let src = fsFetchCell(blockOrigin + vec2<i32>(c, r), cellSize, texSize);
+                let v = clamp(src + errRow[c + FS_APRON_MAX + 1] + rightErr + bias, vec3<f32>(0.0), vec3<f32>(1.0));
+                let err = v - fsQuantize(v, paletteType, levels);
+                rightErr = err * (7.0 / 16.0);
+                errRow[c + FS_APRON_MAX] = errRow[c + FS_APRON_MAX] + err * (3.0 / 16.0);
+                errRow[c + FS_APRON_MAX + 1] = diag + err * (5.0 / 16.0);
+                diag = err * (1.0 / 16.0);
+            }
+        }
+        if (lastRow) {
+            // Incoming error for this fragment's own cell; keep the array
+            // read on constant indices so it stays register-resident.
+            var incoming = errRow[FS_APRON_MAX + 1];
+            if (lx == 1) { incoming = errRow[FS_APRON_MAX + 2]; }
+            if (lx == 2) { incoming = errRow[FS_APRON_MAX + 3]; }
+            if (lx == 3) { incoming = errRow[FS_APRON_MAX + 4]; }
+            carried = incoming + rightErr;
+        }
+    }
+
+    // This fragment's own pixel, carrying the diffused error so per-pixel
+    // detail survives when a cell spans multiple pixels
+    let own = clamp(vec2<i32>(pixelCoord), vec2<i32>(0), texSize - 1);
+    let src = textureLoad(inputTex, own, 0).rgb;
+    let v = clamp(src + carried + bias, vec3<f32>(0.0), vec3<f32>(1.0));
+    return fsQuantize(v, paletteType, levels);
+}
+
+@fragment
+fn main(@builtin(position) pos: vec4<f32>) -> @location(0) vec4<f32> {
+    let texSize = vec2<f32>(textureDimensions(inputTex));
+    let uv = pos.xy / texSize;
+    
+    var color = textureSample(inputTex, inputSampler, uv);
+    
+    var result: vec3<f32>;
+
+    if (uniforms.ditherType == DITHER_ERROR_DIFFUSION) {
+        result = errorDiffusion(pos.xy, uniforms.matrixScale, uniforms.palette, uniforms.levels, uniforms.threshold);
+    } else {
+        // Get dither threshold for current pixel
+        let ditherValue = getDitherThreshold(pos.xy, uniforms.ditherType, uniforms.matrixScale, uniforms.time);
+
+        if (uniforms.palette == PALETTE_INPUT) {
+            // Per-channel quantization to the chosen number of levels
+            result = quantizeWithDither(color.rgb, f32(uniforms.levels), ditherValue, uniforms.threshold);
+        } else {
+            // Use palette-based dithering
+            result = ditherWithPalette(color.rgb, ditherValue, uniforms.threshold, uniforms.palette);
+        }
+    }
+    
+    // Blend between original input and dithered result
+    result = mix(color.rgb, result, uniforms.mixAmount);
+    
+    return vec4<f32>(result, color.a);
+}

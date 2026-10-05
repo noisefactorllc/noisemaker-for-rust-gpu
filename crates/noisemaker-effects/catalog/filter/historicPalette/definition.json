@@ -1,0 +1,124 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Historic Palette",
+  "namespace": "filter",
+  "func": "historicPalette",
+  "description": "Apply historical art color palettes",
+  "tags": [
+    "color",
+    "palette"
+  ],
+  "globals": {
+    "index": {
+      "type": "int",
+      "default": 4,
+      "uniform": "paletteIndex",
+      "choices": {
+        "aboriginalDot": 0,
+        "abstractExpressionism": 1,
+        "artDeco": 2,
+        "artNouveau": 3,
+        "bauhaus": 4,
+        "caveArt": 5,
+        "chineseInk": 6,
+        "dutchGoldenAge": 7,
+        "fauvism": 8,
+        "impressionism": 9,
+        "indianMiniature": 10,
+        "islamicGeometric": 11,
+        "kenteCloth": 12,
+        "maoriCarving": 13,
+        "mexicanMuralism": 14,
+        "minimalism": 15,
+        "persianMiniature": 16,
+        "popArt": 17,
+        "renaissance": 18,
+        "surrealism": 19,
+        "ukiyoe": 20
+      },
+      "ui": {
+        "label": "palette",
+        "control": "dropdown"
+      }
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotation",
+      "choices": {
+        "none": 0,
+        "fwd": 1,
+        "back": -1
+      },
+      "ui": {
+        "label": "rotation",
+        "control": "dropdown"
+      }
+    },
+    "offset": {
+      "type": "float",
+      "default": 0,
+      "uniform": "offset",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "ui": {
+        "label": "offset",
+        "control": "slider"
+      }
+    },
+    "repeat": {
+      "type": "int",
+      "default": 1,
+      "uniform": "repeat",
+      "min": 1,
+      "max": 10,
+      "randMax": 5,
+      "ui": {
+        "label": "repeat",
+        "control": "slider"
+      }
+    },
+    "alpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "alpha",
+      "min": 0,
+      "max": 1,
+      "randMin": 0.5,
+      "step": 0.01,
+      "ui": {
+        "label": "alpha",
+        "control": "slider"
+      }
+    },
+    "smoothness": {
+      "type": "float",
+      "default": 0,
+      "uniform": "smoothness",
+      "min": 0,
+      "max": 1,
+      "ui": {
+        "label": "smoothness",
+        "control": "slider"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "historicPalette",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "paramAliases": {
+    "paletteIndex": "index"
+  },
+  "defaultProgram": "search filter, synth\n\nnoise(ridges: true, colorMode: mono)\n.historicPalette()\n.write(o0)"
+}

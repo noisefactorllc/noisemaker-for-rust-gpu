@@ -1,0 +1,248 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Gradient",
+  "namespace": "synth",
+  "func": "gradient",
+  "description": "Multi-color gradient generator with various styles",
+  "tags": [
+    "color"
+  ],
+  "globals": {
+    "type": {
+      "type": "int",
+      "default": 0,
+      "uniform": "gradientType",
+      "choices": {
+        "conic": 0,
+        "diamond": 1,
+        "fourCorners": 2,
+        "linear": 3,
+        "noiseGradient": 4,
+        "radial": 5,
+        "spiral": 6
+      },
+      "ui": {
+        "label": "type",
+        "control": "dropdown",
+        "category": "general"
+      }
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotation",
+      "min": -180,
+      "max": 180,
+      "ui": {
+        "label": "rotation",
+        "control": "slider",
+        "category": "general",
+        "enabledBy": {
+          "param": "type",
+          "neq": 2
+        }
+      }
+    },
+    "repeat": {
+      "type": "int",
+      "default": 1,
+      "uniform": "repeat",
+      "min": 1,
+      "max": 4,
+      "ui": {
+        "label": "repeat",
+        "control": "slider",
+        "category": "general",
+        "enabledBy": {
+          "param": "type",
+          "neq": 2
+        }
+      }
+    },
+    "speed": {
+      "type": "int",
+      "default": 0,
+      "uniform": "speed",
+      "min": -5,
+      "max": 5,
+      "zero": 0,
+      "randMin": -2,
+      "randMax": 2,
+      "ui": {
+        "label": "speed",
+        "control": "slider",
+        "category": "general",
+        "enabledBy": {
+          "param": "type",
+          "neq": 2
+        }
+      }
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "seed",
+        "control": "slider",
+        "category": "general",
+        "enabledBy": {
+          "param": "type",
+          "eq": 4
+        }
+      }
+    },
+    "color1": {
+      "type": "color",
+      "default": [
+        1,
+        0,
+        0
+      ],
+      "uniform": "color1",
+      "ui": {
+        "label": "color 1",
+        "control": "color",
+        "category": "color"
+      }
+    },
+    "color2": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        0
+      ],
+      "uniform": "color2",
+      "ui": {
+        "label": "color 2",
+        "control": "color",
+        "category": "color"
+      }
+    },
+    "color3": {
+      "type": "color",
+      "default": [
+        0,
+        1,
+        0
+      ],
+      "uniform": "color3",
+      "ui": {
+        "label": "color 3",
+        "control": "color",
+        "category": "color",
+        "enabledBy": {
+          "param": "colorCount",
+          "gt": 2
+        }
+      }
+    },
+    "color4": {
+      "type": "color",
+      "default": [
+        0,
+        0,
+        1
+      ],
+      "uniform": "color4",
+      "ui": {
+        "label": "color 4",
+        "control": "color",
+        "category": "color",
+        "enabledBy": {
+          "param": "colorCount",
+          "gt": 3
+        }
+      }
+    },
+    "colorCount": {
+      "type": "int",
+      "default": 4,
+      "uniform": "colorCount",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "ui": {
+        "label": "color count",
+        "control": "slider",
+        "category": "color"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "gradient",
+      "inputs": {},
+      "outputs": {
+        "color": "outputTex"
+      }
+    }
+  ],
+  "uniformLayout": {
+    "resolution": {
+      "slot": 0,
+      "components": "xy"
+    },
+    "time": {
+      "slot": 0,
+      "components": "z"
+    },
+    "speed": {
+      "slot": 0,
+      "components": "w"
+    },
+    "rotation": {
+      "slot": 1,
+      "components": "x"
+    },
+    "gradientType": {
+      "slot": 1,
+      "components": "y"
+    },
+    "repeat": {
+      "slot": 1,
+      "components": "z"
+    },
+    "colorCount": {
+      "slot": 1,
+      "components": "w"
+    },
+    "seed": {
+      "slot": 2,
+      "components": "x"
+    },
+    "color1": {
+      "slot": 3,
+      "components": "xyz"
+    },
+    "color2": {
+      "slot": 4,
+      "components": "xyz"
+    },
+    "color3": {
+      "slot": 5,
+      "components": "xyz"
+    },
+    "color4": {
+      "slot": 6,
+      "components": "xyz"
+    },
+    "tileOffset": {
+      "slot": 7,
+      "components": "xy"
+    },
+    "fullResolution": {
+      "slot": 7,
+      "components": "zw"
+    }
+  },
+  "openCategories": [
+    "general",
+    "color"
+  ]
+}

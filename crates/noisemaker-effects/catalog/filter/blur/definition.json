@@ -1,0 +1,68 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Blur",
+  "namespace": "filter",
+  "func": "blur",
+  "description": "Gaussian blur with separate X and Y radius controls",
+  "tags": [
+    "blur"
+  ],
+  "globals": {
+    "radiusX": {
+      "type": "float",
+      "default": 5,
+      "uniform": "radiusX",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "zero": 0,
+      "ui": {
+        "label": "radius x",
+        "control": "slider"
+      }
+    },
+    "radiusY": {
+      "type": "float",
+      "default": 5,
+      "uniform": "radiusY",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "zero": 0,
+      "ui": {
+        "label": "radius y",
+        "control": "slider"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "blurH",
+      "program": "blurH",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "_blurTemp"
+      }
+    },
+    {
+      "name": "blurV",
+      "program": "blurV",
+      "inputs": {
+        "inputTex": "_blurTemp"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "_blurTemp": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    }
+  }
+}

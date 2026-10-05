@@ -1,0 +1,87 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Lens Flare",
+  "namespace": "filter",
+  "func": "lensFlare",
+  "description": "Additive lens flare with ghost chain, halo, and four lens types (Lens Flare)",
+  "tags": [
+    "lens",
+    "artist"
+  ],
+  "globals": {
+    "brightness": {
+      "type": "float",
+      "default": 100,
+      "uniform": "brightness",
+      "min": 10,
+      "max": 300,
+      "ui": {
+        "label": "brightness",
+        "control": "slider"
+      }
+    },
+    "centerX": {
+      "type": "float",
+      "default": 0.35,
+      "uniform": "centerX",
+      "min": 0,
+      "max": 1,
+      "ui": {
+        "label": "center x",
+        "control": "slider"
+      }
+    },
+    "centerY": {
+      "type": "float",
+      "default": 0.35,
+      "uniform": "centerY",
+      "min": 0,
+      "max": 1,
+      "ui": {
+        "label": "center y",
+        "control": "slider"
+      }
+    },
+    "lensType": {
+      "type": "int",
+      "default": 0,
+      "define": "LENS_TYPE",
+      "choices": {
+        "zoom50_300": 0,
+        "prime35": 1,
+        "prime105": 2,
+        "moviePrime": 3
+      },
+      "ui": {
+        "label": "lens type",
+        "control": "dropdown"
+      }
+    },
+    "tint": {
+      "type": "color",
+      "default": [
+        1,
+        0.95,
+        0.85
+      ],
+      "uniform": "tint",
+      "ui": {
+        "label": "tint",
+        "control": "color"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "lensFlare",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ]
+}

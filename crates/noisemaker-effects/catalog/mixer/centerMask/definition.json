@@ -1,0 +1,105 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "CenterMask",
+  "namespace": "mixer",
+  "func": "centerMask",
+  "description": "Blend from edges (A) into center (B) using a distance mask",
+  "tags": [
+    "blend"
+  ],
+  "globals": {
+    "tex": {
+      "type": "surface",
+      "default": "none",
+      "ui": {
+        "label": "source b"
+      }
+    },
+    "blendMode": {
+      "type": "int",
+      "default": 8,
+      "uniform": "blendMode",
+      "choices": {
+        "add": 0,
+        "burn": 1,
+        "darken": 2,
+        "diff": 3,
+        "dodge": 4,
+        "exclusion": 5,
+        "hardLight": 6,
+        "lighten": 7,
+        "mix": 8,
+        "multiply": 9,
+        "negation": 10,
+        "overlay": 11,
+        "phoenix": 12,
+        "screen": 13,
+        "softLight": 14,
+        "subtract": 15
+      },
+      "ui": {
+        "label": "blend mode",
+        "control": "dropdown"
+      }
+    },
+    "shape": {
+      "type": "int",
+      "default": 2,
+      "uniform": "shape",
+      "choices": {
+        "circle": 0,
+        "diamond": 1,
+        "square": 2
+      },
+      "ui": {
+        "label": "shape",
+        "control": "dropdown"
+      }
+    },
+    "hardness": {
+      "type": "float",
+      "default": 0,
+      "uniform": "hardness",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "hard edge",
+        "control": "slider"
+      }
+    },
+    "mix": {
+      "type": "float",
+      "default": 0,
+      "uniform": "power",
+      "min": -100,
+      "max": 100,
+      "randMax": -70,
+      "ui": {
+        "label": "mix",
+        "control": "slider"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "centerMask",
+      "inputs": {
+        "inputTex": "inputTex",
+        "tex": "tex"
+      },
+      "uniforms": {
+        "shape": "shape",
+        "power": "mix"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "paramAliases": {
+    "mixAmt": "mix"
+  },
+  "defaultProgram": "search mixer, synth\n\nnoise(ridges: true, colorMode: mono)\n.write(o0)\n\nnoise(ridges: true)\n.centerMask(tex: read(o0), mix: -75)\n.write(o1)"
+}

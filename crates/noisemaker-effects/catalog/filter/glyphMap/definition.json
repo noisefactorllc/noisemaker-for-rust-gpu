@@ -1,0 +1,61 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Glyph Map",
+  "namespace": "filter",
+  "func": "glyphMap",
+  "description": "ASCII/glyph art conversion using procedural glyphs",
+  "tags": [
+    "color",
+    "pixel"
+  ],
+  "globals": {
+    "cellSize": {
+      "type": "int",
+      "default": 16,
+      "uniform": "cellSize",
+      "min": 4,
+      "max": 32,
+      "ui": {
+        "label": "cell size",
+        "control": "slider"
+      }
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100,
+      "ui": {
+        "label": "seed",
+        "control": "slider"
+      }
+    },
+    "colorMode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "colorMode",
+      "choices": {
+        "mono": 0,
+        "rgb": 1
+      },
+      "ui": {
+        "label": "color mode",
+        "control": "dropdown"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "glyphMap",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ]
+}

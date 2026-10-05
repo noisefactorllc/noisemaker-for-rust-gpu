@@ -1,0 +1,165 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Shadow",
+  "namespace": "mixer",
+  "func": "shadow",
+  "description": "Cast a shadow or glow from one input onto another",
+  "tags": [
+    "color"
+  ],
+  "globals": {
+    "tex": {
+      "type": "surface",
+      "default": "none",
+      "ui": {
+        "label": "source b"
+      }
+    },
+    "maskSource": {
+      "type": "int",
+      "default": 0,
+      "uniform": "maskSource",
+      "choices": {
+        "sourceA": 0,
+        "sourceB": 1
+      },
+      "ui": {
+        "label": "mask source",
+        "control": "dropdown"
+      }
+    },
+    "sourceChannel": {
+      "type": "int",
+      "default": 0,
+      "uniform": "sourceChannel",
+      "choices": {
+        "red": 0,
+        "green": 1,
+        "blue": 2,
+        "alpha": 3
+      },
+      "ui": {
+        "label": "channel",
+        "control": "dropdown"
+      }
+    },
+    "threshold": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "threshold",
+      "min": 0,
+      "max": 1,
+      "randMin": 0.25,
+      "randMax": 0.75,
+      "ui": {
+        "label": "threshold",
+        "control": "slider"
+      }
+    },
+    "color": {
+      "type": "color",
+      "default": [
+        0,
+        0,
+        0
+      ],
+      "uniform": "color",
+      "ui": {
+        "label": "color",
+        "control": "color",
+        "category": "shadow"
+      }
+    },
+    "blur": {
+      "type": "float",
+      "default": 1,
+      "uniform": "blur",
+      "min": 0,
+      "max": 3,
+      "zero": 0,
+      "ui": {
+        "label": "blur",
+        "control": "slider",
+        "category": "shadow"
+      }
+    },
+    "spread": {
+      "type": "float",
+      "default": 0,
+      "uniform": "spread",
+      "min": 0,
+      "max": 1,
+      "randMax": 0.5,
+      "ui": {
+        "label": "spread",
+        "control": "slider",
+        "category": "shadow"
+      }
+    },
+    "offsetX": {
+      "type": "float",
+      "default": 0.1,
+      "uniform": "offsetX",
+      "min": -1,
+      "max": 1,
+      "randMin": -0.2,
+      "randMax": 0.2,
+      "zero": 0,
+      "ui": {
+        "label": "offset x",
+        "control": "slider",
+        "category": "offset"
+      }
+    },
+    "offsetY": {
+      "type": "float",
+      "default": -0.1,
+      "uniform": "offsetY",
+      "min": -1,
+      "max": 1,
+      "randMin": -0.2,
+      "randMax": 0.2,
+      "zero": 0,
+      "ui": {
+        "label": "offset y",
+        "control": "slider",
+        "category": "offset"
+      }
+    },
+    "wrap": {
+      "type": "int",
+      "default": 1,
+      "uniform": "wrap",
+      "choices": {
+        "hide": 0,
+        "mirror": 1,
+        "repeat": 2,
+        "clamp": 3
+      },
+      "ui": {
+        "label": "wrap",
+        "control": "dropdown",
+        "category": "offset"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "shadow",
+      "inputs": {
+        "inputTex": "inputTex",
+        "tex": "tex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "openCategories": [
+    "general",
+    "shadow"
+  ],
+  "defaultProgram": "search mixer, synth\n\nnoise(scaleX: 100, scaleY: 100)\n.write(o0)\n\nnoise(ridges: true, colorMode: mono)\n.shadow(tex: read(o0))\n.write(o1)"
+}

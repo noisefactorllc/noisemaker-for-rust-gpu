@@ -1,0 +1,120 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Octave Warp",
+  "namespace": "filter",
+  "func": "octaveWarp",
+  "description": "Per-octave noise warp distortion",
+  "tags": [
+    "distort"
+  ],
+  "globals": {
+    "freq": {
+      "type": "float",
+      "default": 2,
+      "uniform": "frequency",
+      "min": 1,
+      "max": 10,
+      "step": 0.1,
+      "randMax": 5,
+      "ui": {
+        "label": "scale",
+        "control": "slider"
+      }
+    },
+    "octaves": {
+      "type": "int",
+      "default": 3,
+      "uniform": "octaves",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "ui": {
+        "label": "octaves",
+        "control": "slider"
+      }
+    },
+    "displacement": {
+      "type": "float",
+      "default": 0.2,
+      "uniform": "displacement",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "randMax": 0.5,
+      "ui": {
+        "label": "displacement",
+        "control": "slider"
+      }
+    },
+    "speed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speed",
+      "min": 0,
+      "max": 5,
+      "zero": 0,
+      "ui": {
+        "label": "speed",
+        "control": "slider"
+      }
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100,
+      "ui": {
+        "label": "seed",
+        "control": "slider"
+      }
+    },
+    "wrap": {
+      "type": "int",
+      "default": 0,
+      "uniform": "wrap",
+      "choices": {
+        "mirror": 0,
+        "repeat": 1,
+        "clamp": 2
+      },
+      "ui": {
+        "label": "wrap",
+        "control": "dropdown"
+      }
+    },
+    "antialias": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "antialias",
+      "ui": {
+        "label": "antialias",
+        "control": "checkbox"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "octaveWarp",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "frequency": "frequency",
+        "octaves": "octaves",
+        "displacement": "displacement",
+        "speed": "speed",
+        "seed": "seed",
+        "wrap": "wrap"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "paramAliases": {
+    "frequency": "freq"
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "Smooth",
+  "namespace": "filter",
+  "func": "smooth",
+  "description": "Anti-aliasing with MSAA, SMAA, or edge-selective blur modes",
+  "tags": [
+    "antialiasing"
+  ],
+  "globals": {
+    "type": {
+      "type": "int",
+      "default": 0,
+      "uniform": "smoothType",
+      "choices": {
+        "msaa": 0,
+        "smaa": 1,
+        "blur": 2
+      },
+      "ui": {
+        "label": "type",
+        "control": "dropdown"
+      }
+    },
+    "strength": {
+      "type": "float",
+      "default": 1,
+      "uniform": "strength",
+      "min": 0,
+      "max": 1,
+      "zero": 0,
+      "ui": {
+        "label": "strength",
+        "control": "slider"
+      }
+    },
+    "threshold": {
+      "type": "float",
+      "default": 0.1,
+      "uniform": "threshold",
+      "min": 0,
+      "max": 1,
+      "ui": {
+        "label": "threshold",
+        "control": "slider"
+      }
+    },
+    "radius": {
+      "type": "float",
+      "default": 2,
+      "uniform": "radius",
+      "min": 0.5,
+      "max": 4,
+      "step": 0.1,
+      "ui": {
+        "label": "radius",
+        "control": "slider"
+      }
+    },
+    "samples": {
+      "type": "int",
+      "default": 4,
+      "uniform": "samples",
+      "choices": {
+        "x2": 2,
+        "x4": 4,
+        "x8": 8
+      },
+      "ui": {
+        "label": "samples",
+        "control": "dropdown",
+        "enabledBy": {
+          "param": "type",
+          "eq": 0
+        }
+      }
+    },
+    "searchSteps": {
+      "type": "int",
+      "default": 8,
+      "uniform": "searchSteps",
+      "min": 1,
+      "max": 32,
+      "step": 1,
+      "ui": {
+        "label": "search steps",
+        "control": "slider",
+        "enabledBy": {
+          "param": "type",
+          "eq": 1
+        }
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "smoothEdge",
+      "program": "smoothEdge",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "_smoothEdges"
+      }
+    },
+    {
+      "name": "smoothBlend",
+      "program": "smoothBlend",
+      "inputs": {
+        "inputTex": "inputTex",
+        "edgeTex": "_smoothEdges"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "_smoothEdges": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    }
+  },
+  "defaultProgram": "search filter, synth\n\nmodPattern()\n.smooth(type: blur, radius: 4)\n.write(o0)"
+}

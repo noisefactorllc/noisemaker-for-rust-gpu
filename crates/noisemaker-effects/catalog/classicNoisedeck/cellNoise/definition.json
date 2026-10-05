@@ -1,0 +1,455 @@
+{
+  "state": {},
+  "uniforms": {},
+  "name": "CellNoise",
+  "namespace": "classicNoisedeck",
+  "func": "cellNoise",
+  "tags": [
+    "noise",
+    "geometric"
+  ],
+  "description": "Cellular noise patterns",
+  "uniformLayout": {
+    "resolution": {
+      "slot": 0,
+      "components": "xy"
+    },
+    "time": {
+      "slot": 0,
+      "components": "z"
+    },
+    "seed": {
+      "slot": 0,
+      "components": "w"
+    },
+    "shape": {
+      "slot": 1,
+      "components": "x"
+    },
+    "scale": {
+      "slot": 1,
+      "components": "y"
+    },
+    "cellScale": {
+      "slot": 1,
+      "components": "z"
+    },
+    "cellSmooth": {
+      "slot": 1,
+      "components": "w"
+    },
+    "variation": {
+      "slot": 2,
+      "components": "x"
+    },
+    "speed": {
+      "slot": 2,
+      "components": "y"
+    },
+    "paletteMode": {
+      "slot": 2,
+      "components": "z"
+    },
+    "colorMode": {
+      "slot": 2,
+      "components": "w"
+    },
+    "paletteOffset": {
+      "slot": 3,
+      "components": "xyz"
+    },
+    "cyclePalette": {
+      "slot": 3,
+      "components": "w"
+    },
+    "paletteAmp": {
+      "slot": 4,
+      "components": "xyz"
+    },
+    "rotatePalette": {
+      "slot": 4,
+      "components": "w"
+    },
+    "paletteFreq": {
+      "slot": 5,
+      "components": "xyz"
+    },
+    "repeatPalette": {
+      "slot": 5,
+      "components": "w"
+    },
+    "palettePhase": {
+      "slot": 6,
+      "components": "xyz"
+    },
+    "texInfluence": {
+      "slot": 7,
+      "components": "x"
+    },
+    "texIntensity": {
+      "slot": 7,
+      "components": "y"
+    },
+    "tileOffset": {
+      "slot": 8,
+      "components": "xy"
+    },
+    "fullResolution": {
+      "slot": 8,
+      "components": "zw"
+    }
+  },
+  "globals": {
+    "shape": {
+      "type": "int",
+      "default": 0,
+      "uniform": "shape",
+      "choices": {
+        "circle": 0,
+        "diamond": 1,
+        "hexagon": 2,
+        "octagon": 3,
+        "square": 4,
+        "triangle": 6
+      },
+      "ui": {
+        "label": "shape",
+        "control": "dropdown"
+      }
+    },
+    "scale": {
+      "type": "float",
+      "default": 75,
+      "uniform": "scale",
+      "min": 1,
+      "max": 100,
+      "ui": {
+        "label": "noise scale",
+        "control": "slider"
+      }
+    },
+    "cellScale": {
+      "type": "float",
+      "default": 87,
+      "uniform": "cellScale",
+      "min": 1,
+      "max": 100,
+      "ui": {
+        "label": "cell scale",
+        "control": "slider"
+      }
+    },
+    "smooth": {
+      "type": "float",
+      "default": 11,
+      "uniform": "cellSmooth",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "cell smooth",
+        "control": "slider"
+      }
+    },
+    "variation": {
+      "type": "float",
+      "default": 50,
+      "uniform": "variation",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "cell variation",
+        "control": "slider"
+      }
+    },
+    "speed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speed",
+      "min": 0,
+      "max": 5,
+      "zero": 0,
+      "ui": {
+        "label": "speed",
+        "control": "slider"
+      }
+    },
+    "paletteMode": {
+      "type": "int",
+      "default": 4,
+      "uniform": "paletteMode",
+      "ui": {
+        "control": false
+      }
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100,
+      "ui": {
+        "label": "seed",
+        "control": "slider"
+      }
+    },
+    "colorMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "colorMode",
+      "choices": {
+        "mono": 0,
+        "monoInverse": 1,
+        "palette": 2
+      },
+      "ui": {
+        "label": "color mode",
+        "control": "dropdown"
+      }
+    },
+    "palette": {
+      "type": "palette",
+      "default": 32,
+      "uniform": "palette",
+      "choices": {
+        "none": 0,
+        "seventiesShirt": 1,
+        "fiveG": 2,
+        "afterimage": 3,
+        "barstow": 4,
+        "bloob": 5,
+        "blueSkies": 6,
+        "brushedMetal": 7,
+        "burningSky": 8,
+        "california": 9,
+        "columbia": 10,
+        "cottonCandy": 11,
+        "darkSatin": 12,
+        "dealerHat": 13,
+        "dreamy": 14,
+        "eventHorizon": 15,
+        "ghostly": 16,
+        "grayscale": 17,
+        "hazySunset": 18,
+        "heatmap": 19,
+        "hypercolor": 20,
+        "jester": 21,
+        "justBlue": 22,
+        "justCyan": 23,
+        "justGreen": 24,
+        "justPurple": 25,
+        "justRed": 26,
+        "justYellow": 27,
+        "mars": 28,
+        "modesto": 29,
+        "moss": 30,
+        "neptune": 31,
+        "netOfGems": 32,
+        "organic": 33,
+        "papaya": 34,
+        "radioactive": 35,
+        "royal": 36,
+        "santaCruz": 37,
+        "sherbet": 38,
+        "sherbetDouble": 39,
+        "silvermane": 40,
+        "skykissed": 41,
+        "solaris": 42,
+        "spooky": 43,
+        "springtime": 44,
+        "sproingtime": 45,
+        "sulphur": 46,
+        "summoning": 47,
+        "superhero": 48,
+        "toxic": 49,
+        "tropicalia": 50,
+        "tungsten": 51,
+        "vaporwave": 52,
+        "vibrant": 53,
+        "vintage": 54,
+        "vintagePhoto": 55
+      },
+      "ui": {
+        "label": "palette",
+        "control": "dropdown",
+        "category": "palette",
+        "enabledBy": {
+          "param": "colorMode",
+          "eq": 2
+        }
+      }
+    },
+    "paletteOffset": {
+      "type": "vec3",
+      "default": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "uniform": "paletteOffset",
+      "ui": {
+        "label": "palette offset",
+        "control": "slider",
+        "hidden": true
+      }
+    },
+    "cyclePalette": {
+      "type": "int",
+      "default": 1,
+      "uniform": "cyclePalette",
+      "choices": {
+        "off": 0,
+        "forward": 1,
+        "backward": -1
+      },
+      "ui": {
+        "label": "rotation",
+        "control": "dropdown",
+        "category": "palette",
+        "enabledBy": {
+          "param": "colorMode",
+          "eq": 2
+        }
+      }
+    },
+    "paletteAmp": {
+      "type": "vec3",
+      "default": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "uniform": "paletteAmp",
+      "ui": {
+        "label": "palette amplitude",
+        "control": "slider",
+        "hidden": true
+      }
+    },
+    "rotatePalette": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotatePalette",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "offset",
+        "control": "slider",
+        "category": "palette",
+        "enabledBy": {
+          "param": "colorMode",
+          "eq": 2
+        }
+      }
+    },
+    "paletteFreq": {
+      "type": "vec3",
+      "default": [
+        2,
+        2,
+        2
+      ],
+      "uniform": "paletteFreq",
+      "ui": {
+        "label": "palette frequency",
+        "control": "slider",
+        "hidden": true
+      }
+    },
+    "repeatPalette": {
+      "type": "int",
+      "default": 1,
+      "uniform": "repeatPalette",
+      "min": 1,
+      "max": 10,
+      "randMax": 5,
+      "ui": {
+        "label": "repeat",
+        "control": "slider",
+        "category": "palette",
+        "enabledBy": {
+          "param": "colorMode",
+          "eq": 2
+        }
+      }
+    },
+    "palettePhase": {
+      "type": "vec3",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "palettePhase",
+      "ui": {
+        "label": "palette phase",
+        "control": "slider",
+        "hidden": true
+      }
+    },
+    "tex": {
+      "type": "surface",
+      "default": "none",
+      "ui": {
+        "label": "texture",
+        "category": "input"
+      }
+    },
+    "texInfluence": {
+      "type": "int",
+      "default": 2,
+      "uniform": "texInfluence",
+      "choices": {
+        "add": 10,
+        "divide": 11,
+        "min": 12,
+        "max": 13,
+        "mod": 14,
+        "multiply": 15,
+        "subtract": 16,
+        "warp": 2
+      },
+      "ui": {
+        "label": "influence",
+        "control": "dropdown",
+        "category": "input",
+        "enabledBy": {
+          "param": "tex",
+          "neq": "none"
+        }
+      }
+    },
+    "texIntensity": {
+      "type": "float",
+      "default": 0,
+      "uniform": "texIntensity",
+      "min": 0,
+      "max": 100,
+      "ui": {
+        "label": "input weight",
+        "control": "slider",
+        "category": "input",
+        "enabledBy": {
+          "param": "tex",
+          "neq": "none"
+        }
+      }
+    }
+  },
+  "paramAliases": {
+    "cellSmooth": "smooth",
+    "cellVariation": "variation",
+    "loopAmp": "speed"
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "cellNoise",
+      "inputs": {
+        "tex": "tex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ]
+}

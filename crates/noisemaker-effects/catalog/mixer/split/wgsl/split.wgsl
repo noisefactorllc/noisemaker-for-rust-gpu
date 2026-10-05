@@ -1,0 +1,65 @@
+@group(0) @binding(0) var samp : sampler;
+@group(0) @binding(1) var inputTex : texture_2d<f32>;
+@group(0) @binding(2) var tex : texture_2d<f32>;
+@group(0) @binding(3) var<uniform> position : f32;
+@group(0) @binding(4) var<uniform> rotation : f32;
+@group(0) @binding(5) var<uniform> softness : f32;
+@group(0) @binding(6) var<uniform> invert : i32;
+@group(0) @binding(7) var<uniform> speed : f32;
+@group(0) @binding(8) var<uniform> time : f32;
+@group(0) @binding(9) var<uniform> tileOffset : vec2<f32>;
+@group(0) @binding(10) var<uniform> fullResolution : vec2<f32>;
+
+const PI: f32 = 3.14159265359;
+
+@fragment
+fn main(@builtin(position) pos: vec4<f32>) -> @location(0) vec4<f32> {
+    let dims = vec2<f32>(textureDimensions(inputTex, 0));
+    let st = pos.xy / dims;
+
+    let colorA = textureSample(inputTex, samp, st);
+    let colorB = textureSample(tex, samp, st);
+
+    let globalUV = (pos.xy + tileOffset) / fullResolution;
+    let aspect = fullResolution.x / fullResolution.y;
+    var centered = (globalUV - vec2<f32>(0.5, 0.5)) * 2.0;
+    centered.x = centered.x * aspect;
+
+    // Rotate the split line
+    let rad = rotation * PI / 180.0;
+    let c = cos(rad);
+    let s = sin(rad);
+    let rotated = vec2<f32>(centered.x * c - centered.y * s,
+                            centered.x * s + centered.y * c);
+
+    // Compute visible extent of rotated.y for seamless scrolling
+    // The projected range depends on aspect ratio and rotation angle
+    let extent = aspect * abs(s) + abs(c) + softness;
+
+    // Animate: continuous scroll across full visible range
+    // Alternates sweep direction each cycle so the wrap point is seamless
+    var animPos = position;
+    var flipCycle = false;
+    if (speed > 0.0) {
+        let cycle = time * speed * 2.0;
+        let t = fract(cycle);
+        flipCycle = i32(floor(cycle)) % 2 == 1;
+        animPos = t * extent * 2.0 - extent;
+    }
+
+    // Signed distance from the split line
+    let d = rotated.y - animPos;
+
+    // Apply softness
+    let halfSoft = max(softness * 0.5, 0.001);
+    var mask = smoothstep(-halfSoft, halfSoft, d);
+
+    if ((invert == 1) != flipCycle) {
+        mask = 1.0 - mask;
+    }
+
+    var color = mix(colorA, colorB, mask);
+    color.a = max(colorA.a, colorB.a);
+
+    return color;
+}

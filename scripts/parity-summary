@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# scripts/parity-summary [case-id ...]
+#
+# Renders the parity cases with this port and grades each against a golden minted
+# by the reference engine's WebGPU backend in the same run, then prints one line:
+#
+#   PARITY-SUMMARY {"expected":N,"executed":N,"exact":N,"strict":N,"near":N,"defer":N,"skip":N,"fail":N,"missing":N}
+#
+# Cases: with case-id arguments, only those cases are expected; without, every
+# parity/programs/*.dsl and parity/coverage/*.dsl case is expected.
+#
+# The work is the canonical sweep, parity/sweep.py, run fresh (goldens minted in
+# this run, candidates rendered by nm-render from the DSL with the port's own
+# compiler, every case graded). The ledger goes to a temporary file.
+#
+# Buckets (each case in exactly one):
+#   exact   -- candidate pixels identical to the golden
+#   strict  -- within the published contract: max-abs-diff <= 2.001 (8-bit units)
+#              and global SSIM >= 0.98, not identical
+#   near    -- beyond the contract, within the case's recorded policy
+#   defer   -- reserved (no case is deferred)
+#   skip    -- the case could not execute here (infrastructure failure)
+#   fail    -- rendered and graded outside every policy
+#   missing -- no golden or no candidate was produced for the case
+# executed = exact + strict + near + fail. Exit 0 iff every expected case is exact
+# or strict; 1 otherwise; 2 on an infrastructure failure (every case in skip).
+#
+# Environment:
+#   NM_RENDER          candidate binary (default target/release/nm-render; built
+#                      with cargo when absent)
+#   NM_REFERENCE_ROOT  reference checkout; when unset, the pinned revision of
+#                      parity/reference.json is cloned into parity/.cache
+set -uo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+CASE_ARGS=("$@")
+
+count_cases() {
+  if [ ${#CASE_ARGS[@]} -gt 0 ]; then echo ${#CASE_ARGS[@]}; return; fi
+  find "$ROOT/parity/programs" "$ROOT/parity/coverage" -name '*.dsl' 2>/dev/null | wc -l | tr -d ' '
+}
+fail_infra() {
+  echo "parity-summary: $1" >&2
+  n="$(count_cases)"
+  echo "PARITY-SUMMARY {\"expected\":$n,\"executed\":0,\"exact\":0,\"strict\":0,\"near\":0,\"defer\":0,\"skip\":$n,\"fail\":0,\"missing\":0}"
+  exit 2
+}
+
+# ---- candidate ---------------------------------------------------------------
+NM_RENDER="${NM_RENDER:-$ROOT/target/release/nm-render}"
+if [ ! -x "$NM_RENDER" ]; then
+  CARGO="$(command -v cargo || echo "$HOME/.cargo/bin/cargo")"
+  [ -x "$CARGO" ] || fail_infra "nm-render not found at $NM_RENDER and cargo is unavailable"
+  echo "[parity-summary] building nm-render" >&2
+  (cd "$ROOT" && "$CARGO" build --release -p nm-render >&2) || fail_infra "cargo build failed"
+fi
+export NM_RENDER
+
+# ---- reference -----------------------------------------------------------------
+if [ -z "${NM_REFERENCE_ROOT:-}" ]; then
+  PIN="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["commit"])' "$ROOT/parity/reference.json")" \
+    || fail_infra "cannot read parity/reference.json"
+  CACHE="$ROOT/parity/.cache/noisemaker-reference"
+  if [ "$(git -C "$CACHE" rev-parse HEAD 2>/dev/null)" != "$PIN" ]; then
+    echo "[parity-summary] cloning the reference at $PIN" >&2
+    rm -rf "$CACHE.tmp"
+    git clone -q https://github.com/noisefactorllc/noisemaker "$CACHE.tmp" || fail_infra "cannot clone the reference"
+    git -C "$CACHE.tmp" checkout -q "$PIN" || fail_infra "pinned revision $PIN is not reachable"
+    rm -rf "$CACHE" && mv "$CACHE.tmp" "$CACHE"
+  fi
+  export NM_REFERENCE_ROOT="$CACHE"
+fi
+if [ ! -f "$NM_REFERENCE_ROOT/node_modules/playwright/package.json" ]; then
+  echo "[parity-summary] installing playwright into the reference checkout" >&2
+  (cd "$NM_REFERENCE_ROOT" && npm install --no-save --no-audit --no-fund playwright@1.63.0 >&2) \
+    || fail_infra "cannot install playwright for the golden minter"
+  (cd "$NM_REFERENCE_ROOT" && npx playwright install chromium >&2) || fail_infra "cannot install chromium"
+fi
+
+# ---- python with numpy + pillow --------------------------------------------------
+PY=python3
+if ! "$PY" -c 'import numpy, PIL' 2>/dev/null; then
+  if [ ! -x "$ROOT/parity/.venv/bin/python" ]; then
+    echo "[parity-summary] creating parity/.venv" >&2
+    python3 -m venv "$ROOT/parity/.venv" && "$ROOT/parity/.venv/bin/pip" install -q numpy pillow \
+      || fail_infra "cannot create parity/.venv with numpy and pillow"
+  fi
+  PY="$ROOT/parity/.venv/bin/python"
+fi
+
+# ---- sweep + classification ---------------------------------------------------------
+LEDGER="$(mktemp -t nm-parity-summary.XXXXXX)"
+trap 'rm -f "$LEDGER"' EXIT
+"$PY" "$ROOT/parity/sweep.py" --ledger "$LEDGER" "${CASE_ARGS[@]}" >&2
+"$PY" - "$LEDGER" "${CASE_ARGS[@]}" <<'EOF'
+import json, sys
+rows = json.load(open(sys.argv[1]))
+only = set(sys.argv[2:])
+rows = [r for r in rows if not only or r["program"] in only]
+c = dict(expected=len(rows), executed=0, exact=0, strict=0, near=0, defer=0, skip=0, fail=0, missing=0)
+outside = []
+for r in rows:
+    v = r["verdict"]
+    if v == "MISSING":
+        c["missing"] += 1; outside.append(r["program"]); continue
+    c["executed"] += 1
+    if v == "EXACT": c["exact"] += 1
+    elif v == "STRICT": c["strict"] += 1
+    elif v == "NEAR": c["near"] += 1; outside.append(r["program"])
+    else: c["fail"] += 1; outside.append(r["program"])
+print("PARITY-SUMMARY " + json.dumps(c, separators=(",", ":")))
+if outside:
+    print("parity-summary: cases outside the published contract: " + " ".join(outside), file=sys.stderr)
+ok = c["executed"] == c["expected"] and c["exact"] + c["strict"] == c["expected"]
+sys.exit(0 if ok else 1)
+EOF

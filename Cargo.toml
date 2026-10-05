@@ -4,6 +4,7 @@ members = [
     "crates/noisemaker-dsl",
     "crates/noisemaker-effects",
     "crates/noisemaker-gpu",
+    "crates/noisemaker-input",
     "crates/nm-render",
 ]
 

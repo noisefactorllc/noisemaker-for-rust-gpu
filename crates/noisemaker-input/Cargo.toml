@@ -1,0 +1,31 @@
+[package]
+name = "noisemaker-input"
+description = "External input state of the Noisemaker engine: MIDI and audio state machines and the audio analyser"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+indexmap.workspace = true
+serde_json.workspace = true
+# The FFT of Chromium's AnalyserNode. Chromium 153 (the reference host's
+# browser) computes RealtimeAnalyser FFTs with this exact crate version
+# (third_party/rust/chromium_crates_io/vendor/rustfft-v6, git 4758ab0d,
+# default features), so the analyser pins it to stay bit-identical.
+rustfft = "=6.4.1"
+# Optional host integrations (off by default).
+midir = { version = "0.11", optional = true }
+cpal = { version = "0.18", optional = true }
+
+[features]
+default = []
+# MIDI input devices through midir (MIT).
+midir = ["dep:midir"]
+# Audio capture through cpal (Apache-2.0).
+cpal = ["dep:cpal"]
+
+[[bin]]
+name = "nm-input-dump"
+path = "src/bin/nm-input-dump/main.rs"

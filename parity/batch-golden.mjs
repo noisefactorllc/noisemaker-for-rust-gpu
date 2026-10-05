@@ -94,11 +94,17 @@ function encodePng (width, height, rgba) {
 
 // ---- page helpers ----------------------------------------------------------
 
-// Read a backend texture with the reference WebGPU backend's readPixels().
+// Read a backend texture with the reference WebGPU backend's readPixels(). A
+// texture the backend created without COPY_SRC usage (updateTextureFromSource:
+// host media and text) is first copied exactly into a COPY_SRC texture of the
+// same format by a textureLoad render pass. Every capture runs inside a WebGPU
+// validation error scope, so a failed copy fails the capture instead of
+// reading back zeros.
 async function capture (page, textureId = null) {
   const result = await page.evaluate(async ({ textureId }) => {
     const p = window.__noisemakerRenderingPipeline
-    if (!p?.backend) return { error: 'no pipeline backend' }
+    const backend = p?.backend
+    if (!backend) return { error: 'no pipeline backend' }
     let id = textureId
     if (!id) {
       const name = p.graph?.renderSurface || 'o0'
@@ -106,8 +112,64 @@ async function capture (page, textureId = null) {
       if (!surface) return { error: `no render surface ${name}` }
       id = surface.read
     }
-    if (!p.backend.textures?.get(id)) return { error: `no texture ${id}` }
-    const px = await p.backend.readPixels(id)
+    const tex = backend.textures?.get(id)
+    if (!tex) return { error: `no texture ${id}` }
+    const device = backend.device
+    device.pushErrorScope('validation')
+    let px
+    let temp = null
+    try {
+      const canCopy = typeof tex.usage === 'number' && (tex.usage & GPUTextureUsage.COPY_SRC) !== 0
+      if (canCopy) {
+        px = await backend.readPixels(id)
+      } else {
+        const format = tex.gpuFormat || 'rgba8unorm'
+        temp = device.createTexture({
+          size: { width: tex.width, height: tex.height, depthOrArrayLayers: 1 },
+          format,
+          usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC
+        })
+        const module = device.createShaderModule({
+          code: `@vertex fn vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4f {
+  var p = array<vec2f, 3>(vec2f(-1.0, -1.0), vec2f(3.0, -1.0), vec2f(-1.0, 3.0));
+  return vec4f(p[i], 0.0, 1.0);
+}
+@group(0) @binding(0) var src: texture_2d<f32>;
+@fragment fn fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
+  return textureLoad(src, vec2u(pos.xy), 0);
+}`
+        })
+        const pipe = device.createRenderPipeline({
+          layout: 'auto',
+          vertex: { module, entryPoint: 'vs' },
+          fragment: { module, entryPoint: 'fs', targets: [{ format }] },
+          primitive: { topology: 'triangle-list' }
+        })
+        const bindGroup = device.createBindGroup({
+          layout: pipe.getBindGroupLayout(0),
+          entries: [{ binding: 0, resource: tex.view }]
+        })
+        const encoder = device.createCommandEncoder()
+        const pass = encoder.beginRenderPass({
+          colorAttachments: [{ view: temp.createView(), loadOp: 'clear', storeOp: 'store', clearValue: { r: 0, g: 0, b: 0, a: 0 } }]
+        })
+        pass.setPipeline(pipe)
+        pass.setBindGroup(0, bindGroup)
+        pass.draw(3)
+        pass.end()
+        device.queue.submit([encoder.finish()])
+        backend.textures.set('__nm_capture', { handle: temp, width: tex.width, height: tex.height, gpuFormat: format })
+        try {
+          px = await backend.readPixels('__nm_capture')
+        } finally {
+          backend.textures.delete('__nm_capture')
+        }
+      }
+    } finally {
+      const err = await device.popErrorScope()
+      if (temp) temp.destroy()
+      if (err) return { error: `validation error while capturing ${id}: ${err.message}` }
+    }
     let binary = ''
     const chunk = 0x8000
     for (let i = 0; i < px.data.length; i += chunk) {

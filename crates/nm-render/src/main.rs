@@ -83,12 +83,17 @@ fn dump(
                 Some(rec) if rec.as_object().is_some_and(|o| o.contains_key("error")) => {
                     Err(noisemaker_dsl::JsError::Thrown(rec.get("error").clone()))
                 }
-                Some(rec) => noisemaker_dsl::run_stage_from(
-                    stage,
-                    *prev,
-                    rec.get("result").clone(),
-                    &registry,
-                ),
+                Some(rec) => {
+                    let src = std::fs::read_to_string(path)
+                        .map_err(|e| format!("{}: {e}", path.display()))?;
+                    noisemaker_dsl::run_stage_from(
+                        stage,
+                        *prev,
+                        rec.get("result").clone(),
+                        &src,
+                        &registry,
+                    )
+                }
                 None => Err(noisemaker_dsl::JsError::error(format!(
                     "no {} record for {name}",
                     prev.name()

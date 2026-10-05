@@ -10,6 +10,7 @@
 //! (`parity/check_frontend.mjs`).
 
 pub mod compiler;
+pub mod diagnostics;
 pub mod error;
 pub mod expander;
 pub mod js;
@@ -57,14 +58,14 @@ impl Stage {
         Stage::ALL.into_iter().find(|s| s.name() == name)
     }
 
-    /// The stage whose output this stage consumes.
+    /// The stage whose reference output `--isolated` feeds to this stage.
     pub fn previous(self) -> Option<Stage> {
         match self {
             Stage::Tokens => None,
-            Stage::Ast => Some(Stage::Tokens),
+            Stage::Ast => None,
             Stage::Validated => Some(Stage::Ast),
             Stage::Expanded => Some(Stage::Validated),
-            Stage::Graph => None,
+            Stage::Graph => Some(Stage::Validated),
         }
     }
 }
@@ -72,46 +73,44 @@ impl Stage {
 /// Run the frontend from source through `stage` and return that stage's output as
 /// the reference oracle serializes it (`tools/reference-oracle.mjs`).
 pub fn run_stage(stage: Stage, src: &str, registry: &Registry) -> Result<Value, JsError> {
-    match stage {
-        Stage::Graph => compiler::dump_graph(src, registry),
-        _ => {
-            let tokens = lexer::lex(src)?;
-            if stage == Stage::Tokens {
-                return Ok(lexer::tokens_to_value(&tokens));
-            }
-            let ast = parser::parse(&tokens)?;
-            run_stage_from(stage, Stage::Ast, ast, registry)
-        }
+    if stage == Stage::Graph {
+        return compiler::dump_graph(src, registry);
     }
+    let tokens = lexer::lex(src)?;
+    if stage == Stage::Tokens {
+        return Ok(lexer::tokens_to_value(&tokens));
+    }
+    let ast = parser::parse(&tokens)?;
+    if stage == Stage::Ast {
+        return Ok(ast);
+    }
+    run_stage_from(stage, Stage::Ast, ast, src, registry)
 }
 
-/// Run `stage` on `input`, the output of stage `from` (used to check one stage in
-/// isolation against the reference's output of the stage before it).
+/// Run `stage` on `input`, the output of stage `from`, for the program `src`. This
+/// checks one stage in isolation against the reference's output of the stage
+/// before it (`nm-render dump --isolated`).
 pub fn run_stage_from(
     stage: Stage,
     from: Stage,
     input: Value,
+    src: &str,
     registry: &Registry,
 ) -> Result<Value, JsError> {
-    let mut value = input;
-    let mut current = from;
-    while current != stage {
-        value = match current {
-            Stage::Ast => validator::validate(&value, registry)?,
-            Stage::Validated => expander::expand_to_value(&value, registry)?,
-            other => {
-                return Err(JsError::error(format!(
-                    "cannot continue from stage {} to {}",
-                    other.name(),
-                    stage.name()
-                )));
-            }
-        };
-        current = match current {
-            Stage::Ast => Stage::Validated,
-            Stage::Validated => Stage::Expanded,
-            _ => unreachable!(),
-        };
+    match (from, stage) {
+        (Stage::Ast, Stage::Validated) => validator::validate(&input, registry),
+        (Stage::Ast, Stage::Expanded) => {
+            let validated = validator::validate(&input, registry)?;
+            expander::expand_to_value(&validated, registry)
+        }
+        (Stage::Validated, Stage::Expanded) => expander::expand_to_value(&input, registry),
+        (Stage::Validated, Stage::Graph) => {
+            compiler::dump_graph_from_validated(src, &input, registry)
+        }
+        (from, to) => Err(JsError::error(format!(
+            "cannot run stage {} from stage {}",
+            to.name(),
+            from.name()
+        ))),
     }
-    Ok(value)
 }

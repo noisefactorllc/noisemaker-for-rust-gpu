@@ -9,8 +9,12 @@
 //
 // Usage:
 //   NM_REFERENCE_ROOT=/path/to/noisemaker node parity/check_frontend.mjs [stage...] \
-//       [--programs file...] [--verbose]
+//       [--isolated] [--programs file...] [--verbose]
 //   stages default to: tokens ast validated expanded graph
+//
+// --isolated checks each stage on the reference's output of the stage before it
+// (validated <- ast, expanded <- validated, graph <- validated) instead of
+// running the candidate's own earlier stages.
 //
 // Env:
 //   NM_RENDER   candidate binary (default target/release/nm-render)
@@ -42,11 +46,12 @@ function defaultPrograms () {
 }
 
 function parseArgs (argv) {
-  const opts = { stages: [], programs: [], verbose: false }
+  const opts = { stages: [], programs: [], verbose: false, isolated: false }
   let inPrograms = false
   for (const a of argv) {
     if (a === '--programs') { inPrograms = true; continue }
     if (a === '--verbose') { opts.verbose = true; continue }
+    if (a === '--isolated') { opts.isolated = true; continue }
     if (inPrograms) opts.programs.push(resolve(a))
     else if (ALL_STAGES.includes(a)) opts.stages.push(a)
     else throw new Error(`unknown argument ${a}`)
@@ -125,7 +130,15 @@ function main () {
       const candOut = join(work, `${stage}.candidate.jsonl`)
       execFileSync('node', [join(ROOT, 'tools', 'reference-oracle.mjs'), stage, '--out', refOut, ...opts.programs],
         { stdio: ['ignore', 'inherit', opts.verbose ? 'inherit' : 'ignore'], maxBuffer: 1 << 30 })
-      execFileSync(NM_RENDER, ['dump', stage, '--out', candOut, ...opts.programs],
+      const PREVIOUS = { validated: 'ast', expanded: 'validated', graph: 'validated' }
+      const extra = []
+      if (opts.isolated && PREVIOUS[stage]) {
+        const prevOut = join(work, `${stage}.input.jsonl`)
+        execFileSync('node', [join(ROOT, 'tools', 'reference-oracle.mjs'), PREVIOUS[stage], '--out', prevOut, ...opts.programs],
+          { stdio: ['ignore', 'inherit', opts.verbose ? 'inherit' : 'ignore'], maxBuffer: 1 << 30 })
+        extra.push('--isolated', prevOut)
+      }
+      execFileSync(NM_RENDER, ['dump', stage, '--out', candOut, ...extra, ...opts.programs],
         { stdio: ['ignore', 'inherit', opts.verbose ? 'inherit' : 'ignore'], maxBuffer: 1 << 30 })
       const ref = readJsonl(refOut)
       const cand = readJsonl(candOut)

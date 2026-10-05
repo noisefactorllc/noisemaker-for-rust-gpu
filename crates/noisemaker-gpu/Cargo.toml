@@ -13,6 +13,8 @@ name = "noisemaker_gpu"
 [dependencies]
 noisemaker-dsl = { path = "../noisemaker-dsl", version = "0.1.0" }
 noisemaker-effects = { path = "../noisemaker-effects", version = "0.1.0" }
+noisemaker-host = { path = "../noisemaker-host", version = "0.1.0" }
+noisemaker-input = { path = "../noisemaker-input", version = "0.1.0" }
 indexmap.workspace = true
 serde.workspace = true
 serde_json.workspace = true

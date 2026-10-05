@@ -989,6 +989,8 @@ dependencies = [
  "naga",
  "noisemaker-dsl",
  "noisemaker-effects",
+ "noisemaker-host",
+ "noisemaker-input",
  "png",
  "pollster",
  "regex",

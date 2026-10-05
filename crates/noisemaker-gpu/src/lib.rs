@@ -16,15 +16,42 @@
 //! let pixels = renderer.read_output().unwrap();
 //! assert_eq!(pixels.data.len(), 256 * 256 * 4);
 //! ```
+//!
+//! The host layer ([`host::CanvasRenderer`], a port of the reference's
+//! `CanvasRenderer`) compiles DSL into a live pipeline and hot-swaps later
+//! programs into it, applies effect parameters, uploads host media and meshes,
+//! and carries MIDI and audio state; the catalog's native effect hooks
+//! ([`effects`]: synth/media's lifecycle, the fibers/scratches/strayHair
+//! overlays) run through it. [`demo::DemoHost`] adds what the reference demo
+//! page does between a program and the renderer (ProgramState, the controls'
+//! parameter writes, media, text and mesh inputs).
+//!
+//! ```no_run
+//! use noisemaker_gpu::GpuDevice;
+//! use noisemaker_gpu::host::{CanvasRenderer, CanvasRendererOptions, CompileOptions};
+//!
+//! let device = GpuDevice::create(&Default::default()).unwrap();
+//! let mut renderer = CanvasRenderer::new(&device, CanvasRendererOptions::default());
+//! renderer
+//!     .compile("search synth\nnoise().write(o0)\nrender(o0)", &CompileOptions::default())
+//!     .unwrap();
+//! renderer.render(0.25).unwrap();
+//! ```
 
 pub use noisemaker_dsl as dsl;
+pub use noisemaker_host as host_inputs;
+pub use noisemaker_input as input;
 
 pub mod automation;
 pub mod backend;
+pub mod demo;
 pub mod diagnostics;
+pub mod effects;
 pub mod error;
+pub mod frame_export;
 pub mod graph;
 pub mod hooks;
+pub mod host;
 pub mod jsre;
 pub mod jsv;
 pub mod lowering;
@@ -37,11 +64,13 @@ pub mod sink;
 pub mod uniforms;
 pub mod wgsl;
 
-pub use automation::{AudioSource, ExternalState, MidiSource};
+pub use automation::{ExternalState, SharedAudioState, SharedMidiState};
 pub use backend::{Capabilities, DeviceOptions, GpuDevice, PixelData, WebGpuBackend};
 pub use error::RenderError;
+pub use frame_export::{FrameExportQueue, WebGpuFrameExportAdapter};
 pub use graph::Graph;
 pub use hooks::{EffectHooks, EffectRegistry};
+pub use host::CanvasRenderer;
 pub use noisemaker_dsl::{Object, Value};
 pub use pipeline::{Pipeline, PipelineOptions};
 

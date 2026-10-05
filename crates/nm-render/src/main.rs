@@ -3,7 +3,11 @@
 //!
 //! `render` renders one fixture with the golden protocol of
 //! `parity/batch-golden.mjs`; `batch` renders a manifest of fixtures in one
-//! process and device (a fresh pipeline per fixture).
+//! process and device (a fresh pipeline per fixture). A `--dsl` fixture runs
+//! through the demo host (`noisemaker_gpu::demo`): compiled, parameters
+//! applied as the demo page applies them, host inputs (media, text, overlays,
+//! meshes) produced natively. The demo's default media image comes from
+//! `--media`, or from `$NM_REFERENCE_ROOT/demo/shaders/img/testcard.png`.
 
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
@@ -42,14 +46,16 @@ enum Command {
         #[arg(required = true)]
         programs: Vec<PathBuf>,
     },
-    /// Render one program with the golden protocol: a fresh pipeline at the
-    /// size, host textures uploaded, `render(time)` FRAMES times, then the render
-    /// surface read back and written as an RGBA8 PNG (top row first).
+    /// Render one program with the golden protocol: the program loaded as the
+    /// demo page loads it (a DSL) or a fresh pipeline (a graph), host inputs
+    /// produced (or uploaded from PNGs), the fresh-state reset, `render(time)`
+    /// FRAMES times, then the render surface read back and written as an RGBA8
+    /// PNG (top row first).
     Render {
         /// A reference graph (`<name>.graph.json` from parity/batch-golden.mjs)
         #[arg(long, conflicts_with = "dsl", required_unless_present = "dsl")]
         graph: Option<PathBuf>,
-        /// A DSL program compiled by the Rust frontend
+        /// A DSL program, loaded through the demo host
         #[arg(long)]
         dsl: Option<PathBuf>,
         /// Output PNG
@@ -68,9 +74,20 @@ enum Command {
         /// Frames to render
         #[arg(long, default_value_t = 8)]
         frames: u32,
-        /// Host texture uploads, ID=PNG (repeatable)
+        /// Host texture overrides, ID=PNG (repeatable): texture contents
+        /// uploaded in place of the natively produced input
         #[arg(long = "host-texture", value_name = "ID=PNG")]
         host_textures: Vec<String>,
+        /// The OBJ loaded into mesh0 (default for --dsl: the .obj next to it)
+        #[arg(long)]
+        obj: Option<PathBuf>,
+        /// The demo's default media image (default:
+        /// $NM_REFERENCE_ROOT/demo/shaders/img/testcard.png)
+        #[arg(long)]
+        media: Option<PathBuf>,
+        /// Write the graph the fixture rendered as JSON
+        #[arg(long)]
+        graph_out: Option<PathBuf>,
         /// Timed mode: seconds to run, stepping render(((frame + 1) / 600) % 1)
         #[arg(long, requires = "sample_every")]
         run_seconds: Option<f64>,
@@ -80,11 +97,15 @@ enum Command {
     },
     /// Render every fixture of a JSON manifest in one process: an array of
     /// {"graph"|"dsl", "out", "size", "time", "frames", "hostTextures": {id: png},
-    /// "runSeconds", "sampleEvery"}. Failures are reported per fixture; the exit
-    /// status is nonzero if any fixture failed.
+    /// "obj", "graphOut", "runSeconds", "sampleEvery"}. Failures are reported per
+    /// fixture; the exit status is nonzero if any fixture failed.
     Batch {
         /// The manifest
         manifest: PathBuf,
+        /// The demo's default media image (default:
+        /// $NM_REFERENCE_ROOT/demo/shaders/img/testcard.png)
+        #[arg(long)]
+        media: Option<PathBuf>,
     },
 }
 
@@ -209,8 +230,29 @@ fn report_fixture(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
-fn render(
+/// The demo's default media image: `--media`, else the reference checkout's.
+fn media_path(media: Option<PathBuf>) -> Option<PathBuf> {
+    if media.is_some() {
+        return media;
+    }
+    let root = std::env::var_os("NM_REFERENCE_ROOT")?;
+    let path = noisemaker_gpu::protocol::ProtocolContext::reference_media_path(Path::new(&root));
+    if path.exists() {
+        Some(path)
+    } else {
+        eprintln!(
+            "nm-render: warning: {} not found; media steps render without media",
+            path.display()
+        );
+        None
+    }
+}
+
+fn context(media: Option<PathBuf>) -> Result<noisemaker_gpu::protocol::ProtocolContext, String> {
+    noisemaker_gpu::protocol::ProtocolContext::new(media_path(media).as_deref())
+}
+
+struct RenderArgs {
     graph: Option<PathBuf>,
     dsl: Option<PathBuf>,
     out: PathBuf,
@@ -220,16 +262,21 @@ fn render(
     time: f64,
     frames: u32,
     host_textures: Vec<String>,
+    obj: Option<PathBuf>,
+    media: Option<PathBuf>,
+    graph_out: Option<PathBuf>,
     run_seconds: Option<f64>,
     sample_every: Option<f64>,
-) -> Result<bool, String> {
-    let source = match (graph, dsl) {
+}
+
+fn render(args: RenderArgs) -> Result<bool, String> {
+    let source = match (args.graph, args.dsl) {
         (Some(g), _) => noisemaker_gpu::protocol::GraphSource::GraphFile(g),
         (None, Some(d)) => noisemaker_gpu::protocol::GraphSource::DslFile(d),
         (None, None) => return Err("one of --graph or --dsl is required".into()),
     };
     let mut hosts = Vec::new();
-    for h in host_textures {
+    for h in args.host_textures {
         let (id, path) = h
             .split_once('=')
             .ok_or_else(|| format!("--host-texture expects ID=PNG, got '{h}'"))?;
@@ -237,18 +284,22 @@ fn render(
     }
     let spec = noisemaker_gpu::protocol::FixtureSpec {
         source,
-        out: out.clone(),
-        width: width.unwrap_or(size),
-        height: height.unwrap_or(size),
-        time,
-        frames,
+        out: args.out.clone(),
+        width: args.width.unwrap_or(args.size),
+        height: args.height.unwrap_or(args.size),
+        time: args.time,
+        frames: args.frames,
         host_textures: hosts,
-        run_seconds: run_seconds.unwrap_or(0.0),
-        sample_every: sample_every.unwrap_or(5.0),
+        run_seconds: args.run_seconds.unwrap_or(0.0),
+        sample_every: args.sample_every.unwrap_or(5.0),
+        obj: args.obj,
+        graph_out: args.graph_out,
     };
+    let context = context(args.media)?;
     let device = device()?;
-    let result = noisemaker_gpu::protocol::run_fixture(&device, &spec, None);
-    let name = out
+    let result = noisemaker_gpu::protocol::run_fixture(&device, &spec, &context);
+    let name = args
+        .out
         .file_stem()
         .and_then(|s| s.to_str())
         .unwrap_or_default()
@@ -280,6 +331,7 @@ fn manifest_spec(entry: &Value) -> Result<(String, noisemaker_gpu::protocol::Fix
         GraphSource::Graph(_) => out.clone(),
     };
     let num = |key: &str, default: f64| entry.get(key).as_f64().unwrap_or(default);
+    let path = |key: &str| entry.get(key).as_str().map(PathBuf::from);
     let size = num("size", 256.0);
     let mut hosts = Vec::new();
     if let Some(map) = entry.get("hostTextures").as_object() {
@@ -302,11 +354,13 @@ fn manifest_spec(entry: &Value) -> Result<(String, noisemaker_gpu::protocol::Fix
             host_textures: hosts,
             run_seconds: num("runSeconds", 0.0),
             sample_every: num("sampleEvery", 5.0),
+            obj: path("obj"),
+            graph_out: path("graphOut"),
         },
     ))
 }
 
-fn batch(manifest: PathBuf) -> Result<bool, String> {
+fn batch(manifest: PathBuf, media: Option<PathBuf>) -> Result<bool, String> {
     let text =
         std::fs::read_to_string(&manifest).map_err(|e| format!("{}: {e}", manifest.display()))?;
     let entries = Value::from_json(&text).map_err(|e| format!("{}: {e}", manifest.display()))?;
@@ -314,8 +368,8 @@ fn batch(manifest: PathBuf) -> Result<bool, String> {
         .as_array()
         .ok_or_else(|| format!("{}: the manifest must be a JSON array", manifest.display()))?
         .clone();
+    let context = context(media)?;
     let device = device()?;
-    let mut registry: Option<Registry> = None;
     let (mut ok, mut failed) = (0usize, 0usize);
     let started = std::time::Instant::now();
     for (i, entry) in entries.iter().enumerate() {
@@ -327,15 +381,8 @@ fn batch(manifest: PathBuf) -> Result<bool, String> {
                 continue;
             }
         };
-        if matches!(
-            spec.source,
-            noisemaker_gpu::protocol::GraphSource::DslFile(_)
-        ) && registry.is_none()
-        {
-            registry = Some(Registry::with_catalog());
-        }
         let t0 = std::time::Instant::now();
-        let result = noisemaker_gpu::protocol::run_fixture(&device, &spec, registry.as_ref());
+        let result = noisemaker_gpu::protocol::run_fixture(&device, &spec, &context);
         if report_fixture(&name, &result) {
             ok += 1;
         } else {
@@ -373,9 +420,12 @@ fn main() -> ExitCode {
             time,
             frames,
             host_textures,
+            obj,
+            media,
+            graph_out,
             run_seconds,
             sample_every,
-        } => render(
+        } => render(RenderArgs {
             graph,
             dsl,
             out,
@@ -385,10 +435,13 @@ fn main() -> ExitCode {
             time,
             frames,
             host_textures,
+            obj,
+            media,
+            graph_out,
             run_seconds,
             sample_every,
-        ),
-        Command::Batch { manifest } => batch(manifest),
+        }),
+        Command::Batch { manifest, media } => batch(manifest, media),
     };
     match result {
         Ok(true) => ExitCode::SUCCESS,

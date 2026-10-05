@@ -6,13 +6,21 @@ Cases are parity/programs/*.dsl (the shared fixture pool) and parity/coverage/*.
 
   1. MINT    goldens with the reference engine's WebGPU backend
              (parity/batch-golden.mjs), fresh, in this run -- a sweep never grades a
-             golden from an earlier run. Host inputs the minter saves
-             (<id>.<textureId>.png: media/text images, asyncInit overlays) are
-             passed to the candidate.
+             golden from an earlier run. The minter also saves the host inputs the
+             page produced (<id>.<textureId>.png: media/text images, asyncInit
+             overlays).
   2. RENDER  candidates with nm-render in one batch process. By default the
-             candidate compiles the DSL itself (the live Rust frontend);
-             --from-graph renders the reference graph the golden page rendered
-             instead (isolates the runtime from the compiler).
+             candidate runs the DSL through the port's demo host (the live Rust
+             frontend, ProgramState and the demo's control initialization, then
+             applyStepParameterValues) and produces every host input natively:
+             the demo's default media image ($NM_REFERENCE_ROOT/demo/shaders/img/
+             testcard.png), text canvases, asyncInit overlays and meshes (the
+             fixture's .obj sidecar into mesh0, as the minter loads it).
+             --captured-host-inputs grades with the minter's saved host-input PNGs
+             in place of the natively produced ones (isolates the renderer from
+             the host-input ports); --from-graph renders the reference graph the
+             golden page rendered with the saved host inputs (isolates the runtime
+             from the compiler).
   3. GRADE   each case: decoded RGBA8 pixels compared with the golden.
              exact  -- identical pixels
              strict -- max-abs-diff <= 2.001 (8-bit units) and global SSIM >= 0.98
@@ -25,7 +33,8 @@ Cases are parity/programs/*.dsl (the shared fixture pool) and parity/coverage/*.
 
 Usage:
   NM_REFERENCE_ROOT=/path/to/noisemaker python3 parity/sweep.py [case-id ...]
-      [--from-graph] [--skip-mint] [--skip-render] [--jobs-chunk 60]
+      [--captured-host-inputs | --from-graph] [--skip-mint] [--skip-render]
+      [--chunk 60] [--out DIR] [--golden-dir DIR]
 
 Env: NM_RENDER (candidate binary, default target/release/nm-render).
 Exit 0 iff every case is exact or strict.
@@ -74,6 +83,13 @@ def discover(ids):
     return cases
 
 
+def rel(path):
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
 def load_rgba(path):
     return np.asarray(Image.open(path).convert("RGBA"), dtype=np.float32) / 255.0
 
@@ -105,10 +121,10 @@ def grade_pair(golden, candidate):
     }
 
 
-def host_textures(case_id):
+def host_textures(case_id, golden_dir):
     found = {}
     prefix = case_id + "."
-    for p in sorted(OUT.glob(prefix + "*.png")):
+    for p in sorted(golden_dir.glob(prefix + "*.png")):
         tex = p.name[len(prefix):-len(".png")]
         if tex in ("golden", "candidate") or tex.startswith("golden.t") or tex.startswith("candidate.t"):
             continue
@@ -134,15 +150,21 @@ def mint(cases, chunk):
     return rc
 
 
-def render(cases, nm_render, from_graph):
+def render(cases, nm_render, mode, golden_dir):
     manifest = []
     for case_id, path in cases.items():
         entry = {"out": str(OUT / (case_id + ".candidate.png")), "size": SIZE, "time": TIME,
-                 "frames": FRAMES, "hostTextures": host_textures(case_id)}
-        if from_graph:
-            entry["graph"] = str(OUT / (case_id + ".graph.json"))
+                 "frames": FRAMES}
+        sidecar = path.with_suffix(".obj")
+        if sidecar.exists():
+            entry["obj"] = str(sidecar)
+        if mode == "graph":
+            entry["graph"] = str(golden_dir / (case_id + ".graph.json"))
+            entry["hostTextures"] = host_textures(case_id, golden_dir)
         else:
             entry["dsl"] = str(path)
+            if mode == "captured":
+                entry["hostTextures"] = host_textures(case_id, golden_dir)
         if case_id in TIMED:
             run, every = TIMED[case_id]
             entry["runSeconds"] = run
@@ -156,7 +178,7 @@ def render(cases, nm_render, from_graph):
     return subprocess.call([nm_render, "batch", str(path)])
 
 
-def grade(cases):
+def grade(cases, golden_dir):
     rows = []
     for case_id in cases:
         policy = NEAR_POLICIES.get(case_id, {"tolerance": STRICT_TOL, "ssim_min": STRICT_SSIM})
@@ -165,13 +187,13 @@ def grade(cases):
             run, every = TIMED[case_id]
             samples = []
             for sec in range(every, run + 1, every):
-                g = OUT / f"{case_id}.golden.t{sec}.png"
+                g = golden_dir / f"{case_id}.golden.t{sec}.png"
                 c = OUT / f"{case_id}.candidate.t{sec}.png"
                 if not g.exists() or not c.exists():
                     samples = None
                     break
                 m = grade_pair(g, c)
-                m.update({"golden": str(g.relative_to(ROOT)), "candidate": str(c.relative_to(ROOT)), "t": sec})
+                m.update({"golden": rel(g), "candidate": rel(c), "t": sec})
                 samples.append(m)
             if samples is None or any("error" in s for s in samples):
                 row.update({"verdict": "MISSING"})
@@ -180,7 +202,7 @@ def grade(cases):
                             "max_abs_diff": max(s["max_abs_diff"] for s in samples),
                             "ssim": min(s["ssim"] for s in samples)})
         else:
-            g = OUT / f"{case_id}.golden.png"
+            g = golden_dir / f"{case_id}.golden.png"
             c = OUT / f"{case_id}.candidate.png"
             if not g.exists() or not c.exists():
                 row.update({"verdict": "MISSING", "golden_present": g.exists(), "candidate_present": c.exists()})
@@ -207,25 +229,41 @@ def grade(cases):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cases", nargs="*")
-    ap.add_argument("--from-graph", action="store_true")
+    inputs = ap.add_mutually_exclusive_group()
+    inputs.add_argument("--from-graph", action="store_true",
+                        help="render the golden page's graph with the minter's host-input PNGs")
+    inputs.add_argument("--captured-host-inputs", action="store_true",
+                        help="run the DSL with the minter's host-input PNGs instead of native host inputs")
+    ap.add_argument("--out", default=None, help="output directory (default parity/out)")
+    ap.add_argument("--golden-dir", default=None,
+                    help="grade against goldens minted earlier in DIR (implies --skip-mint; development only)")
     ap.add_argument("--skip-mint", action="store_true", help="grade against goldens already in parity/out (development only)")
     ap.add_argument("--skip-render", action="store_true", help="grade candidates already in parity/out (development only)")
     ap.add_argument("--chunk", type=int, default=60)
-    ap.add_argument("--ledger", default=str(OUT / "ledger.json"))
+    ap.add_argument("--ledger", default=None, help="ledger path (default <out>/ledger.json)")
     args = ap.parse_args()
+    global OUT
+    if args.out:
+        OUT = Path(args.out).resolve()
+    if args.ledger is None:
+        args.ledger = str(OUT / "ledger.json")
     if not os.environ.get("NM_REFERENCE_ROOT"):
         sys.exit("NM_REFERENCE_ROOT is not set")
     nm_render = os.environ.get("NM_RENDER", str(ROOT / "target" / "release" / "nm-render"))
     OUT.mkdir(parents=True, exist_ok=True)
     cases = discover(args.cases)
+    golden_dir = Path(args.golden_dir).resolve() if args.golden_dir else OUT
+    mode = "graph" if args.from_graph else ("captured" if args.captured_host_inputs else "native")
 
-    if not args.skip_mint:
+    if not args.skip_mint and args.golden_dir is None:
         print(f"[sweep] minting {len(cases)} goldens", file=sys.stderr)
         mint(cases, args.chunk)
     if not args.skip_render:
-        print(f"[sweep] rendering {len(cases)} candidates ({'graph' if args.from_graph else 'dsl'})", file=sys.stderr)
-        render(cases, nm_render, args.from_graph)
-    rows = grade(cases)
+        label = {"graph": "graph + captured host inputs", "captured": "dsl + captured host inputs",
+                 "native": "dsl + native host inputs"}[mode]
+        print(f"[sweep] rendering {len(cases)} candidates ({label})", file=sys.stderr)
+        render(cases, nm_render, mode, golden_dir)
+    rows = grade(cases, golden_dir)
     Path(args.ledger).write_text(json.dumps(rows, indent=1) + "\n")
     counts = {}
     for r in rows:

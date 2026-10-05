@@ -9,20 +9,27 @@
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
+use std::sync::{Arc, Mutex, mpsc};
 
 use indexmap::IndexMap;
 use noisemaker_dsl::js::{math_round, parse_float};
 use noisemaker_dsl::{Object, Value};
+use noisemaker_input::globals::{
+    EMPTY_NOTE_GRID, InputGlobals, MIDI_NOTE_GRID_HEIGHT, MIDI_NOTE_GRID_WIDTH, NoteGridUpload,
+};
+use noisemaker_input::jsmath::{js_max, js_min};
 
 use crate::automation::{
-    AudioRequirements, AutomationContext, ExternalState, is_automation_value, js_max, js_min,
-    resolve_uniform_value, visit_audio_requirements,
+    AudioInputRequirements, AutomationContext, ExternalState, SharedAudioState, SharedMidiState,
+    audio_input_requirements, is_automation_value, resolve_uniform_value,
 };
 use crate::backend::{Capabilities, FrameState, PixelData, WebGpuBackend};
 use crate::diagnostics::{DiagnosticCollector, codes};
 use crate::error::RenderError;
 use crate::graph::{Graph, pass};
-use crate::hooks::{AsyncInitContext, EffectLifecycle, EffectRegistry, UpdateContext};
+use crate::hooks::{
+    AsyncInitContext, AsyncInitEffect, EffectLifecycle, EffectRegistry, TextureImage, UpdateContext,
+};
 use crate::jsre::JsRegex;
 use crate::jsv::{interpolate, strict_equals, to_js_string, to_number};
 use crate::preflight::{PreflightReport, mrt_format_bytes, preflight_effect};
@@ -86,6 +93,63 @@ struct PendingRegen {
     params: Object,
 }
 
+/// A message from an asyncInit worker.
+enum AsyncMessage {
+    /// `updateTexture(texName, canvas)`.
+    Update(String, TextureImage),
+    /// The asyncInit settled (its promise resolved or rejected).
+    Done(Result<(), String>),
+}
+
+/// One running asyncInit (`_asyncRenders.get(nodeId)`): its cancellation
+/// flag and the channel its worker uploads through.
+struct AsyncRun {
+    /// `cancelled`; the worker holds the lock while it sends, so every message
+    /// in the channel was sent before the run was cancelled.
+    cancelled: Arc<Mutex<bool>>,
+    messages: mpsc::Receiver<AsyncMessage>,
+}
+
+impl AsyncRun {
+    /// The cancel function of `_asyncRenders`.
+    fn cancel(&self) {
+        *self.cancelled.lock().unwrap_or_else(|e| e.into_inner()) = true;
+    }
+}
+
+/// The asyncInit context of a worker thread (`context` of `_startAsyncInit`).
+struct WorkerContext {
+    cancelled: Arc<Mutex<bool>>,
+    sender: mpsc::Sender<AsyncMessage>,
+    width: f64,
+    height: f64,
+    params: Object,
+}
+
+impl AsyncInitContext for WorkerContext {
+    fn update_texture(&mut self, tex_name: &str, image: TextureImage) {
+        let cancelled = self.cancelled.lock().unwrap_or_else(|e| e.into_inner());
+        if *cancelled {
+            return;
+        }
+        let _ = self
+            .sender
+            .send(AsyncMessage::Update(tex_name.to_owned(), image));
+    }
+    fn width(&self) -> f64 {
+        self.width
+    }
+    fn height(&self) -> f64 {
+        self.height
+    }
+    fn params(&self) -> &Object {
+        &self.params
+    }
+    fn is_cancelled(&self) -> bool {
+        *self.cancelled.lock().unwrap_or_else(|e| e.into_inner())
+    }
+}
+
 /// The pipeline executor.
 pub struct Pipeline {
     pub graph: Graph,
@@ -119,8 +183,10 @@ pub struct Pipeline {
     full_resolution: Option<[f64; 2]>,
     render_scale: Option<f64>,
     pub external_state: ExternalState,
+    /// The external-input globals of `updateGlobalUniforms`.
+    input_globals: InputGlobals,
     effects: EffectRegistry,
-    async_renders: HashMap<String, Rc<RefCell<bool>>>,
+    async_renders: IndexMap<String, AsyncRun>,
     async_debounce: IndexMap<String, PendingRegen>,
     async_param_cache: HashMap<String, Object>,
     lifecycle_effects: IndexMap<String, Rc<RefCell<dyn EffectLifecycle>>>,
@@ -129,7 +195,6 @@ pub struct Pipeline {
     has_runtime_uniforms: bool,
     warned_volume_clamps: HashSet<String>,
     needs_midi_note_grid: bool,
-    empty_note_grid: Option<Vec<f32>>,
     viewport_cache: HashMap<usize, ViewportCache>,
     /// The texture id presented by the last frame.
     pub last_presented: Option<String>,
@@ -210,8 +275,9 @@ impl Pipeline {
             full_resolution: None,
             render_scale: None,
             external_state: ExternalState::default(),
+            input_globals: InputGlobals::default(),
             effects: options.effects,
-            async_renders: HashMap::new(),
+            async_renders: IndexMap::new(),
             async_debounce: IndexMap::new(),
             async_param_cache: HashMap::new(),
             lifecycle_effects: IndexMap::new(),
@@ -220,10 +286,17 @@ impl Pipeline {
             has_runtime_uniforms: false,
             warned_volume_clamps: HashSet::new(),
             needs_midi_note_grid: false,
-            empty_note_grid: None,
             viewport_cache: HashMap::new(),
             last_presented: None,
         }
+    }
+
+    /// `pipeline.graph = newGraph` (`recompile`): swap in a new graph. Caches
+    /// the reference keeps on pass objects (resolved viewports) go with the
+    /// old graph.
+    pub fn swap_graph(&mut self, graph: Graph) {
+        self.graph = graph;
+        self.viewport_cache.clear();
     }
 
     /// `getCapabilities()`.
@@ -237,13 +310,18 @@ impl Pipeline {
     }
 
     /// `setMidiState(midiState)`.
-    pub fn set_midi_state(&mut self, midi: Option<Box<dyn crate::automation::MidiSource>>) {
+    pub fn set_midi_state(&mut self, midi: Option<SharedMidiState>) {
         self.external_state.midi = midi;
     }
 
     /// `setAudioState(audioState)`.
-    pub fn set_audio_state(&mut self, audio: Option<Box<dyn crate::automation::AudioSource>>) {
+    pub fn set_audio_state(&mut self, audio: Option<SharedAudioState>) {
         self.external_state.audio = audio;
+    }
+
+    /// The effect registry the pipeline asks for native hooks (`getEffect`).
+    pub fn effects(&self) -> &EffectRegistry {
+        &self.effects
     }
 
     /// `shouldDeferRender()`.
@@ -377,10 +455,17 @@ impl Pipeline {
         out
     }
 
-    /// `initAsyncEffects()`: start every asyncInit effect of the graph.
+    /// `initAsyncEffects()`: cancel every running asyncInit and pending
+    /// regeneration, clear the parameter cache, and start the asyncInit of
+    /// each node whose effect has one, with `params` = a copy of the global
+    /// uniforms.
     pub fn init_async_effects(&mut self) -> Result<(), RenderError> {
-        for cancelled in self.async_renders.values() {
-            *cancelled.borrow_mut() = true;
+        // Full reset before re-rendering: cancel in-flight traces (including
+        // nodes no longer present in the current graph), drop pending debounced
+        // regens, and clear the param cache.
+        self.poll_async_effects()?;
+        for run in self.async_renders.values() {
+            run.cancel();
         }
         self.async_renders.clear();
         self.async_debounce.clear();
@@ -410,7 +495,7 @@ impl Pipeline {
         }
         for (node, key) in starts {
             let params = self.global_uniforms.clone();
-            self.start_async_init(&node, &key, params)?;
+            self.start_async_init(&node, &key, params);
         }
         Ok(())
     }
@@ -434,6 +519,8 @@ impl Pipeline {
             if name == "alpha" || name.starts_with('_') || value.is_nullish() {
                 continue;
             }
+            // Automation configs and vector values are object-shaped; async
+            // overlays consume only scalar params.
             if matches!(value, Value::Object(_) | Value::Array(_)) {
                 continue;
             }
@@ -446,6 +533,9 @@ impl Pipeline {
             }
         }
         if changed {
+            // `_startAsyncInit(nodeId, effectDef, {debounce: true, params})`:
+            // (re)arm the node's 300 ms timer.
+            self.async_debounce.shift_remove(node_id);
             self.async_debounce.insert(
                 node_id.to_owned(),
                 PendingRegen {
@@ -456,14 +546,35 @@ impl Pipeline {
         }
     }
 
-    /// Fire debounced regenerations whose 300 ms timer has elapsed (the
-    /// reference's `setTimeout` callbacks).
+    /// Whether a debounced regeneration is pending (`_asyncDebounceTimers.size`).
+    pub fn has_pending_async_regens(&self) -> bool {
+        !self.async_debounce.is_empty()
+    }
+
+    /// Whether an asyncInit is still running (its promise has not settled).
+    pub fn has_running_async_effects(&self) -> bool {
+        !self.async_renders.is_empty()
+    }
+
+    /// Fire the debounced regenerations whose 300 ms timer has elapsed (the
+    /// reference's `setTimeout` callbacks). The pipeline calls it at the start
+    /// of every frame; a host without a frame loop calls it from its own timer.
     pub fn run_due_async_regens(&mut self) -> Result<(), RenderError> {
-        let now = std::time::Instant::now();
+        self.fire_async_regens(Some(std::time::Instant::now()))
+    }
+
+    /// Fire every pending debounced regeneration now, whatever its timer (a
+    /// host-driven tick: the settled state a host reaches 300 ms after the last
+    /// parameter change).
+    pub fn flush_async_regens(&mut self) -> Result<(), RenderError> {
+        self.fire_async_regens(None)
+    }
+
+    fn fire_async_regens(&mut self, now: Option<std::time::Instant>) -> Result<(), RenderError> {
         let due: Vec<String> = self
             .async_debounce
             .iter()
-            .filter(|(_, p)| p.due <= now)
+            .filter(|(_, p)| now.is_none_or(|now| p.due <= now))
             .map(|(k, _)| k.clone())
             .collect();
         for node in due {
@@ -477,80 +588,134 @@ impl Pipeline {
                 .find(|p| pass::get(p, "nodeId").as_str() == Some(node.as_str()))
                 .map(|p| to_js_string(pass::get(p, "effectKey")));
             if let Some(key) = key {
-                self.start_async_init(&node, &key, pending.params)?;
+                self.poll_async_effects()?;
+                self.start_async_init(&node, &key, pending.params);
             }
         }
         Ok(())
     }
 
-    /// `_startAsyncInit(nodeId, effectDef)`.
-    fn start_async_init(
-        &mut self,
-        node_id: &str,
-        effect_key: &str,
-        params: Object,
-    ) -> Result<(), RenderError> {
-        if let Some(previous) = self.async_renders.get(node_id) {
-            *previous.borrow_mut() = true;
+    /// `_startAsyncInit(nodeId, effectDef)`: cancel the node's previous run and
+    /// start the effect's asyncInit on a worker thread.
+    fn start_async_init(&mut self, node_id: &str, effect_key: &str, params: Object) {
+        if let Some(previous) = self.async_renders.shift_remove(node_id) {
+            previous.cancel();
         }
-        let cancelled = Rc::new(RefCell::new(false));
-        self.async_renders
-            .insert(node_id.to_owned(), cancelled.clone());
-        let Some(effect) = self
+        let Some(effect): Option<Arc<dyn AsyncInitEffect>> = self
             .effects
             .get(effect_key)
             .and_then(|e| e.async_init.clone())
         else {
-            return Ok(());
+            return;
         };
-        struct Context<'a> {
-            backend: &'a mut WebGpuBackend,
-            node_id: &'a str,
-            width: f64,
-            height: f64,
-            params: Object,
-            cancelled: Rc<RefCell<bool>>,
-            error: Option<RenderError>,
-        }
-        impl AsyncInitContext for Context<'_> {
-            fn update_texture(&mut self, tex_name: &str, width: u32, height: u32, rgba: &[u8]) {
-                if *self.cancelled.borrow() {
-                    return;
-                }
-                let id = format!("{}_{tex_name}", self.node_id);
-                if let Err(e) = self
-                    .backend
-                    .update_texture_from_rgba8(&id, width, height, rgba, true)
-                {
-                    self.error.get_or_insert(e);
-                }
-            }
-            fn width(&self) -> f64 {
-                self.width
-            }
-            fn height(&self) -> f64 {
-                self.height
-            }
-            fn params(&self) -> &Object {
-                &self.params
-            }
-            fn is_cancelled(&self) -> bool {
-                *self.cancelled.borrow()
-            }
-        }
-        let mut context = Context {
-            backend: &mut self.backend,
-            node_id,
+        let cancelled = Arc::new(Mutex::new(false));
+        let (sender, messages) = mpsc::channel();
+        let mut context = WorkerContext {
+            cancelled: cancelled.clone(),
+            sender,
             width: self.width,
             height: self.height,
             params,
-            cancelled,
-            error: None,
         };
-        // asyncInit failures are logged by the reference, never thrown.
-        let _ = effect.async_init(&mut context);
-        if let Some(e) = context.error {
-            return Err(e);
+        let spawned = std::thread::Builder::new()
+            .name(format!("asyncInit {node_id}"))
+            .spawn(move || {
+                let result = effect.async_init(&mut context);
+                let _ = context.sender.send(AsyncMessage::Done(result));
+            });
+        if let Err(e) = spawned {
+            eprintln!("[Pipeline] asyncInit error for {node_id}: {e}");
+            return;
+        }
+        self.async_renders.insert(
+            node_id.to_owned(),
+            AsyncRun {
+                cancelled,
+                messages,
+            },
+        );
+    }
+
+    /// Upload the images the running asyncInits sent since the last poll
+    /// (`updateTexture` -> `backend.updateTextureFromSource(`${nodeId}_${texName}`,
+    /// canvas)`) and forget the runs that settled. Rejections are logged as the
+    /// reference logs them. The pipeline polls at the start of every frame.
+    pub fn poll_async_effects(&mut self) -> Result<(), RenderError> {
+        self.drain_async_effects(false)
+    }
+
+    /// Block until every running asyncInit has settled, uploading what each
+    /// sends.
+    pub fn wait_async_effects(&mut self) -> Result<(), RenderError> {
+        self.drain_async_effects(true)
+    }
+
+    /// Fire every pending regeneration and wait for every asyncInit, until no
+    /// work is left: the state of a host that waited for its overlays.
+    pub fn settle_async_effects(&mut self) -> Result<(), RenderError> {
+        while self.has_pending_async_regens() || self.has_running_async_effects() {
+            self.flush_async_regens()?;
+            self.wait_async_effects()?;
+        }
+        Ok(())
+    }
+
+    fn drain_async_effects(&mut self, block: bool) -> Result<(), RenderError> {
+        let mut uploads: IndexMap<String, TextureImage> = IndexMap::new();
+        let mut settled = Vec::new();
+        for (node, run) in &self.async_renders {
+            loop {
+                let message = if block {
+                    match run.messages.recv() {
+                        Ok(m) => m,
+                        Err(_) => {
+                            settled.push(node.clone());
+                            break;
+                        }
+                    }
+                } else {
+                    match run.messages.try_recv() {
+                        Ok(m) => m,
+                        Err(mpsc::TryRecvError::Empty) => break,
+                        Err(mpsc::TryRecvError::Disconnected) => {
+                            settled.push(node.clone());
+                            break;
+                        }
+                    }
+                };
+                match message {
+                    AsyncMessage::Update(tex_name, image) => {
+                        // Only the latest image of a texture reaches the GPU
+                        // before the next frame reads it.
+                        let id = format!("{node}_{tex_name}");
+                        uploads.shift_remove(&id);
+                        uploads.insert(id, image);
+                    }
+                    AsyncMessage::Done(result) => {
+                        if let Err(e) = result {
+                            eprintln!("[Pipeline] asyncInit error for {node}: {e}");
+                        }
+                        settled.push(node.clone());
+                        break;
+                    }
+                }
+            }
+        }
+        for node in settled {
+            self.async_renders.shift_remove(&node);
+        }
+        for (id, image) in uploads {
+            // An upload failure inside an asyncInit rejects its promise, which
+            // the reference logs.
+            if let Err(e) = self.backend.update_texture_from_rgba8(
+                &id,
+                image.width,
+                image.height,
+                &image.data,
+                image.flip_y,
+            ) {
+                eprintln!("[Pipeline] asyncInit error for {id}: {e}");
+            }
         }
         Ok(())
     }
@@ -566,21 +731,16 @@ impl Pipeline {
         uniforms
     }
 
-    /// `getAudioInputRequirements()`.
-    pub fn get_audio_input_requirements(&self) -> AudioRequirements {
-        let mut out = AudioRequirements::default();
-        for p in &self.graph.passes {
+    /// `getAudioInputRequirements()`: the browser audio captures the graph
+    /// reads (effects tagged `audio` and every `audio()` descriptor).
+    pub fn get_audio_input_requirements(&self) -> AudioInputRequirements {
+        audio_input_requirements(&self.graph.passes, |p| {
             let key = pass::get(p, "effectKey");
-            if key.is_truthy()
+            key.is_truthy()
                 && EffectRegistry::catalog_tags(&to_js_string(key))
                     .iter()
                     .any(|t| t == "audio")
-            {
-                out.needs_legacy = true;
-            }
-            visit_audio_requirements(pass::get(p, "uniforms"), &mut out);
-        }
-        out
+        })
     }
 
     /// `isVolumeSizeUniform(name)`.
@@ -1520,6 +1680,7 @@ impl Pipeline {
             return Ok(());
         }
         self.run_due_async_regens()?;
+        self.poll_async_effects()?;
         let mut delta = if self.last_time > 0.0 {
             time - self.last_time
         } else {
@@ -1545,7 +1706,7 @@ impl Pipeline {
         let context = AutomationContext::now();
         let mut pass_count = 0usize;
         for i in 0..self.graph.passes.len() {
-            if let Err(e) = self.render_pass(i, time, &context, &mut pass_count) {
+            if let Err(e) = self.render_pass(i, time, context, &mut pass_count) {
                 self.backend.abandon_frame();
                 return Err(e);
             }
@@ -1585,7 +1746,7 @@ impl Pipeline {
         &mut self,
         index: usize,
         time: f64,
-        context: &AutomationContext,
+        context: AutomationContext,
         pass_count: &mut usize,
     ) -> Result<(), RenderError> {
         let has_viewport = !pass::get(&self.graph.passes[index], "viewport").is_undefined();
@@ -1686,30 +1847,47 @@ impl Pipeline {
                     .collect(),
             )
         };
-        if let Some(audio) = &self.external_state.audio {
-            if let Some(w) = audio.waveform() {
-                g.insert("audioWaveform", typed_array(w));
+        // External input: the audio state's waveform and spectrum, and the MIDI
+        // state's note grid (refreshed and uploaded) and clock count.
+        let midi = self.external_state.midi.clone();
+        let audio = self.external_state.audio.clone();
+        let mut midi_state = midi.as_ref().map(|m| m.borrow_mut());
+        let audio_state = audio.as_ref().map(|a| a.borrow());
+        let upload = self.input_globals.update(
+            midi_state.as_deref_mut(),
+            audio_state.as_deref(),
+            self.needs_midi_note_grid,
+        );
+        if audio_state.is_some() {
+            if let Some(waveform) = &self.input_globals.audio_waveform {
+                g.insert("audioWaveform", typed_array(waveform));
             }
-            if let Some(s) = audio.spectrum() {
-                g.insert("audioSpectrum", typed_array(s));
+            if let Some(spectrum) = &self.input_globals.audio_spectrum {
+                g.insert("audioSpectrum", typed_array(spectrum));
             }
         }
-        if let Some(midi) = self.external_state.midi.as_mut() {
-            midi.update_note_grid();
-            let grid = midi.note_grid().to_vec();
-            let clock = midi.clock_count();
-            self.backend
-                .upload_data_texture("midiNoteGrid", &grid, 128, 16);
-            self.global_uniforms
-                .insert("midiClockCount", Value::Number(clock));
-        } else if self.needs_midi_note_grid {
-            let grid = self
-                .empty_note_grid
-                .get_or_insert_with(|| vec![0.0; 128 * 16 * 4])
-                .clone();
-            self.backend
-                .upload_data_texture("midiNoteGrid", &grid, 128, 16);
+        match upload {
+            NoteGridUpload::State(grid) => {
+                self.backend.upload_data_texture(
+                    "midiNoteGrid",
+                    grid,
+                    MIDI_NOTE_GRID_WIDTH,
+                    MIDI_NOTE_GRID_HEIGHT,
+                );
+                self.global_uniforms.insert(
+                    "midiClockCount",
+                    Value::Number(self.input_globals.midi_clock_count),
+                );
+            }
+            NoteGridUpload::Empty => self.backend.upload_data_texture(
+                "midiNoteGrid",
+                &EMPTY_NOTE_GRID,
+                MIDI_NOTE_GRID_WIDTH,
+                MIDI_NOTE_GRID_HEIGHT,
+            ),
+            NoteGridUpload::None => {}
         }
+        // `g.midiClockCount = g.midiClockCount || 0`
         let clock = self.global_uniforms.get_or_undefined("midiClockCount");
         let clock = if clock.is_truthy() {
             clock.clone()
@@ -1727,7 +1905,7 @@ impl Pipeline {
         &mut self,
         index: usize,
         time: f64,
-        context: &AutomationContext,
+        context: AutomationContext,
     ) -> bool {
         let original = &self.graph.passes[index];
         let Some(uniforms) = pass::uniforms(original) else {
@@ -2124,8 +2302,8 @@ impl Pipeline {
             }
         }
         self.lifecycle_effects.clear();
-        for cancelled in self.async_renders.values() {
-            *cancelled.borrow_mut() = true;
+        for run in self.async_renders.values() {
+            run.cancel();
         }
         self.async_renders.clear();
         self.async_debounce.clear();

@@ -80,28 +80,44 @@ pub struct SinkStats {
     pub failed: u64,
 }
 
+/// A registration handle (`add` returns the reference's removal function;
+/// [`SinkManager::remove`] with this id is that function).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct SinkId(u64);
+
 /// `SinkManager`.
 #[derive(Default)]
 pub struct SinkManager {
-    sinks: Vec<(Box<dyn Sink>, SinkStats)>,
+    sinks: Vec<(SinkId, Box<dyn Sink>, SinkStats)>,
     descriptor: Option<SinkDescriptor>,
     closed: bool,
+    next_id: u64,
 }
 
 impl SinkManager {
-    /// `add(sink)`: register (configuring it when the manager is configured).
-    pub fn add(&mut self, mut sink: Box<dyn Sink>) -> Result<usize, String> {
+    /// `add(sink)`: register a sink, configuring it first when the manager is
+    /// configured (a sink whose configure fails is not registered).
+    pub fn add(&mut self, mut sink: Box<dyn Sink>) -> Result<SinkId, String> {
         if self.closed {
-            return Err("SinkManager is closed".into());
+            return Err("Error: SinkManager is closed".into());
         }
-        let mut stats = SinkStats::default();
-        if let Some(d) = &self.descriptor
-            && sink.configure(d).is_err()
-        {
-            stats.failed += 1;
+        if let Some(d) = &self.descriptor {
+            sink.configure(d)?;
         }
-        self.sinks.push((sink, stats));
-        Ok(self.sinks.len() - 1)
+        let id = SinkId(self.next_id);
+        self.next_id += 1;
+        self.sinks.push((id, sink, SinkStats::default()));
+        Ok(id)
+    }
+
+    /// `remove(sink)` / the removal function: unregister and close the sink
+    /// (removing twice is a no-op).
+    pub fn remove(&mut self, id: SinkId) -> Result<(), String> {
+        let Some(index) = self.sinks.iter().position(|(sid, _, _)| *sid == id) else {
+            return Ok(());
+        };
+        let (_, mut sink, _) = self.sinks.remove(index);
+        sink.close()
     }
 
     /// `configure(descriptor)`.
@@ -110,7 +126,7 @@ impl SinkManager {
             return;
         }
         self.descriptor = Some(descriptor.clone());
-        for (sink, stats) in &mut self.sinks {
+        for (_, sink, stats) in &mut self.sinks {
             if sink.configure(descriptor).is_err() {
                 stats.failed += 1;
             }
@@ -124,7 +140,7 @@ impl SinkManager {
         }
         self.sinks
             .iter_mut()
-            .any(|(sink, _)| sink.defer_render() == Some(true))
+            .any(|(_, sink, _)| sink.defer_render() == Some(true))
     }
 
     /// `submit(textureId, timestamp)`.
@@ -132,7 +148,7 @@ impl SinkManager {
         if self.closed {
             return;
         }
-        for (sink, stats) in &mut self.sinks {
+        for (_, sink, stats) in &mut self.sinks {
             match sink.submit(backend, texture_id, timestamp) {
                 Ok(Some(true)) => stats.accepted += 1,
                 Ok(Some(false)) => stats.dropped += 1,
@@ -149,7 +165,7 @@ impl SinkManager {
         }
         self.closed = true;
         let mut first = Ok(());
-        for (mut sink, _) in self.sinks.drain(..) {
+        for (_, mut sink, _) in self.sinks.drain(..) {
             if let Err(e) = sink.close()
                 && first.is_ok()
             {
@@ -161,7 +177,15 @@ impl SinkManager {
 
     /// Per-sink stats in registration order.
     pub fn stats(&self) -> Vec<SinkStats> {
-        self.sinks.iter().map(|(_, s)| *s).collect()
+        self.sinks.iter().map(|(_, _, s)| *s).collect()
+    }
+
+    /// The stats of one sink.
+    pub fn stats_of(&self, id: SinkId) -> Option<SinkStats> {
+        self.sinks
+            .iter()
+            .find(|(sid, _, _)| *sid == id)
+            .map(|(_, _, s)| *s)
     }
 }
 

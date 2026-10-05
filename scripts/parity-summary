@@ -11,7 +11,8 @@
 #
 # The work is the canonical sweep, parity/sweep.py, run fresh (goldens minted in
 # this run, candidates rendered by nm-render from the DSL with the port's own
-# compiler, every case graded). The ledger goes to a temporary file.
+# compiler and demo host, every host input produced natively, every case
+# graded). The ledger goes to a temporary file.
 #
 # Buckets (each case in exactly one):
 #   exact   -- candidate pixels identical to the golden

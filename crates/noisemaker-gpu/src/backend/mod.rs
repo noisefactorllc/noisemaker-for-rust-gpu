@@ -310,7 +310,7 @@ pub fn format_name(format: wgpu::TextureFormat) -> &'static str {
     }
 }
 
-/// Options for [`WebGpuBackend::create`].
+/// Options for [`GpuDevice::create`].
 #[derive(Debug, Clone)]
 pub struct DeviceOptions {
     /// Adapter power preference (the reference takes the browser's default adapter).
@@ -326,6 +326,7 @@ impl Default for DeviceOptions {
 }
 
 /// A device created the way `createPipeline` creates one for the WebGPU backend.
+#[derive(Clone)]
 pub struct GpuDevice {
     pub adapter: wgpu::Adapter,
     pub device: wgpu::Device,

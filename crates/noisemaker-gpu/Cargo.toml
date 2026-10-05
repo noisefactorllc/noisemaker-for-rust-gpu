@@ -21,3 +21,5 @@ wgpu.workspace = true
 pollster.workspace = true
 half.workspace = true
 png.workspace = true
+naga = { version = "30", features = ["wgsl-in"] }
+regex = "1"

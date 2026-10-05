@@ -1,0 +1,6 @@
+{
+  "scenarios": [
+    { "generate": "conversions", "enums": "host" },
+    { "generate": "conversions", "enums": "none" }
+  ]
+}

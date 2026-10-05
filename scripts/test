@@ -13,7 +13,13 @@
 //     (parity/programs, parity/corpus, parity/coverage) equal to the reference's;
 //   - the DSL tooling gate (parity/check_dsl_tools.mjs --rust-frontend):
 //     unparse, formatValue, parameter updates, transforms, error formatting and
-//     effect-definition validation equal to the reference's.
+//     effect-definition validation equal to the reference's;
+//   - the ProgramState gate (parity/check_program_state.mjs): the host state
+//     layer's results, events, console output and pipeline effects equal to the
+//     reference's over every fixture and the reference's own scenarios;
+//   - the external-input gates: MIDI state, audio state and automation
+//     evaluation (parity/check_midi_state.mjs, check_audio_state.mjs,
+//     check_automation.mjs) bit-identical to the reference's.
 // The pixel parity sweep needs a GPU and Chromium with WebGPU; it is
 // scripts/parity-summary.
 //
@@ -71,8 +77,8 @@ const cargo = findCargo()
 // ---- gates ---------------------------------------------------------------------------
 run('node', ['parity/check_effects.mjs'], { env })
 run('node', ['tools/generate-coverage.mjs', '--check'], { env })
-run(cargo, ['test', '--release', '-p', 'noisemaker-effects', '-p', 'noisemaker-dsl'], { env })
-run(cargo, ['build', '--release', '-p', 'nm-render', '-p', 'noisemaker-dsl', '--bins'], { env })
+run(cargo, ['test', '--release', '-p', 'noisemaker-effects', '-p', 'noisemaker-dsl', '-p', 'noisemaker-input'], { env })
+run(cargo, ['build', '--release', '-p', 'nm-render', '-p', 'noisemaker-dsl', '-p', 'noisemaker-input', '--bins'], { env })
 const programs = ['programs', 'corpus', 'coverage'].flatMap(dir =>
   readdirSync(join(ROOT, 'parity', dir)).filter(f => f.endsWith('.dsl')).sort().map(f => join(ROOT, 'parity', dir, f)))
 run('node', ['parity/check_frontend.mjs', '--programs', ...programs], {
@@ -81,4 +87,12 @@ run('node', ['parity/check_frontend.mjs', '--programs', ...programs], {
 run('node', ['parity/check_dsl_tools.mjs', '--rust-frontend'], {
   env: { ...env, NM_DSL: join(ROOT, 'target', 'release', 'nm-dsl') }
 })
+run('node', ['parity/check_program_state.mjs'], {
+  env: { ...env, NM_PROGRAM_STATE: join(ROOT, 'target', 'release', 'nm-program-state') }
+})
+for (const gate of ['check_midi_state', 'check_audio_state', 'check_automation']) {
+  run('node', [`parity/${gate}.mjs`], {
+    env: { ...env, NM_INPUT_DUMP: join(ROOT, 'target', 'release', 'nm-input-dump') }
+  })
+}
 console.log('scripts/test: all checks passed')

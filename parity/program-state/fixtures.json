@@ -1,0 +1,5 @@
+{
+  "scenarios": [
+    { "generate": "fixtures", "dirs": ["parity/programs", "parity/corpus", "parity/coverage"] }
+  ]
+}

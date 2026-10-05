@@ -1,0 +1,4666 @@
+{
+ "scenarios": [
+  {
+   "name": "validate-float",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": "3.5"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": "abc"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": "  2e1x"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": true
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": false
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": null
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": [
+      4
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": [
+      1,
+      2
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": {}
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": {
+      "$js": "-0"
+     }
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": 1e+300
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": -1e+300
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": {
+      "$js": "NaN"
+     }
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": {
+      "$js": "Infinity"
+     }
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": {
+      "$js": "-Infinity"
+     }
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": "Infinity"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": "-0"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": "0x10"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": 0.5
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": {
+      "$js": "undefined"
+     }
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": ""
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": " 12 "
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": "1e-3"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": 42.25
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "getStepValues",
+     "stepKey": "step_0"
+    }
+   ]
+  },
+  {
+   "name": "validate-int",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": "7.9"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": "0x10"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": " -3"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": 1e+21
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": 5e-07
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": true
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": ""
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": null
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": [
+      12
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": {
+      "$js": "-0"
+     }
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": {
+      "$js": "NaN"
+     }
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": 250
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": "42abc"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": 99.99
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": -5
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "speed",
+     "value": "-0"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "speed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "speed",
+     "value": {
+      "$js": "-0"
+     }
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "speed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "speed",
+     "value": -1000000000.0
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "speed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "speed",
+     "value": "1e3"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "speed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "octaves",
+     "value": {
+      "$js": "undefined"
+     }
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "octaves"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "octaves",
+     "value": "3"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "octaves"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "octaves",
+     "value": 9
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "octaves"
+    },
+    {
+     "op": "toDsl"
+    }
+   ]
+  },
+  {
+   "name": "validate-boolean",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "wrap",
+     "value": 0
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "wrap"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "wrap",
+     "value": 1
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "wrap"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "wrap",
+     "value": ""
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "wrap"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "wrap",
+     "value": "false"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "wrap"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "wrap",
+     "value": null
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "wrap"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "wrap",
+     "value": []
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "wrap"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "wrap",
+     "value": {}
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "wrap"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "wrap",
+     "value": {
+      "$js": "NaN"
+     }
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "wrap"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "wrap",
+     "value": {
+      "$js": "undefined"
+     }
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "wrap"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "wrap",
+     "value": "0"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "wrap"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "wrap",
+     "value": {
+      "$js": "-0"
+     }
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "wrap"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "ridges",
+     "value": true
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "ridges"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "ridges",
+     "value": "yes"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "ridges"
+    },
+    {
+     "op": "toDsl"
+    }
+   ]
+  },
+  {
+   "name": "validate-vectors",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth\nmedia().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nmedia().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize",
+     "value": [
+      100,
+      "50"
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize",
+     "value": "x"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize",
+     "value": [
+      true,
+      null,
+      {
+       "$js": "-0"
+      },
+      "1e2"
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize",
+     "value": [
+      1
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize",
+     "value": [
+      1,
+      2,
+      3
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize",
+     "value": [
+      {
+       "$js": "NaN"
+      },
+      {
+       "$js": "Infinity"
+      }
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize",
+     "value": {}
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize",
+     "value": null
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "imageSize"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "getStepValues",
+     "stepKey": "step_0"
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth3d, render\nnoise3d(volumeSize: x16).renderLandscape3d().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth3d, render\nnoise3d(volumeSize: x16).renderLandscape3d().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "lightDirection",
+     "value": [
+      0.6,
+      "0.85",
+      0.6
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "lightDirection"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "lightDirection",
+     "value": [
+      -1,
+      2
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "lightDirection"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "lightDirection",
+     "value": "up"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "lightDirection"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "lightDirection",
+     "value": [
+      0,
+      0,
+      0,
+      1
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "lightDirection"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "lightDirection",
+     "value": [
+      {
+       "$js": "undefined"
+      },
+      "x",
+      "1.5"
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "lightDirection"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth\nremap(zoneCount: 1, zone0_count: 4, zone0_v1: #cc731973).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nremap(zoneCount: 1, zone0_count: 4, zone0_v1: #cc731973).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "zone0_v1",
+     "value": [
+      0.8000000780001997,
+      0.4500000195000499,
+      0.09999996099990016,
+      0.4500000195000499
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "zone0_v1"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "zone0_v1",
+     "value": [
+      0.25,
+      "0.5",
+      2,
+      {
+       "$js": "-0"
+      },
+      9
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "zone0_v1"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "zone0_v1",
+     "value": "#ff0000"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "zone0_v1"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "zone0_v1",
+     "value": [
+      1,
+      2
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "zone0_v1"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "getStepValues",
+     "stepKey": "step_0"
+    }
+   ]
+  },
+  {
+   "name": "validate-color",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth, classicNoisedeck\nnoise().lensDistortion(tint: #102030).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, classicNoisedeck\nnoise().lensDistortion(tint: #102030).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": [
+      0.1,
+      "0.2",
+      "x",
+      4
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "tint"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": "#ff8800"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "tint"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": "#fff"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "tint"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": "#"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "tint"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": "red"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "tint"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": 12345
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "tint"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": null
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "tint"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": [
+      "1",
+      "2",
+      "3"
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "tint"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": [
+      0.5
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "tint"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": "#GG0000"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "tint"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": "#ff880080"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "tint"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": "# ff"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "tint"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": [
+      {
+       "$js": "-0"
+      },
+      {
+       "$js": "NaN"
+      },
+      true
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "tint"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise().text(text: \"hi\", color: #ff0000).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().text(text: \"hi\", color: #ff0000).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "color",
+     "value": "notahex"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "color"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "color",
+     "value": "#00ff00"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "color"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "color",
+     "value": [
+      0,
+      0.5,
+      1
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "color"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "matteColor",
+     "value": "#abcdef"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "matteColor"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "matteColor",
+     "value": 7
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "matteColor"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "text",
+     "value": 5
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "text"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "text",
+     "value": "Hello\nthere"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "text"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "text",
+     "value": null
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "text"
+    },
+    {
+     "op": "toDsl"
+    }
+   ]
+  },
+  {
+   "name": "validate-member-enums-host",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise().channel(channel: channel.g).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().channel(channel: channel.g).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "channel.b"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "g"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "a"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "bogus"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": 2
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "color.rgb"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": ""
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "channel."
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": ".r"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "channel.r.value"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise().palette(index: solaris).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().palette(index: solaris).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "index",
+     "value": "solaris"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "index"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "index",
+     "value": "palette.afterimage"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "index"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "index",
+     "value": 3
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "index"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "index",
+     "value": "nothing"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "index"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "index",
+     "value": "palette"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "index"
+    },
+    {
+     "op": "toDsl"
+    }
+   ]
+  },
+  {
+   "name": "validate-member-enums-none",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise().channel(channel: channel.g).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().channel(channel: channel.g).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "channel.b"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "g"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "a"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "bogus"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": 2
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "color.rgb"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": ""
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "channel."
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": ".r"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "channel.r.value"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "toDsl"
+    }
+   ],
+   "host": {
+    "enums": "none"
+   }
+  },
+  {
+   "name": "validate-member-enums-empty",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise().channel(channel: channel.g).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().channel(channel: channel.g).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "channel.b"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "g"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "a"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "bogus"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": 2
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "color.rgb"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": ""
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "channel."
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": ".r"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "channel.r.value"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "toDsl"
+    }
+   ],
+   "host": {
+    "enums": "empty"
+   }
+  },
+  {
+   "name": "validate-member-enums-std",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise().channel(channel: channel.g).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().channel(channel: channel.g).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "channel.b"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "g"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "a"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "bogus"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": 2
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "color.rgb"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": ""
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "channel."
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": ".r"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "channel.r.value"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "channel"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise().palette(index: solaris).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().palette(index: solaris).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "index",
+     "value": "solaris"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "index"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "index",
+     "value": "palette.afterimage"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "index"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "index",
+     "value": 3
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_1",
+     "paramName": "index"
+    },
+    {
+     "op": "toDsl"
+    }
+   ],
+   "host": {
+    "enums": "std"
+   }
+  },
+  {
+   "name": "unknown-steps-and-params",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "notAParam",
+     "value": "raw"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "notAParam"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_9",
+     "paramName": "scaleX",
+     "value": "5"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_9",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "custom",
+     "paramName": "a",
+     "value": [
+      1,
+      2
+     ]
+    },
+    {
+     "op": "getValue",
+     "stepKey": "custom",
+     "paramName": "a"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_007",
+     "paramName": "scaleX",
+     "value": 33
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "toString",
+     "value": 3
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "toString"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "constructor"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "missing",
+     "paramName": "x"
+    },
+    {
+     "op": "getStepValues",
+     "stepKey": "missing"
+    },
+    {
+     "op": "getEffectDef",
+     "stepKey": "step_0"
+    },
+    {
+     "op": "getEffectDef",
+     "stepKey": "step_9"
+    },
+    {
+     "op": "getEffectDef",
+     "stepKey": "step_1"
+    },
+    {
+     "op": "stepCount"
+    },
+    {
+     "op": "getStepKeys"
+    },
+    {
+     "op": "getAllStepValues"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "serialize"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "getStepKeys"
+    },
+    {
+     "op": "getAllStepValues"
+    }
+   ]
+  },
+  {
+   "name": "automation-bindings",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth\nlet o = osc(oscKind.sine, 0, 10)\nnoise(scaleX: o, scaleY: osc(oscKind.tri, 5, 50), seed: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nlet o = osc(oscKind.sine, 0, 10)\nnoise(scaleX: o, scaleY: osc(oscKind.tri, 5, 50), seed: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleY"
+    },
+    {
+     "op": "getStructure"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": {
+      "_varRef": "o"
+     }
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": "30"
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX"
+    },
+    {
+     "op": "getStepValues",
+     "stepKey": "step_0"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleY",
+     "value": 40
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": {
+      "type": "Oscillator",
+      "min": 1,
+      "max": 9
+     }
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "seed"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "octaves",
+     "value": {
+      "_ast": {
+       "type": "Midi"
+      },
+      "value": 3
+     }
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "speed",
+     "value": {
+      "_varRef": "",
+      "value": 2
+     }
+    },
+    {
+     "op": "getValue",
+     "stepKey": "step_0",
+     "paramName": "speed"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "applyToPipeline"
+    },
+    {
+     "op": "serialize"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nlet o = osc(oscKind.sine, 0, 10)\nnoise(scaleX: o, scaleY: osc(oscKind.tri, 5, 50), seed: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "getAllStepValues"
+    }
+   ]
+  },
+  {
+   "name": "automation-midi-audio",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth\nlet m = midi(1, midiMode.velocity, 1, 8)\nnoise(octaves: m, seed: audio(audioBand.low, 1, 10), scaleX: midi(2)).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nlet m = midi(1, midiMode.velocity, 1, 8)\nnoise(octaves: m, seed: audio(audioBand.low, 1, 10), scaleX: midi(2)).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "getStructure"
+    },
+    {
+     "op": "getAllStepValues"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "octaves",
+     "value": {
+      "_varRef": "m"
+     }
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "octaves",
+     "value": 4
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "seed",
+     "value": 7
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "resetStep",
+     "stepKey": "step_0"
+    },
+    {
+     "op": "toDsl"
+    }
+   ]
+  },
+  {
+   "name": "define-recompile",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "type",
+     "value": 10
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "type",
+     "value": 0
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "type",
+     "value": "0"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "type",
+     "value": "2.9"
+    },
+    {
+     "op": "batch",
+     "ops": [
+      {
+       "op": "setValue",
+       "stepKey": "step_0",
+       "paramName": "type",
+       "value": 3
+      },
+      {
+       "op": "setValue",
+       "stepKey": "step_0",
+       "paramName": "loopOffset",
+       "value": 10
+      },
+      {
+       "op": "setValue",
+       "stepKey": "step_0",
+       "paramName": "octaves",
+       "value": 3
+      }
+     ]
+    },
+    {
+     "op": "setStepValues",
+     "stepKey": "step_0",
+     "values": {
+      "type": 4,
+      "loopOffset": 20
+     }
+    },
+    {
+     "op": "batch",
+     "ops": [
+      {
+       "op": "batch",
+       "ops": [
+        {
+         "op": "setValue",
+         "stepKey": "step_0",
+         "paramName": "type",
+         "value": 5
+        }
+       ]
+      },
+      {
+       "op": "setValue",
+       "stepKey": "step_0",
+       "paramName": "scaleY",
+       "value": 12
+      }
+     ]
+    },
+    {
+     "op": "batch",
+     "ops": [
+      {
+       "op": "setValue",
+       "stepKey": "step_0",
+       "paramName": "type",
+       "value": 6
+      }
+     ],
+     "throw": {
+      "name": "Error",
+      "message": "batch failed"
+     }
+    },
+    {
+     "op": "batch",
+     "ops": [
+      {
+       "op": "setValue",
+       "stepKey": "step_0",
+       "paramName": "loopOffset",
+       "value": 20
+      }
+     ]
+    },
+    {
+     "op": "resetStep",
+     "stepKey": "step_0"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "type",
+     "value": 10
+    },
+    {
+     "op": "toDsl"
+    }
+   ]
+  },
+  {
+   "name": "define-recompile-3d",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth3d, filter3d, render\nnoise3d(volumeSize: x16).render3d().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth3d, filter3d, render\nnoise3d(volumeSize: x16).render3d().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "ridges",
+     "value": true
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "ridges",
+     "value": 1
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "ridges",
+     "value": 0
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "octaves",
+     "value": 2
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "octaves",
+     "value": "2"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "colorMode",
+     "value": "rgb"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "invert",
+     "value": true
+    },
+    {
+     "op": "toDsl"
+    }
+   ]
+  },
+  {
+   "name": "batch-events",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise(scaleX: 20).blur(radiusX: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise(scaleX: 20).blur(radiusX: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "batch",
+     "ops": [
+      {
+       "op": "setValue",
+       "stepKey": "step_1",
+       "paramName": "radiusX",
+       "value": 3
+      },
+      {
+       "op": "setValue",
+       "stepKey": "step_0",
+       "paramName": "scaleX",
+       "value": 10
+      },
+      {
+       "op": "setValue",
+       "stepKey": "step_1",
+       "paramName": "radiusX",
+       "value": 4
+      },
+      {
+       "op": "setValue",
+       "stepKey": "step_1",
+       "paramName": "radiusY",
+       "value": 2
+      }
+     ]
+    },
+    {
+     "op": "batch",
+     "ops": []
+    },
+    {
+     "op": "batch",
+     "ops": [
+      {
+       "op": "getValue",
+       "stepKey": "step_0",
+       "paramName": "scaleX"
+      },
+      {
+       "op": "toDsl"
+      }
+     ]
+    },
+    {
+     "op": "setStepValues",
+     "stepKey": "step_1",
+     "values": null
+    },
+    {
+     "op": "setStepValues",
+     "stepKey": "step_1",
+     "values": "ab"
+    },
+    {
+     "op": "setStepValues",
+     "stepKey": "step_1",
+     "values": [
+      5,
+      6
+     ]
+    },
+    {
+     "op": "setStepValues",
+     "stepKey": "step_new",
+     "values": {
+      "x": 1
+     }
+    },
+    {
+     "op": "getAllStepValues"
+    },
+    {
+     "op": "batch",
+     "ops": [
+      {
+       "op": "setValue",
+       "stepKey": "step_0",
+       "paramName": "scaleX",
+       "value": 11
+      },
+      {
+       "op": "batch",
+       "ops": [
+        {
+         "op": "setValue",
+         "stepKey": "step_1",
+         "paramName": "radiusX",
+         "value": 9
+        }
+       ],
+       "throw": {
+        "name": "TypeError",
+        "message": "inner"
+       }
+      }
+     ]
+    },
+    {
+     "op": "getAllStepValues"
+    }
+   ]
+  },
+  {
+   "name": "reset-skip",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise(scaleX: 20).blur(radiusX: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise(scaleX: 20).blur(radiusX: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setSkip",
+     "stepKey": "step_1",
+     "skip": true
+    },
+    {
+     "op": "isSkipped",
+     "stepKey": "step_1"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "radiusX",
+     "value": 9
+    },
+    {
+     "op": "resetStep",
+     "stepKey": "step_1"
+    },
+    {
+     "op": "getStepValues",
+     "stepKey": "step_1"
+    },
+    {
+     "op": "isSkipped",
+     "stepKey": "step_1"
+    },
+    {
+     "op": "setSkip",
+     "stepKey": "step_1",
+     "skip": "yes"
+    },
+    {
+     "op": "isSkipped",
+     "stepKey": "step_1"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setSkip",
+     "stepKey": "step_1",
+     "skip": 0
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "resetStep",
+     "stepKey": "step_2"
+    },
+    {
+     "op": "resetStep",
+     "stepKey": "missing"
+    },
+    {
+     "op": "setSkip",
+     "stepKey": "missing",
+     "skip": true
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "_skip",
+     "value": true
+    },
+    {
+     "op": "isSkipped",
+     "stepKey": "step_1"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setSkip",
+     "stepKey": "step_1",
+     "skip": {
+      "$js": "undefined"
+     }
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise().blur(_skip: true).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().blur(_skip: true).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "isSkipped",
+     "stepKey": "step_1"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setSkip",
+     "stepKey": "step_1",
+     "skip": true
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().grade().blur().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "isSkipped",
+     "stepKey": "step_1"
+    },
+    {
+     "op": "isSkipped",
+     "stepKey": "step_2"
+    },
+    {
+     "op": "getAllStepValues"
+    }
+   ]
+  },
+  {
+   "name": "structure-preserve",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise(scaleX: 20).blur(radiusX: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise(scaleX: 20).blur(radiusX: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "radiusX",
+     "value": 7
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "_custom",
+     "value": {
+      "$js": "undefined"
+     }
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "_flag",
+     "value": 3
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "extra",
+     "value": {
+      "$js": "undefined"
+     }
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().grade().blur().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "getAllStepValues"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().grade().blur(radiusX: 2).blur().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "getAllStepValues"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_3",
+     "paramName": "radiusY",
+     "value": 11
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().blur().grade().blur().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "getAllStepValues"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise(scaleX: 33).blur(radiusX: 1).grade().blur().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "getAllStepValues"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise(scaleX: 33).blur(radiusX: 1).grade().blur().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": ""
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nnoise(.write(o0)"
+    },
+    {
+     "op": "getCompiled"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nnoise(octaves: osc(oscKind.sine, 1, 4)).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "octaves",
+     "value": 5
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nnoise(octaves: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "getAllStepValues"
+    },
+    {
+     "op": "wouldChangeStructure",
+     "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "wouldChangeStructure",
+     "dsl": "search synth\nnoise(.write(o0)"
+    },
+    {
+     "op": "wouldChangeStructure",
+     "dsl": ""
+    },
+    {
+     "op": "extractEffectsFromDsl",
+     "dsl": "search synth\nlet o = osc(oscKind.sine, 0, 10)\nnoise(scaleX: o, scaleY: osc(oscKind.tri, 5, 50), seed: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "extractEffectsFromDsl",
+     "dsl": "search synth\nnoise(.write(o0)"
+    },
+    {
+     "op": "extractEffectsFromDsl",
+     "dsl": "noise().write(o0)"
+    },
+    {
+     "op": "extractEffectsFromDsl",
+     "dsl": ""
+    },
+    {
+     "op": "extractEffectsFromDsl",
+     "dsl": "search synth, filter\nnoise().blur().write(o0)\nnoise(seed: 2).write(o1)\nrender(o0)"
+    }
+   ]
+  },
+  {
+   "name": "routing-2d",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise().write(o2).blur().write(o0)\nread(o2).write(o1)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().write(o2).blur().write(o0)\nread(o2).write(o1)\nrender(o0)"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setWriteTarget",
+     "planIndex": 0,
+     "target": "o3"
+    },
+    {
+     "op": "getWriteTarget",
+     "planIndex": 0
+    },
+    {
+     "op": "getWriteTarget",
+     "planIndex": "0"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setWriteStepTarget",
+     "stepIndex": 1,
+     "target": "o4"
+    },
+    {
+     "op": "getWriteStepTarget",
+     "stepIndex": 1
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setReadSource",
+     "stepIndex": 4,
+     "source": "o3"
+    },
+    {
+     "op": "getReadSource",
+     "stepIndex": 4
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setRenderTarget",
+     "target": "o1"
+    },
+    {
+     "op": "getRenderTarget"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setWriteTarget",
+     "planIndex": 1,
+     "target": "fbk"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setWriteTarget",
+     "planIndex": 7,
+     "target": "o5"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setWriteTarget",
+     "planIndex": "1",
+     "target": "o6"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setWriteTarget",
+     "planIndex": "length",
+     "target": "o6"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setWriteTarget",
+     "planIndex": {
+      "$js": "-0"
+     },
+     "target": "o7"
+    },
+    {
+     "op": "getWriteTarget",
+     "planIndex": 0
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "serialize"
+    },
+    {
+     "op": "setWriteTarget",
+     "planIndex": 0,
+     "target": 42
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setWriteTarget",
+     "planIndex": 0,
+     "target": null
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setWriteStepTarget",
+     "stepIndex": 1,
+     "target": [
+      "o"
+     ]
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "clearRoutingOverrides"
+    },
+    {
+     "op": "getRenderTarget"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setWriteTarget",
+     "planIndex": 0,
+     "target": "o3"
+    },
+    {
+     "op": "setWriteStepTarget",
+     "stepIndex": 1,
+     "target": "o4"
+    },
+    {
+     "op": "setReadSource",
+     "stepIndex": 4,
+     "source": "o3"
+    },
+    {
+     "op": "setRenderTarget",
+     "target": "o2"
+    },
+    {
+     "op": "serializeRoundTrip"
+    },
+    {
+     "op": "getWriteTarget",
+     "planIndex": 0
+    },
+    {
+     "op": "getWriteTarget",
+     "planIndex": "0"
+    },
+    {
+     "op": "getWriteStepTarget",
+     "stepIndex": 1
+    },
+    {
+     "op": "getWriteStepTarget",
+     "stepIndex": "1"
+    },
+    {
+     "op": "getRenderTarget"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setRenderTarget",
+     "target": ""
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setRenderTarget",
+     "target": 0
+    },
+    {
+     "op": "toDsl"
+    }
+   ]
+  },
+  {
+   "name": "routing-3d",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth3d, filter3d, render\nnoise3d(volumeSize: x16).write3d(vol0, geo0)\nread3d(vol0, geo0).render3d().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth3d, filter3d, render\nnoise3d(volumeSize: x16).write3d(vol0, geo0)\nread3d(vol0, geo0).render3d().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setRead3dVolume",
+     "stepIndex": 2,
+     "volume": "vol1"
+    },
+    {
+     "op": "setRead3dGeometry",
+     "stepIndex": 2,
+     "geometry": "geo1"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setWrite3dVolume",
+     "stepIndex": 1,
+     "volume": "vol1"
+    },
+    {
+     "op": "setWrite3dGeometry",
+     "stepIndex": 1,
+     "geometry": "geo1"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setRead3dVolume",
+     "stepIndex": 0,
+     "volume": "vol9"
+    },
+    {
+     "op": "setWrite3dGeometry",
+     "stepIndex": 2,
+     "geometry": 5
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "serialize"
+    },
+    {
+     "op": "serializeRoundTrip"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setRenderTarget",
+     "target": "o5"
+    },
+    {
+     "op": "toDsl"
+    }
+   ]
+  },
+  {
+   "name": "media-text",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setMediaInput",
+     "stepIndex": 0,
+     "metadata": {
+      "type": "image",
+      "textureId": "imageTex_step_0",
+      "dimensions": [
+       100,
+       50
+      ],
+      "filename": "a.png"
+     }
+    },
+    {
+     "op": "getMediaInput",
+     "stepIndex": 0
+    },
+    {
+     "op": "getMediaInput",
+     "stepIndex": "0"
+    },
+    {
+     "op": "getAllMediaInputs"
+    },
+    {
+     "op": "setMediaInput",
+     "stepIndex": "0",
+     "metadata": {
+      "type": "video"
+     }
+    },
+    {
+     "op": "setMediaInput",
+     "stepIndex": {
+      "$js": "-0"
+     },
+     "metadata": {
+      "type": "camera"
+     }
+    },
+    {
+     "op": "setMediaInput",
+     "stepIndex": {
+      "$js": "NaN"
+     },
+     "metadata": null
+    },
+    {
+     "op": "getMediaInput",
+     "stepIndex": {
+      "$js": "NaN"
+     }
+    },
+    {
+     "op": "getAllMediaInputs"
+    },
+    {
+     "op": "removeMediaInput",
+     "stepIndex": 0
+    },
+    {
+     "op": "removeMediaInput",
+     "stepIndex": 5
+    },
+    {
+     "op": "getAllMediaInputs"
+    },
+    {
+     "op": "setTextInput",
+     "stepIndex": 1,
+     "metadata": {
+      "text": "hello",
+      "font": "Nunito",
+      "size": 32,
+      "color": "#fff",
+      "dimensions": [
+       512,
+       512
+      ]
+     }
+    },
+    {
+     "op": "getTextInput",
+     "stepIndex": 1
+    },
+    {
+     "op": "setTextInput",
+     "stepIndex": 2,
+     "metadata": {
+      "$js": "undefined"
+     }
+    },
+    {
+     "op": "getAllTextInputs"
+    },
+    {
+     "op": "serialize"
+    },
+    {
+     "op": "serializeRoundTrip"
+    },
+    {
+     "op": "getMediaInput",
+     "stepIndex": 0
+    },
+    {
+     "op": "getMediaInput",
+     "stepIndex": "0"
+    },
+    {
+     "op": "getTextInput",
+     "stepIndex": 1
+    },
+    {
+     "op": "getTextInput",
+     "stepIndex": "1"
+    },
+    {
+     "op": "getAllMediaInputs"
+    },
+    {
+     "op": "getAllTextInputs"
+    },
+    {
+     "op": "removeTextInput",
+     "stepIndex": "1"
+    },
+    {
+     "op": "getAllTextInputs"
+    }
+   ]
+  },
+  {
+   "name": "deserialize-variants",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise(scaleX: 20).blur(radiusX: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise(scaleX: 20).blur(radiusX: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "radiusX",
+     "value": 6
+    },
+    {
+     "op": "deserialize",
+     "data": {
+      "version": 2,
+      "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)",
+      "stepStates": {
+       "step_0": {
+        "values": {
+         "scaleX": 33,
+         "extra": 1
+        }
+       },
+       "step_9": {
+        "values": {}
+       }
+      },
+      "overrides": {
+       "writeTargets": {
+        "0": "o2"
+       },
+       "readSources": "ab",
+       "renderTarget": ""
+      },
+      "mediaInputs": "ab",
+      "textInputs": null
+     }
+    },
+    {
+     "op": "getAllStepValues"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "deserialize",
+     "data": {}
+    },
+    {
+     "op": "deserialize",
+     "data": {
+      "version": 1,
+      "dsl": 42
+     }
+    },
+    {
+     "op": "getCompiled"
+    },
+    {
+     "op": "getStructure"
+    },
+    {
+     "op": "deserialize",
+     "data": {
+      "version": 1,
+      "dsl": "search synth, filter\nnoise(scaleX: 20).blur(radiusX: 3).write(o0)\nrender(o0)",
+      "stepStates": {
+       "step_0": {
+        "values": "xy"
+       },
+       "step_1": {
+        "values": null
+       }
+      }
+     }
+    },
+    {
+     "op": "getAllStepValues"
+    },
+    {
+     "op": "deserialize",
+     "data": {
+      "version": 1,
+      "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)",
+      "stepStates": {
+       "step_0": null
+      }
+     }
+    },
+    {
+     "op": "deserialize",
+     "data": null
+    },
+    {
+     "op": "deserialize",
+     "data": 5
+    },
+    {
+     "op": "deserialize",
+     "data": {
+      "version": "1",
+      "overrides": 5,
+      "stepStates": [
+       {
+        "values": {
+         "a": 1
+        }
+       }
+      ]
+     }
+    },
+    {
+     "op": "deserialize",
+     "data": {
+      "version": 1,
+      "dsl": [
+       "s",
+       "e",
+       "a",
+       "r",
+       "c",
+       "h",
+       " ",
+       "s",
+       "y",
+       "n",
+       "t",
+       "h",
+       "\n",
+       "n",
+       "o",
+       "i",
+       "s",
+       "e",
+       "(",
+       "s",
+       "c",
+       "a",
+       "l",
+       "e",
+       "X",
+       ":",
+       " ",
+       "2",
+       "0",
+       ")",
+       ".",
+       "w",
+       "r",
+       "i",
+       "t",
+       "e",
+       "(",
+       "o",
+       "0",
+       ")",
+       "\n",
+       "r",
+       "e",
+       "n",
+       "d",
+       "e",
+       "r",
+       "(",
+       "o",
+       "0",
+       ")"
+      ]
+     }
+    },
+    {
+     "op": "getCompiled"
+    },
+    {
+     "op": "getStructure"
+    },
+    {
+     "op": "deserialize",
+     "data": {
+      "version": 1,
+      "dsl": [
+       "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+      ]
+     }
+    },
+    {
+     "op": "getCompiled"
+    },
+    {
+     "op": "deserialize",
+     "data": {
+      "version": 1,
+      "dsl": {
+       "length": 3
+      }
+     }
+    },
+    {
+     "op": "getCompiled"
+    },
+    {
+     "op": "deserialize",
+     "data": {
+      "version": 1,
+      "dsl": true
+     }
+    },
+    {
+     "op": "getCompiled"
+    },
+    {
+     "op": "serialize"
+    }
+   ]
+  },
+  {
+   "name": "insert-delete",
+   "ops": [
+    {
+     "op": "insertStep",
+     "afterStepIndex": 0,
+     "effectId": "filter/blur"
+    },
+    {
+     "op": "deleteStep",
+     "stepIndex": 0
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise().blur().write(o0)\nnoise(seed: 2).grade().bloom().write(o1)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().blur().write(o0)\nnoise(seed: 2).grade().bloom().write(o1)\nrender(o0)"
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": 0,
+     "effectId": "synth/noise"
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": 99,
+     "effectId": "filter/blur"
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": {
+      "$js": "NaN"
+     },
+     "effectId": "filter/blur"
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": -1,
+     "effectId": "filter/grade"
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": 2,
+     "effectId": "filter/vignette"
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": 4,
+     "effectId": "classicNoisedeck/kaleido"
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": 1,
+     "effectId": "blur"
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": 1,
+     "effectId": "filter/notAnEffect"
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": 1,
+     "effectId": "/blur"
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": 1,
+     "effectId": "filter.grade"
+    },
+    {
+     "op": "deleteStep",
+     "stepIndex": 99
+    },
+    {
+     "op": "deleteStep",
+     "stepIndex": 1
+    },
+    {
+     "op": "deleteStep",
+     "stepIndex": 0
+    },
+    {
+     "op": "deleteStep",
+     "stepIndex": 4
+    },
+    {
+     "op": "deleteStep",
+     "stepIndex": 3
+    },
+    {
+     "op": "deleteStep",
+     "stepIndex": {
+      "$js": "NaN"
+     }
+    },
+    {
+     "op": "deleteStep",
+     "stepIndex": -1
+    },
+    {
+     "op": "getStructure"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise().blur().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().blur().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "deleteStep",
+     "stepIndex": 1
+    },
+    {
+     "op": "getStructure"
+    },
+    {
+     "op": "host.load",
+     "dsl": "search  synth ,filter , classicNoisedeck   \nnoise().blur().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search  synth ,filter , classicNoisedeck   \nnoise().blur().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": 0,
+     "effectId": "classicNoisedeck/kaleido"
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": 0,
+     "effectId": "filter/grade"
+    },
+    {
+     "op": "host.load",
+     "dsl": "// comment\nsearch synth, filter // trailing\nnoise().blur().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "// comment\nsearch synth, filter // trailing\nnoise().blur().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": 0,
+     "effectId": "filter/grade"
+    },
+    {
+     "op": "deleteStep",
+     "stepIndex": 1
+    },
+    {
+     "op": "host.setDsl",
+     "dsl": "search synth\nnoise(.write(o0)"
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": 0,
+     "effectId": "filter/grade"
+    },
+    {
+     "op": "deleteStep",
+     "stepIndex": 0
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth, synth3d, render\nheightmap3d(heightTex: noise(scaleX: 90), tex: solid()).renderLandscape3d().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, synth3d, render\nheightmap3d(heightTex: noise(scaleX: 90), tex: solid()).renderLandscape3d().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "getStructure"
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": 2,
+     "effectId": "filter/blur"
+    },
+    {
+     "op": "deleteStep",
+     "stepIndex": 0
+    },
+    {
+     "op": "deleteStep",
+     "stepIndex": 2
+    },
+    {
+     "op": "toDsl"
+    }
+   ]
+  },
+  {
+   "name": "listeners",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise(scaleX: 20).blur(radiusX: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise(scaleX: 20).blur(radiusX: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "defineListener",
+     "id": "rec",
+     "actions": [
+      {
+       "do": "record"
+      }
+     ]
+    },
+    {
+     "op": "defineListener",
+     "id": "thrower",
+     "actions": [
+      {
+       "do": "record"
+      },
+      {
+       "do": "throw",
+       "name": "Error",
+       "message": "listener boom"
+      }
+     ]
+    },
+    {
+     "op": "defineListener",
+     "id": "typeThrower",
+     "actions": [
+      {
+       "do": "throw",
+       "name": "TypeError",
+       "message": "bad type"
+      }
+     ]
+    },
+    {
+     "op": "on",
+     "event": "change",
+     "id": "thrower"
+    },
+    {
+     "op": "on",
+     "event": "change",
+     "id": "rec"
+    },
+    {
+     "op": "on",
+     "event": "change",
+     "id": "rec"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": 30
+    },
+    {
+     "op": "off",
+     "event": "change",
+     "id": "thrower"
+    },
+    {
+     "op": "on",
+     "event": "change",
+     "id": "typeThrower"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": 31
+    },
+    {
+     "op": "off",
+     "event": "change",
+     "id": "typeThrower"
+    },
+    {
+     "op": "off",
+     "event": "change",
+     "id": "rec"
+    },
+    {
+     "op": "defineListener",
+     "id": "late",
+     "actions": [
+      {
+       "do": "record"
+      }
+     ]
+    },
+    {
+     "op": "defineListener",
+     "id": "adder",
+     "actions": [
+      {
+       "do": "record"
+      },
+      {
+       "do": "on",
+       "event": "change",
+       "id": "late"
+      }
+     ]
+    },
+    {
+     "op": "defineListener",
+     "id": "victim",
+     "actions": [
+      {
+       "do": "record"
+      }
+     ]
+    },
+    {
+     "op": "defineListener",
+     "id": "remover",
+     "actions": [
+      {
+       "do": "record"
+      },
+      {
+       "do": "off",
+       "event": "change",
+       "id": "victim"
+      }
+     ]
+    },
+    {
+     "op": "on",
+     "event": "change",
+     "id": "adder"
+    },
+    {
+     "op": "on",
+     "event": "change",
+     "id": "remover"
+    },
+    {
+     "op": "on",
+     "event": "change",
+     "id": "victim"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": 32
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": 33
+    },
+    {
+     "op": "off",
+     "event": "change",
+     "id": "adder"
+    },
+    {
+     "op": "off",
+     "event": "change",
+     "id": "remover"
+    },
+    {
+     "op": "off",
+     "event": "change",
+     "id": "late"
+    },
+    {
+     "op": "defineListener",
+     "id": "onceCb",
+     "actions": [
+      {
+       "do": "record"
+      }
+     ]
+    },
+    {
+     "op": "once",
+     "event": "change",
+     "id": "onceCb"
+    },
+    {
+     "op": "off",
+     "event": "change",
+     "id": "onceCb"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": 34
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": 35
+    },
+    {
+     "op": "defineListener",
+     "id": "reenter",
+     "actions": [
+      {
+       "do": "record"
+      },
+      {
+       "do": "off",
+       "event": "change",
+       "id": "reenter"
+      },
+      {
+       "do": "op",
+       "op": {
+        "op": "setValue",
+        "stepKey": "step_1",
+        "paramName": "radiusX",
+        "value": 8
+       }
+      },
+      {
+       "do": "op",
+       "op": {
+        "op": "toDsl"
+       }
+      },
+      {
+       "do": "op",
+       "op": {
+        "op": "setValue",
+        "stepKey": "step_0",
+        "paramName": "scaleX",
+        "value": {
+         "$js": "-0"
+        }
+       }
+      }
+     ]
+    },
+    {
+     "op": "on",
+     "event": "change",
+     "id": "reenter"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": 36
+    },
+    {
+     "op": "defineListener",
+     "id": "onRecompile",
+     "actions": [
+      {
+       "do": "record"
+      },
+      {
+       "do": "op",
+       "op": {
+        "op": "toDsl"
+       }
+      },
+      {
+       "do": "op",
+       "op": {
+        "op": "getAllStepValues"
+       }
+      }
+     ]
+    },
+    {
+     "op": "on",
+     "event": "recompileNeeded",
+     "id": "onRecompile"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "type",
+     "value": 2
+    },
+    {
+     "op": "defineListener",
+     "id": "batcher",
+     "actions": [
+      {
+       "do": "record"
+      },
+      {
+       "do": "off",
+       "event": "stepchange",
+       "id": "batcher"
+      },
+      {
+       "do": "op",
+       "op": {
+        "op": "batch",
+        "ops": [
+         {
+          "op": "setValue",
+          "stepKey": "step_1",
+          "paramName": "radiusY",
+          "value": 4
+         },
+         {
+          "op": "setValue",
+          "stepKey": "step_0",
+          "paramName": "type",
+          "value": 3
+         }
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "op": "on",
+     "event": "stepchange",
+     "id": "batcher"
+    },
+    {
+     "op": "setStepValues",
+     "stepKey": "step_0",
+     "values": {
+      "scaleY": 22,
+      "type": 4
+     }
+    },
+    {
+     "op": "defineListener",
+     "id": "failingOp",
+     "actions": [
+      {
+       "do": "off",
+       "event": "reset",
+       "id": "failingOp"
+      },
+      {
+       "do": "op",
+       "op": {
+        "op": "deserialize",
+        "data": null
+       },
+       "rethrow": true
+      }
+     ]
+    },
+    {
+     "op": "on",
+     "event": "reset",
+     "id": "failingOp"
+    },
+    {
+     "op": "resetStep",
+     "stepKey": "step_1"
+    },
+    {
+     "op": "defineListener",
+     "id": "clearer",
+     "actions": [
+      {
+       "do": "record"
+      },
+      {
+       "do": "removeAllListeners",
+       "event": "load"
+      },
+      {
+       "do": "on",
+       "event": "load",
+       "id": "rec"
+      }
+     ]
+    },
+    {
+     "op": "on",
+     "event": "load",
+     "id": "clearer"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise(scaleX: 20).blur(radiusX: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise(scaleX: 20).blur(radiusX: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "emit",
+     "event": "custom",
+     "data": {
+      "a": 1
+     }
+    },
+    {
+     "op": "on",
+     "event": "custom",
+     "id": "rec"
+    },
+    {
+     "op": "emit",
+     "event": "custom",
+     "data": [
+      1,
+      {
+       "$js": "undefined"
+      }
+     ]
+    },
+    {
+     "op": "emit",
+     "event": "custom"
+    },
+    {
+     "op": "removeAllListeners",
+     "event": "custom"
+    },
+    {
+     "op": "emit",
+     "event": "custom",
+     "data": 1
+    },
+    {
+     "op": "removeAllListeners",
+     "event": ""
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": 40
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth\nnoise(scaleX: 20).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "on",
+     "event": "change",
+     "id": "rec"
+    },
+    {
+     "op": "setWriteTarget",
+     "planIndex": 0,
+     "target": "o1"
+    },
+    {
+     "op": "setMediaInput",
+     "stepIndex": 0,
+     "metadata": {
+      "type": "image"
+     }
+    },
+    {
+     "op": "removeAllListeners"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": 41
+    }
+   ]
+  },
+  {
+   "name": "no-renderer",
+   "ops": [
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "deleteStep",
+     "stepIndex": 0
+    },
+    {
+     "op": "insertStep",
+     "afterStepIndex": 0,
+     "effectId": "filter/blur"
+    },
+    {
+     "op": "serialize"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise(scaleX: 20).blur(radiusX: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": 3
+    },
+    {
+     "op": "applyToPipeline"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise(scaleX: 20).blur(radiusX: 3).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setRenderer",
+     "renderer": true
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "applyToPipeline"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": 4
+    },
+    {
+     "op": "setRenderer",
+     "renderer": false
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "scaleX",
+     "value": 5
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setRenderer",
+     "renderer": true
+    },
+    {
+     "op": "applyToPipeline"
+    },
+    {
+     "op": "serialize"
+    }
+   ],
+   "host": {
+    "renderer": false
+   }
+  },
+  {
+   "name": "convert-passthrough",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise().channel(channel: channel.g).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().channel(channel: channel.g).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "g"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "channel.b"
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth, classicNoisedeck\nnoise().lensDistortion(tint: #102030).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, classicNoisedeck\nnoise().lensDistortion(tint: #102030).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": "#ff0000"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": [
+      1,
+      "0.5",
+      0
+     ]
+    },
+    {
+     "op": "toDsl"
+    }
+   ],
+   "host": {
+    "convert": "passthrough"
+   }
+  },
+  {
+   "name": "convert-absent",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise().channel(channel: channel.g).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().channel(channel: channel.g).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "g"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "channel",
+     "value": "channel.b"
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth, classicNoisedeck\nnoise().lensDistortion(tint: #102030).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, classicNoisedeck\nnoise().lensDistortion(tint: #102030).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": "#ff0000"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "tint",
+     "value": [
+      1,
+      "0.5",
+      0
+     ]
+    },
+    {
+     "op": "toDsl"
+    }
+   ],
+   "host": {
+    "convert": "absent",
+    "enums": "none"
+   }
+  },
+  {
+   "name": "missing-pipeline-members",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth3d, filter3d, render\nnoise3d(volumeSize: x32).flow3d().render3d().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth3d, filter3d, render\nnoise3d(volumeSize: x32).flow3d().render3d().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "volumeSize",
+     "value": 128
+    },
+    {
+     "op": "getAllStepValues"
+    },
+    {
+     "op": "host.setMethods",
+     "methods": [
+      "broadcastChainScopedParam",
+      "recreateTextures"
+     ]
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth3d, filter3d, render\nnoise3d(volumeSize: x32).flow3d().render3d().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "volumeSize",
+     "value": 64
+    },
+    {
+     "op": "host.setMethods",
+     "methods": [
+      "broadcastChainScopedParam",
+      "collectDefaultUniforms",
+      "checkAsyncRegen"
+     ]
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth3d, filter3d, render\nnoise3d(volumeSize: x32).flow3d().render3d().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "volumeSize",
+     "value": 16
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth, render\nsolid().pointsEmit(stateSize: x64).write(o1)\nrender(o1)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, render\nsolid().pointsEmit(stateSize: x64).write(o1)\nrender(o1)"
+    },
+    {
+     "op": "host.setMethods",
+     "methods": [
+      "setUniform"
+     ]
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth, render\nsolid().pointsEmit(stateSize: x64).write(o1)\nrender(o1)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "stateSize",
+     "value": 128
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "stateSize",
+     "value": {
+      "type": "Oscillator"
+     }
+    },
+    {
+     "op": "host.clearPipeline"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "stateSize",
+     "value": 256
+    },
+    {
+     "op": "applyToPipeline"
+    },
+    {
+     "op": "host.loadGraph",
+     "dsl": "search synth\nnoise().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "applyToPipeline"
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth\nnoise(.write(o0)"
+    },
+    {
+     "op": "applyToPipeline"
+    },
+    {
+     "op": "toDsl"
+    }
+   ],
+   "host": {
+    "methods": []
+   }
+  },
+  {
+   "name": "enums-host-formatting",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise(colorMode: mono).palette(index: solaris).channel(channel: channel.b).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise(colorMode: mono).palette(index: solaris).channel(channel: channel.b).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "host.setEnums",
+     "enums": "none"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "host.setEnums",
+     "enums": "empty"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "host.setEnums",
+     "enums": "std"
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_2",
+     "paramName": "channel",
+     "value": "a"
+    },
+    {
+     "op": "toDsl"
+    }
+   ]
+  },
+  {
+   "name": "palette-expansion",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search classicNoisedeck, synth, filter\ncellNoise(colorMode: palette, palette: barstow).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search classicNoisedeck, synth, filter\ncellNoise(colorMode: palette, palette: barstow).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "palette",
+     "value": 12
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "palette",
+     "value": 0
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "palette",
+     "value": 56
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "palette",
+     "value": "4"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "palette",
+     "value": [
+      3
+     ]
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "palette",
+     "value": "darkSatin"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "palette",
+     "value": true
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "palette",
+     "value": 1.5
+    },
+    {
+     "op": "getAllStepValues"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "palette",
+     "value": {
+      "$js": "NaN"
+     }
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "palette",
+     "value": null
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "palette",
+     "value": 7
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "paletteOffset",
+     "value": [
+      0.1,
+      0.2,
+      0.3
+     ]
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_0",
+     "paramName": "smooth",
+     "value": 50
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "host.load",
+     "dsl": "search classicNoisedeck, synth, filter\ncellNoise(palette: none).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search classicNoisedeck, synth, filter\ncellNoise(palette: none).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "host.load",
+     "dsl": "search classicNoisedeck, synth, filter\ncellNoise(colorMode: palette, palette: darkSatin).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search classicNoisedeck, synth, filter\ncellNoise(colorMode: palette, palette: darkSatin).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "resetStep",
+     "stepKey": "step_0"
+    }
+   ]
+  },
+  {
+   "name": "uniform-aliases-and-renames",
+   "ops": [
+    {
+     "op": "host.load",
+     "dsl": "search points, synth, render\nnoise().pointsEmit().pointsRender().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search points, synth, render\nnoise().pointsEmit().pointsRender().write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "layout",
+     "value": 4
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "layout",
+     "value": "grid"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "resetState",
+     "value": true
+    },
+    {
+     "op": "toDsl"
+    },
+    {
+     "op": "host.load",
+     "dsl": "search synth, filter\nnoise().text(matteColor: #102030).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "fromDsl",
+     "dsl": "search synth, filter\nnoise().text(matteColor: #102030).write(o0)\nrender(o0)"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "matteColor",
+     "value": "#ffffff"
+    },
+    {
+     "op": "setValue",
+     "stepKey": "step_1",
+     "paramName": "matteOpacity",
+     "value": 0.5
+    }
+   ]
+  }
+ ]
+}

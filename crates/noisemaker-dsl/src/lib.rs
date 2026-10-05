@@ -12,13 +12,14 @@
 pub mod compiler;
 pub mod diagnostics;
 pub mod effect_validator;
-pub mod error_formatter;
 pub mod error;
+pub mod error_formatter;
 pub mod expander;
 pub mod js;
 pub mod lexer;
 pub mod palette;
 pub mod parser;
+pub mod program_state;
 pub mod registry;
 pub mod resources;
 pub mod transform;

@@ -107,7 +107,9 @@ impl Object {
     pub fn define_hidden(&mut self, key: impl Into<String>, value: Value) {
         let key = key.into();
         self.map.shift_remove(&key);
-        self.hidden.get_or_insert_with(Default::default).insert(key, value);
+        self.hidden
+            .get_or_insert_with(Default::default)
+            .insert(key, value);
     }
 
     /// `true` when `key` is a non-enumerable member.
@@ -591,7 +593,9 @@ mod json_parse {
                             }
                         }
                     }
-                    Some(_) => return Err(self.error("control character found while parsing a string")),
+                    Some(_) => {
+                        return Err(self.error("control character found while parsing a string"));
+                    }
                 }
             }
         }
@@ -858,7 +862,10 @@ mod tests {
         assert_eq!(o.keys().cloned().collect::<Vec<_>>(), ["a", "b"]);
         o.insert("meta", Value::from("y"));
         assert!(o.is_hidden("meta"));
-        assert_eq!(Value::Object(o.clone()).to_json().unwrap(), r#"{"a":1,"b":2}"#);
+        assert_eq!(
+            Value::Object(o.clone()).to_json().unwrap(),
+            r#"{"a":1,"b":2}"#
+        );
         let mut copy = Object::new();
         copy.assign(&o);
         assert!(!copy.contains_key("meta"));
@@ -897,17 +904,52 @@ mod tests {
     #[test]
     fn json_parse_semantics() {
         // Correctly rounded 17-digit decimals (255ths of hex colors).
-        for text in ["0.9372549019607843", "0.42745098039215684", "0.047058823529411764"] {
+        for text in [
+            "0.9372549019607843",
+            "0.42745098039215684",
+            "0.047058823529411764",
+        ] {
             let v = Value::from_json(text).unwrap();
-            assert_eq!(v.as_f64().unwrap().to_bits(), text.parse::<f64>().unwrap().to_bits());
+            assert_eq!(
+                v.as_f64().unwrap().to_bits(),
+                text.parse::<f64>().unwrap().to_bits()
+            );
             assert_eq!(v.to_json().unwrap(), text);
         }
-        assert!(Value::from_json("-0").unwrap().as_f64().unwrap().is_sign_negative());
-        assert_eq!(Value::from_json("1e400").unwrap().as_f64(), Some(f64::INFINITY));
-        let v = Value::from_json(r#" {"b":1,"a":[true,false,null,"x\u00e9\ud83d\ude00\n"],"b":2} "#).unwrap();
-        assert_eq!(v.to_json().unwrap(), r#"{"b":2,"a":[true,false,null,"xé😀\n"]}"#);
-        assert_eq!(Value::from_json(r#""\ud800""#).unwrap(), Value::from("\u{FFFD}"));
-        for bad in ["", "01", "1.", "-", "[1,]", "{\"a\" 1}", "tru", "\"\u{1}\"", "[1] 2", "{,}"] {
+        assert!(
+            Value::from_json("-0")
+                .unwrap()
+                .as_f64()
+                .unwrap()
+                .is_sign_negative()
+        );
+        assert_eq!(
+            Value::from_json("1e400").unwrap().as_f64(),
+            Some(f64::INFINITY)
+        );
+        let v =
+            Value::from_json(r#" {"b":1,"a":[true,false,null,"x\u00e9\ud83d\ude00\n"],"b":2} "#)
+                .unwrap();
+        assert_eq!(
+            v.to_json().unwrap(),
+            r#"{"b":2,"a":[true,false,null,"xé😀\n"]}"#
+        );
+        assert_eq!(
+            Value::from_json(r#""\ud800""#).unwrap(),
+            Value::from("\u{FFFD}")
+        );
+        for bad in [
+            "",
+            "01",
+            "1.",
+            "-",
+            "[1,]",
+            "{\"a\" 1}",
+            "tru",
+            "\"\u{1}\"",
+            "[1] 2",
+            "{,}",
+        ] {
             assert!(Value::from_json(bad).is_err(), "{bad:?} must not parse");
         }
     }

@@ -1,0 +1,23 @@
+search synth
+
+noise(octaves: audio(low)).write(o0)
+noise(octaves: audio(audioBand.raw, 0.2, 0.8)).write(o1)
+noise(octaves: audio(5)).write(o2)
+noise(octaves: audio(bogus)).write(o3)
+noise(octaves: audio("low")).write(o4)
+noise(octaves: audio(vol, channel: 2, name: "Mic")).write(o5)
+noise(octaves: audio(vol, channel: 40, name: "Mic")).write(o6)
+noise(octaves: audio(vol, channel: "x", name: "Mic")).write(o7)
+noise(octaves: audio(vol, channel: foo, name: "Mic")).write(o0)
+noise(octaves: audio(vol, min: oscKind.saw)).write(o1)
+noise(octaves: audio(vol, min: osc(type: tri))).write(o2)
+noise(octaves: audio(high, channel: 1.5, name: "a", id: "b")).write(o3)
+noise(octaves: audio(mid, min: true, max: "x")).write(o4)
+noise(octaves: audio(band: audioBand.vol, min: midi(channel: 1))).write(o5)
+noise(octaves: audio(band: midi(channel: 1))).write(o6)
+noise(octaves: audio(2.5)).write(o7)
+noise(octaves: audio(raw, channel: 32, name: "In\tput")).write(o0)
+noise(octaves: audio(raw, channel: 0, name: "x")).write(o1)
+noise(octaves: audio(raw, channel: #fff, name: "x")).write(o2)
+
+render(o0)

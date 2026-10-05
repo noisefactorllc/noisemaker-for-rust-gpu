@@ -1,0 +1,84 @@
+#!/usr/bin/env node
+// scripts/test — repository test entrypoint.
+//
+// Runs every check that needs no GPU, against the pinned reference revision
+// (parity/reference.json):
+//   - the catalog freshness gate (parity/check_effects.mjs): definitions, WGSL,
+//     manifest, meshes and palettes byte-identical to the reference;
+//   - the coverage corpus freshness gate (tools/generate-coverage.mjs --check);
+//   - the Rust unit and integration tests of the GPU-free crates
+//     (noisemaker-effects, noisemaker-dsl);
+//   - the frontend parity gate (parity/check_frontend.mjs): tokens, AST,
+//     validated plans, expanded passes and the render graph of every fixture
+//     (parity/programs, parity/corpus, parity/coverage) equal to the reference's;
+//   - the DSL tooling gate (parity/check_dsl_tools.mjs --rust-frontend):
+//     unparse, formatValue, parameter updates, transforms, error formatting and
+//     effect-definition validation equal to the reference's.
+// The pixel parity sweep needs a GPU and Chromium with WebGPU; it is
+// scripts/parity-summary.
+//
+// Environment: NM_REFERENCE_ROOT (a reference checkout at the pin; cloned into
+// $TMPDIR when unset), NM_TEST_REFERENCE (reuse a checkout that contains the pin).
+// Exits nonzero on any failure.
+
+import { spawnSync } from 'node:child_process'
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs'
+import { homedir, tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const ROOT = resolve(fileURLToPath(import.meta.url), '..', '..')
+const PIN = JSON.parse(readFileSync(join(ROOT, 'parity', 'reference.json'), 'utf8')).commit
+
+function run (cmd, args, opts = {}) {
+  const r = spawnSync(cmd, args, { stdio: 'inherit', cwd: ROOT, ...opts })
+  if (r.status !== 0) {
+    console.error(`FAIL: ${cmd} ${args.join(' ')} (exit ${r.status ?? r.signal})`)
+    process.exit(1)
+  }
+}
+
+// ---- reference checkout at the pin -------------------------------------------------
+let referenceRoot = process.env.NM_REFERENCE_ROOT
+if (!referenceRoot) {
+  referenceRoot = process.env.NM_TEST_REFERENCE || join(tmpdir(), `noisemaker-reference-${PIN.slice(0, 12)}`)
+  if (!existsSync(join(referenceRoot, 'shaders', 'src'))) {
+    rmSync(referenceRoot, { recursive: true, force: true })
+    mkdirSync(referenceRoot, { recursive: true })
+    run('git', ['clone', '--quiet', 'https://github.com/noisefactorllc/noisemaker.git', referenceRoot])
+  }
+  const head = spawnSync('git', ['-C', referenceRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout.trim()
+  if (head !== PIN) {
+    run('git', ['-C', referenceRoot, 'fetch', '--quiet', 'origin'])
+    run('git', ['-C', referenceRoot, 'checkout', '--quiet', PIN])
+  }
+}
+console.log(`reference checkout: ${referenceRoot}`)
+const env = { ...process.env, NM_REFERENCE_ROOT: referenceRoot }
+
+// ---- Rust toolchain ----------------------------------------------------------------
+function findCargo () {
+  const onPath = spawnSync('cargo', ['--version'], { encoding: 'utf8' })
+  if (onPath.status === 0) return 'cargo'
+  const home = join(process.env.CARGO_HOME || join(homedir(), '.cargo'), 'bin', 'cargo')
+  if (existsSync(home)) return home
+  console.log('installing the Rust toolchain with rustup (minimal profile)')
+  run('sh', ['-c', "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path --profile minimal"])
+  return home
+}
+const cargo = findCargo()
+
+// ---- gates ---------------------------------------------------------------------------
+run('node', ['parity/check_effects.mjs'], { env })
+run('node', ['tools/generate-coverage.mjs', '--check'], { env })
+run(cargo, ['test', '--release', '-p', 'noisemaker-effects', '-p', 'noisemaker-dsl'], { env })
+run(cargo, ['build', '--release', '-p', 'nm-render', '-p', 'noisemaker-dsl', '--bins'], { env })
+const programs = ['programs', 'corpus', 'coverage'].flatMap(dir =>
+  readdirSync(join(ROOT, 'parity', dir)).filter(f => f.endsWith('.dsl')).sort().map(f => join(ROOT, 'parity', dir, f)))
+run('node', ['parity/check_frontend.mjs', '--programs', ...programs], {
+  env: { ...env, NM_RENDER: join(ROOT, 'target', 'release', 'nm-render') }
+})
+run('node', ['parity/check_dsl_tools.mjs', '--rust-frontend'], {
+  env: { ...env, NM_DSL: join(ROOT, 'target', 'release', 'nm-dsl') }
+})
+console.log('scripts/test: all checks passed')

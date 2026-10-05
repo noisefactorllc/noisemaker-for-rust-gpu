@@ -1,0 +1,21 @@
+search synth, filter, classicNoisedeck
+
+solid(color: #ff8800).write(o0)
+solid(color: #f80).write(o1)
+solid(color: #ff880080).write(o2)
+solid(color: 5).write(o3)
+solid(color: red).write(o4)
+solid(color: "red").write(o5)
+solid(color: [1, 0, 0]).write(o6)
+solid(color: [1, time, () => 1, #fff]).write(o7)
+cellNoise(paletteOffset: vec3(0.1, 0.2, 0.3)).write(o0)
+cellNoise(paletteOffset: vec3(0.1, time, "x")).write(o1)
+cellNoise(paletteOffset: vec3(1, 2)).write(o2)
+cellNoise(paletteOffset: #102030, paletteAmp: [0.25]).write(o3)
+cellNoise(paletteOffset: 7, paletteAmp: bogus).write(o4)
+cellNoise(paletteOffset: "x").write(o5)
+media(imageSize: 5).write(o6)
+media(imageSize: [640, 480]).write(o7)
+cellNoise(paletteFreq: []).write(o0)
+
+render(o0)

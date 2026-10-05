@@ -1,0 +1,20 @@
+search synth, filter, mixer
+
+blur().write(o0)
+noise().noise(seed: 2).write(o1)
+noise()
+noise().blur()
+blur().noise().write(o2)
+read(o0).blur().write(o3)
+noise().read(o1).write(o4)
+read().write(o5)
+read(tex: o0, _skip: true).write(o6)
+noise().write(o7).blur().write(o0)
+read(xyz0).write(xyz1)
+read(time).write(o1)
+read(bogus).write(o2)
+read3d(vol0, geo0).read3d(vol1, geo1).write3d(vol2, geo2)
+read3d(1, 2).write3d(vol3, geo3)
+solid().solid().blur().write(none)
+
+render(o0)

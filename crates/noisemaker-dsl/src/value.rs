@@ -115,6 +115,12 @@ impl Object {
         self.hidden.as_ref().is_some_and(|h| h.contains_key(key))
     }
 
+    /// The non-enumerable members, in definition order
+    /// (`Object.getOwnPropertyNames` minus `Object.keys`).
+    pub fn hidden_members(&self) -> impl Iterator<Item = (&String, &Value)> {
+        self.hidden.iter().flat_map(|h| h.iter())
+    }
+
     /// `obj[key] = value`, keeping JavaScript property order: an existing key keeps
     /// its position, a new array-index key is placed among the other index keys in
     /// ascending order, and a new string key is appended.

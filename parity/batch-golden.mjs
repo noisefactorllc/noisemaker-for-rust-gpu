@@ -367,6 +367,15 @@ async function mintOne (page, opts, dslPath, dsl, expectedPassCount, programName
   return { hostTextures, reset }
 }
 
+// A fixture the reference cannot render (for example a texture size the WebGPU
+// backend rejects) leaves its graph in the page, and the next fixture's resize
+// would fail on it. Load a known-good program so the next fixture starts from a
+// working pipeline; if that fails too, the caller restarts the session.
+const RECOVERY_DSL = 'search synth\nsolid().write(o0)\nrender(o0)'
+async function recoverPage (page) {
+  await runDsl(page, RECOVERY_DSL, 2)
+}
+
 // ---- session ---------------------------------------------------------------
 
 async function withSession (opts, fn) {
@@ -442,19 +451,23 @@ async function main () {
   const failed = new Map()
   const total = dslPaths.length
   const t0All = Date.now()
-  for (let round = 0; round < 2 && (round === 0 || failed.size > 0); round++) {
-    if (round > 0) process.stderr.write(`[batch-golden] repair round: retrying ${failed.size} fixture(s) in fresh sessions\n`)
-    failed.clear()
+  // Round 0 mints everything; the repair round retries every fixture not minted
+  // yet (failed fixtures and fixtures of an aborted session) in fresh sessions.
+  for (let round = 0; round < 2; round++) {
+    const pending = dslPaths.filter(p => !minted.has(p))
+    if (!pending.length) break
+    const attempted = new Set()
+    if (round > 0) process.stderr.write(`[batch-golden] repair round: retrying ${pending.length} fixture(s) in fresh sessions\n`)
     for (let start = 0; start < dslPaths.length; start += opts.chunkSize) {
       const chunk = dslPaths.slice(start, start + opts.chunkSize).filter(p => !minted.has(p))
       if (!chunk.length) continue
       let attempt = 0
       for (;;) {
-        let consecutiveFailures = 0
         try {
           await withSession(opts, async (session, page) => {
             for (const dslPath of chunk) {
-              if (minted.has(dslPath)) continue
+              if (minted.has(dslPath) || attempted.has(dslPath)) continue
+              attempted.add(dslPath)
               const programName = basename(dslPath).replace(/\.dsl$/, '')
               const t0 = Date.now()
               try {
@@ -471,12 +484,13 @@ async function main () {
                   (notes.length ? ` [console: ${notes.join(' | ').slice(0, 400)}]` : '') + '\n')
                 minted.add(dslPath)
                 failed.delete(dslPath)
-                consecutiveFailures = 0
               } catch (err) {
                 const msg = err?.message || String(err)
                 process.stderr.write(`[batch-golden] ${programName}: FAILED after ${Date.now() - t0}ms: ${msg.slice(0, 600)}\n`)
                 failed.set(dslPath, msg)
-                if (/Target (page|closed)|Target crashed|has been closed/i.test(msg) || ++consecutiveFailures >= 3) throw err
+                if (/Target (page|closed)|Target crashed|has been closed/i.test(msg)) throw err
+                // A failed recovery means the page is unusable: restart the session.
+                await recoverPage(page)
               }
             }
           })
@@ -487,6 +501,9 @@ async function main () {
         }
       }
     }
+  }
+  for (const p of dslPaths) {
+    if (!minted.has(p) && !failed.has(p)) failed.set(p, 'not minted (session aborted)')
   }
   process.stderr.write(`[batch-golden] minted=${minted.size} failed=${failed.size} total=${total} (${((Date.now() - t0All) / 1000).toFixed(1)}s)\n`)
   if (failed.size) process.stderr.write(`[batch-golden] FAILED: ${[...failed.keys()].map(p => basename(p, '.dsl')).join(' ')}\n`)

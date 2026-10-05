@@ -100,8 +100,24 @@ function encodePng (width, height, rgba) {
 // same format by a textureLoad render pass. Every capture runs inside a WebGPU
 // validation error scope, so a failed copy fails the capture instead of
 // reading back zeros.
+//
+// The pixels leave the page as a binary upload: the page POSTs the readback's
+// bytes to /__nm_capture/<token>, which installCaptureRoute() intercepts and
+// keeps as a Buffer. Images never travel as text.
+const captureUploads = new Map()
+let captureCounter = 0
+
+async function installCaptureRoute (page) {
+  await page.route('**/__nm_capture/*', async (route) => {
+    const token = route.request().url().split('/__nm_capture/')[1]
+    captureUploads.set(token, route.request().postDataBuffer())
+    await route.fulfill({ status: 204 })
+  })
+}
+
 async function capture (page, textureId = null) {
-  const result = await page.evaluate(async ({ textureId }) => {
+  const token = String(++captureCounter)
+  const result = await page.evaluate(async ({ textureId, token }) => {
     const p = window.__noisemakerRenderingPipeline
     const backend = p?.backend
     if (!backend) return { error: 'no pipeline backend' }
@@ -170,15 +186,21 @@ async function capture (page, textureId = null) {
       if (temp) temp.destroy()
       if (err) return { error: `validation error while capturing ${id}: ${err.message}` }
     }
-    let binary = ''
-    const chunk = 0x8000
-    for (let i = 0; i < px.data.length; i += chunk) {
-      binary += String.fromCharCode.apply(null, px.data.subarray(i, i + chunk))
-    }
-    return { width: px.width, height: px.height, b64: btoa(binary) }
-  }, { textureId })
+    const upload = await fetch(`/__nm_capture/${token}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/octet-stream' },
+      body: new Blob([px.data])
+    })
+    if (upload.status !== 204) return { error: `capture upload failed (${upload.status})` }
+    return { width: px.width, height: px.height }
+  }, { textureId, token })
   if (result.error) throw new Error(`readback failed: ${result.error}`)
-  return encodePng(result.width, result.height, Buffer.from(result.b64, 'base64'))
+  const pixels = captureUploads.get(token)
+  captureUploads.delete(token)
+  if (!pixels || pixels.length !== result.width * result.height * 4) {
+    throw new Error(`readback failed: received ${pixels ? pixels.length : 0} bytes for ${result.width}x${result.height}`)
+  }
+  return encodePng(result.width, result.height, pixels)
 }
 
 // The graph the page rendered: Maps as objects, functions dropped, program
@@ -451,6 +473,7 @@ async function withSession (opts, fn) {
   await session.setup()
   try {
     const page = session.page
+    await installCaptureRoute(page)
     await session.setBackend('webgpu')
     await page.setViewportSize({ width: opts.size, height: opts.size })
     await page.waitForFunction(() => !!document.getElementById('dsl-editor') && !!document.getElementById('dsl-run-btn'),

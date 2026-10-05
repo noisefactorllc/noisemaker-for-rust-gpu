@@ -1,0 +1,3 @@
+search synth, classicNoisedeck
+noise(seed: 1, scaleX: 50, scaleY: 50).effects(effect: edge).write(o0)
+render(o0)

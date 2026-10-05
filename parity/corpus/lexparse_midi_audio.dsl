@@ -1,0 +1,18 @@
+search synth
+
+let m1 = midi(1)
+let m2 = midi(channel: 2)
+let m3 = midi(3, midiMode.cc, 0, 1, 2)
+let m4 = midi(4, name: "Launch Control", id: "port-1")
+let m5 = midi(zone: midiZone.lower, members: 2)
+let m6 = midi(5, midiMode.cc, cc: 7)
+let m7 = midi(6, midiMode.nrpn, nrpn: 3)
+let m8 = midi(mode: midiMode.gateNote, 7, 0.5)
+let m9 = midi(name: "Port", channel: 9, sensitivity: 3)
+let a1 = audio(audioBand.low)
+let a2 = audio(band: audioBand.mid, min: 0.1)
+let a3 = audio(audioBand.raw, 0, 1, channel: 2, name: "Mic", id: "dev")
+let a4 = audio(min: 0.5, audioBand.high)
+let a5 = audio(audioBand.vol, max: 2)
+noise(octaves: midi(1, midiMode.velocity, 1, 8), seed: audio(audioBand.low, 1, 10)).write(o0)
+render(o0)

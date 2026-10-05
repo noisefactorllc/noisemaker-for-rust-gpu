@@ -19,9 +19,16 @@ use serde::de::{self, Deserialize, Deserializer, MapAccess, SeqAccess, Visitor};
 use serde::ser::{Serialize, SerializeMap, SerializeSeq, Serializer};
 
 /// An ordered object with JavaScript property-order semantics.
+///
+/// Members are enumerable unless defined with [`Object::define_hidden`], which
+/// models `Object.defineProperty(obj, key, {value, writable: true, enumerable:
+/// false})`: a hidden member reads, writes and answers `in` like any member but is
+/// left out of `Object.keys`/`entries`, spreads ([`Object::assign`]) and
+/// serialization.
 #[derive(Clone, Default, PartialEq)]
 pub struct Object {
     map: IndexMap<String, Value>,
+    hidden: Option<Box<IndexMap<String, Value>>>,
 }
 
 /// A JavaScript-like dynamic value.
@@ -73,21 +80,39 @@ impl Object {
     /// The member value, or `None` when the key is absent (an absent key reads as
     /// `undefined` in JavaScript; see [`Object::get_or_undefined`]).
     pub fn get(&self, key: &str) -> Option<&Value> {
-        self.map.get(key)
+        self.map
+            .get(key)
+            .or_else(|| self.hidden.as_ref().and_then(|h| h.get(key)))
     }
 
     pub fn get_mut(&mut self, key: &str) -> Option<&mut Value> {
-        self.map.get_mut(key)
+        if self.map.contains_key(key) {
+            return self.map.get_mut(key);
+        }
+        self.hidden.as_mut().and_then(|h| h.get_mut(key))
     }
 
     /// `obj[key]` in JavaScript: absent keys read as `undefined`.
     pub fn get_or_undefined(&self, key: &str) -> &Value {
-        self.map.get(key).unwrap_or(&UNDEFINED)
+        self.get(key).unwrap_or(&UNDEFINED)
     }
 
     /// `key in obj`.
     pub fn contains_key(&self, key: &str) -> bool {
-        self.map.contains_key(key)
+        self.map.contains_key(key) || self.hidden.as_ref().is_some_and(|h| h.contains_key(key))
+    }
+
+    /// `Object.defineProperty(obj, key, {value, writable: true, enumerable: false})`:
+    /// define (or redefine) `key` as a non-enumerable member.
+    pub fn define_hidden(&mut self, key: impl Into<String>, value: Value) {
+        let key = key.into();
+        self.map.shift_remove(&key);
+        self.hidden.get_or_insert_with(Default::default).insert(key, value);
+    }
+
+    /// `true` when `key` is a non-enumerable member.
+    pub fn is_hidden(&self, key: &str) -> bool {
+        self.hidden.as_ref().is_some_and(|h| h.contains_key(key))
     }
 
     /// `obj[key] = value`, keeping JavaScript property order: an existing key keeps
@@ -96,6 +121,9 @@ impl Object {
     pub fn insert(&mut self, key: impl Into<String>, value: Value) -> Option<Value> {
         let key = key.into();
         if let Some(slot) = self.map.get_mut(&key) {
+            return Some(std::mem::replace(slot, value));
+        }
+        if let Some(slot) = self.hidden.as_mut().and_then(|h| h.get_mut(&key)) {
             return Some(std::mem::replace(slot, value));
         }
         if is_array_index(&key) {
@@ -114,7 +142,9 @@ impl Object {
 
     /// `delete obj[key]`, preserving the order of the remaining members.
     pub fn remove(&mut self, key: &str) -> Option<Value> {
-        self.map.shift_remove(key)
+        self.map
+            .shift_remove(key)
+            .or_else(|| self.hidden.as_mut().and_then(|h| h.shift_remove(key)))
     }
 
     /// Members in JavaScript property order (`Object.entries`).
@@ -344,9 +374,275 @@ impl Value {
         Some(serde_json::to_string_pretty(self).expect("Value serialization cannot fail"))
     }
 
-    /// `JSON.parse(text)`.
+    /// `JSON.parse(text)`. Numbers are correctly rounded, as `JSON.parse` rounds
+    /// them (serde_json's default float parsing can be one unit in the last place
+    /// off for 17-digit decimals such as `0.9372549019607843`).
     pub fn from_json(text: &str) -> Result<Value, serde_json::Error> {
-        serde_json::from_str(text)
+        json_parse::parse(text).map_err(<serde_json::Error as de::Error>::custom)
+    }
+}
+
+// --- JSON.parse ----------------------------------------------------------------
+
+/// A JSON text parser with `JSON.parse` semantics: correctly rounded numbers
+/// (`-0` stays negative zero), later duplicate keys overwrite earlier ones in
+/// place, and lone surrogate escapes (which a Rust string cannot hold) become
+/// U+FFFD.
+mod json_parse {
+    use super::{Object, Value};
+
+    /// Nesting limit (guards the recursive descent against stack exhaustion).
+    const MAX_DEPTH: usize = 1024;
+
+    struct Parser<'a> {
+        text: &'a str,
+        bytes: &'a [u8],
+        pos: usize,
+        depth: usize,
+    }
+
+    pub(super) fn parse(text: &str) -> Result<Value, String> {
+        let mut p = Parser {
+            text,
+            bytes: text.as_bytes(),
+            pos: 0,
+            depth: 0,
+        };
+        p.skip_ws();
+        let value = p.value()?;
+        p.skip_ws();
+        if p.pos != p.bytes.len() {
+            return Err(p.error("trailing characters"));
+        }
+        Ok(value)
+    }
+
+    impl Parser<'_> {
+        fn error(&self, msg: &str) -> String {
+            let consumed = &self.text[..self.pos];
+            let line = consumed.matches('\n').count() + 1;
+            let column = consumed.len() - consumed.rfind('\n').map_or(0, |i| i + 1) + 1;
+            format!("{msg} at line {line} column {column}")
+        }
+
+        fn peek(&self) -> Option<u8> {
+            self.bytes.get(self.pos).copied()
+        }
+
+        fn skip_ws(&mut self) {
+            while let Some(b' ' | b'\t' | b'\n' | b'\r') = self.peek() {
+                self.pos += 1;
+            }
+        }
+
+        fn expect(&mut self, byte: u8, msg: &str) -> Result<(), String> {
+            if self.peek() == Some(byte) {
+                self.pos += 1;
+                Ok(())
+            } else {
+                Err(self.error(msg))
+            }
+        }
+
+        fn value(&mut self) -> Result<Value, String> {
+            match self.peek() {
+                None => Err(self.error("EOF while parsing a value")),
+                Some(b'{') => self.nested(Self::object),
+                Some(b'[') => self.nested(Self::array),
+                Some(b'"') => Ok(Value::String(self.string()?)),
+                Some(b't') => self.literal("true", Value::Bool(true)),
+                Some(b'f') => self.literal("false", Value::Bool(false)),
+                Some(b'n') => self.literal("null", Value::Null),
+                Some(b'-' | b'0'..=b'9') => self.number(),
+                Some(_) => Err(self.error("expected value")),
+            }
+        }
+
+        fn nested(&mut self, f: fn(&mut Self) -> Result<Value, String>) -> Result<Value, String> {
+            if self.depth >= MAX_DEPTH {
+                return Err(self.error("recursion limit exceeded"));
+            }
+            self.depth += 1;
+            let result = f(self);
+            self.depth -= 1;
+            result
+        }
+
+        fn literal(&mut self, word: &str, value: Value) -> Result<Value, String> {
+            if self.text[self.pos..].starts_with(word) {
+                self.pos += word.len();
+                Ok(value)
+            } else {
+                Err(self.error("expected value"))
+            }
+        }
+
+        fn digits(&mut self) -> usize {
+            let start = self.pos;
+            while let Some(b'0'..=b'9') = self.peek() {
+                self.pos += 1;
+            }
+            self.pos - start
+        }
+
+        fn number(&mut self) -> Result<Value, String> {
+            let start = self.pos;
+            if self.peek() == Some(b'-') {
+                self.pos += 1;
+            }
+            match self.peek() {
+                Some(b'0') => self.pos += 1,
+                Some(b'1'..=b'9') => {
+                    self.digits();
+                }
+                _ => return Err(self.error("invalid number")),
+            }
+            if self.peek() == Some(b'.') {
+                self.pos += 1;
+                if self.digits() == 0 {
+                    return Err(self.error("invalid number"));
+                }
+            }
+            if let Some(b'e' | b'E') = self.peek() {
+                self.pos += 1;
+                if let Some(b'+' | b'-') = self.peek() {
+                    self.pos += 1;
+                }
+                if self.digits() == 0 {
+                    return Err(self.error("invalid number"));
+                }
+            }
+            // Rust's decimal-to-double conversion is correctly rounded.
+            self.text[start..self.pos]
+                .parse::<f64>()
+                .map(Value::Number)
+                .map_err(|_| self.error("invalid number"))
+        }
+
+        fn hex4(&mut self) -> Result<u32, String> {
+            let hex = self
+                .text
+                .get(self.pos..self.pos + 4)
+                .filter(|h| h.bytes().all(|b| b.is_ascii_hexdigit()))
+                .ok_or_else(|| self.error("invalid escape"))?;
+            self.pos += 4;
+            Ok(u32::from_str_radix(hex, 16).expect("four hex digits"))
+        }
+
+        fn string(&mut self) -> Result<String, String> {
+            self.pos += 1; // the opening quote
+            let mut out = String::new();
+            loop {
+                let run = self.pos;
+                while let Some(b) = self.peek() {
+                    if b == b'"' || b == b'\\' || b < 0x20 {
+                        break;
+                    }
+                    self.pos += 1;
+                }
+                out.push_str(&self.text[run..self.pos]);
+                match self.peek() {
+                    None => return Err(self.error("EOF while parsing a string")),
+                    Some(b'"') => {
+                        self.pos += 1;
+                        return Ok(out);
+                    }
+                    Some(b'\\') => {
+                        self.pos += 1;
+                        let escape = self.peek();
+                        self.pos += 1;
+                        match escape {
+                            Some(b'"') => out.push('"'),
+                            Some(b'\\') => out.push('\\'),
+                            Some(b'/') => out.push('/'),
+                            Some(b'b') => out.push('\u{8}'),
+                            Some(b'f') => out.push('\u{c}'),
+                            Some(b'n') => out.push('\n'),
+                            Some(b'r') => out.push('\r'),
+                            Some(b't') => out.push('\t'),
+                            Some(b'u') => {
+                                let unit = self.hex4()?;
+                                if (0xD800..0xDC00).contains(&unit)
+                                    && self.text[self.pos..].starts_with("\\u")
+                                {
+                                    let save = self.pos;
+                                    self.pos += 2;
+                                    let low = self.hex4()?;
+                                    if (0xDC00..0xE000).contains(&low) {
+                                        let c = 0x10000 + ((unit - 0xD800) << 10) + (low - 0xDC00);
+                                        out.push(char::from_u32(c).expect("valid surrogate pair"));
+                                    } else {
+                                        out.push('\u{FFFD}');
+                                        self.pos = save;
+                                    }
+                                } else {
+                                    out.push(char::from_u32(unit).unwrap_or('\u{FFFD}'));
+                                }
+                            }
+                            _ => {
+                                self.pos -= 1;
+                                return Err(self.error("invalid escape"));
+                            }
+                        }
+                    }
+                    Some(_) => return Err(self.error("control character found while parsing a string")),
+                }
+            }
+        }
+
+        fn array(&mut self) -> Result<Value, String> {
+            self.pos += 1; // [
+            let mut out = Vec::new();
+            self.skip_ws();
+            if self.peek() == Some(b']') {
+                self.pos += 1;
+                return Ok(Value::Array(out));
+            }
+            loop {
+                self.skip_ws();
+                out.push(self.value()?);
+                self.skip_ws();
+                match self.peek() {
+                    Some(b',') => self.pos += 1,
+                    Some(b']') => {
+                        self.pos += 1;
+                        return Ok(Value::Array(out));
+                    }
+                    _ => return Err(self.error("expected `,` or `]`")),
+                }
+            }
+        }
+
+        fn object(&mut self) -> Result<Value, String> {
+            self.pos += 1; // {
+            let mut out = Object::new();
+            self.skip_ws();
+            if self.peek() == Some(b'}') {
+                self.pos += 1;
+                return Ok(Value::Object(out));
+            }
+            loop {
+                self.skip_ws();
+                if self.peek() != Some(b'"') {
+                    return Err(self.error("key must be a string"));
+                }
+                let key = self.string()?;
+                self.skip_ws();
+                self.expect(b':', "expected `:`")?;
+                self.skip_ws();
+                let value = self.value()?;
+                out.insert(key, value);
+                self.skip_ws();
+                match self.peek() {
+                    Some(b',') => self.pos += 1,
+                    Some(b'}') => {
+                        self.pos += 1;
+                        return Ok(Value::Object(out));
+                    }
+                    _ => return Err(self.error("expected `,` or `}`")),
+                }
+            }
+        }
     }
 }
 
@@ -546,6 +842,23 @@ mod tests {
     use super::*;
 
     #[test]
+    fn hidden_members() {
+        let mut o = Object::new();
+        o.insert("a", Value::from(1.0));
+        o.define_hidden("meta", Value::from("x"));
+        o.insert("b", Value::from(2.0));
+        assert!(o.contains_key("meta"));
+        assert_eq!(o.get("meta").and_then(Value::as_str), Some("x"));
+        assert_eq!(o.keys().cloned().collect::<Vec<_>>(), ["a", "b"]);
+        o.insert("meta", Value::from("y"));
+        assert!(o.is_hidden("meta"));
+        assert_eq!(Value::Object(o.clone()).to_json().unwrap(), r#"{"a":1,"b":2}"#);
+        let mut copy = Object::new();
+        copy.assign(&o);
+        assert!(!copy.contains_key("meta"));
+    }
+
+    #[test]
     fn index_keys_order_first() {
         let mut o = Object::new();
         o.insert("b", Value::Null);
@@ -573,6 +886,24 @@ mod tests {
             Value::Object(o).to_json().unwrap(),
             r#"{"n":1,"f":0.5,"inf":null,"arr":[null,0]}"#
         );
+    }
+
+    #[test]
+    fn json_parse_semantics() {
+        // Correctly rounded 17-digit decimals (255ths of hex colors).
+        for text in ["0.9372549019607843", "0.42745098039215684", "0.047058823529411764"] {
+            let v = Value::from_json(text).unwrap();
+            assert_eq!(v.as_f64().unwrap().to_bits(), text.parse::<f64>().unwrap().to_bits());
+            assert_eq!(v.to_json().unwrap(), text);
+        }
+        assert!(Value::from_json("-0").unwrap().as_f64().unwrap().is_sign_negative());
+        assert_eq!(Value::from_json("1e400").unwrap().as_f64(), Some(f64::INFINITY));
+        let v = Value::from_json(r#" {"b":1,"a":[true,false,null,"x\u00e9\ud83d\ude00\n"],"b":2} "#).unwrap();
+        assert_eq!(v.to_json().unwrap(), r#"{"b":2,"a":[true,false,null,"xé😀\n"]}"#);
+        assert_eq!(Value::from_json(r#""\ud800""#).unwrap(), Value::from("\u{FFFD}"));
+        for bad in ["", "01", "1.", "-", "[1,]", "{\"a\" 1}", "tru", "\"\u{1}\"", "[1] 2", "{,}"] {
+            assert!(Value::from_json(bad).is_err(), "{bad:?} must not parse");
+        }
     }
 
     #[test]

@@ -80,7 +80,7 @@ pub fn run_stage(stage: Stage, src: &str, registry: &Registry) -> Result<Value, 
     if stage == Stage::Tokens {
         return Ok(lexer::tokens_to_value(&tokens));
     }
-    let ast = parser::parse(&tokens)?;
+    let ast = parser::parse_with_registry(&tokens, registry)?;
     if stage == Stage::Ast {
         return Ok(ast);
     }

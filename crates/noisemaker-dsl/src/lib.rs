@@ -15,6 +15,7 @@ pub mod error;
 pub mod expander;
 pub mod js;
 pub mod lexer;
+pub mod palette;
 pub mod parser;
 pub mod registry;
 pub mod resources;

@@ -66,8 +66,49 @@ TIMED = {
 }
 
 # Per-case tolerances beyond the strict bar. Every entry must name the observed
-# mechanism; entries are added only with evidence from this backend.
-NEAR_POLICIES = {}
+# mechanism; entries are added only with evidence from this backend. NEAR is
+# outside the published contract: scripts/parity-summary still fails on it.
+#
+# Evidence for every entry below (Apple M4, Metal): substituting the Metal code
+# Chromium's Tint generates for the failing pass, compiled with Dawn's
+# MTLCompileOptions, renders each case byte-identical to its golden. wgpu-hal
+# compiles every Metal library with preserveInvariance on and fast math; Dawn
+# compiles with relaxed math and enables invariance only for @invariant
+# shaders. Without invariance Metal orders fused multiply-adds and sum
+# groupings by program order, with it by expression depth, so the two engines
+# round the same WGSL differently. Neither option is reachable through wgpu's
+# public API.
+_INVARIANCE_FMA = ("Metal FMA grouping differs under wgpu-hal's preserveInvariance "
+                   "(Dawn compiles without it); exact once the pass compiles without invariance")
+_LANDSCAPE_FMA = ("ray-origin z fused as fma(fma(up.z, ty, right.z * tx), span, a) under "
+                  "preserveInvariance vs fma(fma(right.z, tx, up.z * ty), span, a) in Dawn")
+_VERTEX_INVARIANCE = ("vertex-stage preserveInvariance changes the warped coordinate's rounding; "
+                      "exact once only the vertex stage compiles without invariance")
+_NEWTON_BASINS = ("Newton-iteration basin boundaries amplify single-ulp differences between "
+                  "naga's and Tint's Metal code under different math modes into root flips on "
+                  "isolated pixels; needs both Tint's code and Dawn's compile options to match")
+
+NEAR_POLICIES = {
+    "craquelure": {"tolerance": 3.001, "ssim_min": 0.99998, "mechanism": _INVARIANCE_FMA},
+    "craquelureBig": {"tolerance": 4.001, "ssim_min": 0.99998, "mechanism": _INVARIANCE_FMA},
+    "filter_craquelure": {"tolerance": 3.001, "ssim_min": 0.99998, "mechanism": _INVARIANCE_FMA},
+    "heightmap3d_landscape": {"tolerance": 3.001, "ssim_min": 0.99999, "mechanism": _LANDSCAPE_FMA},
+    "render_renderLandscape3d": {"tolerance": 3.001, "ssim_min": 0.99999, "mechanism": _LANDSCAPE_FMA},
+    "synth3d_heightmap3d": {"tolerance": 3.001, "ssim_min": 0.99999, "mechanism": _LANDSCAPE_FMA},
+    "synth3d_heightmap3d__volumeSize_x128": {"tolerance": 3.001, "ssim_min": 0.99999, "mechanism": _LANDSCAPE_FMA},
+    "classicNoisedeck_fractal__type_newton": {"tolerance": 65.001, "ssim_min": 0.99994, "mechanism": _INVARIANCE_FMA},
+    "filter_wormhole": {"tolerance": 189.001, "ssim_min": 0.9998, "mechanism": _VERTEX_INVARIANCE},
+    "filter_wormhole__wrap_mirror": {"tolerance": 173.001, "ssim_min": 0.99985, "mechanism": _VERTEX_INVARIANCE},
+    "newton": {"tolerance": 246.001, "ssim_min": 0.998, "mechanism": _NEWTON_BASINS},
+    "synth_newton": {"tolerance": 246.001, "ssim_min": 0.998, "mechanism": _NEWTON_BASINS},
+    "synth_newton__invert_true": {"tolerance": 247.001, "ssim_min": 0.998, "mechanism": _NEWTON_BASINS},
+    "synth_newton__outputMode_iteration": {"tolerance": 204.001, "ssim_min": 0.9978, "mechanism": _NEWTON_BASINS},
+    "synth_newton__outputMode_rootIndex": {"tolerance": 212.001, "ssim_min": 0.998, "mechanism": _NEWTON_BASINS},
+    "synth_newton__poi_octoFlower8": {"tolerance": 252.001, "ssim_min": 0.9968, "mechanism": _NEWTON_BASINS},
+    "synth_newton__poi_pentaSpiral5": {"tolerance": 213.001, "ssim_min": 0.9985, "mechanism": _NEWTON_BASINS},
+    "synth_newton__poi_spiralJunction3": {"tolerance": 89.001, "ssim_min": 0.99996, "mechanism": _NEWTON_BASINS},
+    "synth_newton__poi_starCenter5": {"tolerance": 207.001, "ssim_min": 0.9988, "mechanism": _NEWTON_BASINS},
+}
 
 
 def discover(ids):

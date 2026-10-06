@@ -22,7 +22,7 @@ use crate::automation::{
     AudioInputRequirements, AutomationContext, ExternalState, SharedAudioState, SharedMidiState,
     audio_input_requirements, is_automation_value, resolve_uniform_value,
 };
-use crate::backend::{Capabilities, FrameState, PixelData, WebGpuBackend};
+use crate::backend::{Capabilities, FrameState, PixelData, TextureSnapshot, WebGpuBackend};
 use crate::diagnostics::{DiagnosticCollector, codes};
 use crate::error::RenderError;
 use crate::graph::{Graph, pass};
@@ -197,6 +197,36 @@ pub struct Pipeline {
     viewport_cache: HashMap<usize, ViewportCache>,
     /// The texture id presented by the last frame.
     pub last_presented: Option<String>,
+    /// A diagnostic probe of the next frames: see [`PassProbe`].
+    pub pass_probe: Option<PassProbe>,
+}
+
+/// A diagnostic probe: after every executed pass (each repeat iteration
+/// counts) the listed textures are copied in the frame's command encoder, so
+/// each snapshot holds exactly what the passes before it wrote. An id names a
+/// global surface (`xyz_node_1` or `global_xyz_node_1`: the surface's current
+/// frame read texture, which a pass that wrote it has just made current) or
+/// a backend texture. `parity/batch-golden.mjs --dump-passes` takes the same
+/// snapshots in the reference page.
+#[derive(Default)]
+pub struct PassProbe {
+    /// The texture or surface ids to snapshot.
+    pub ids: Vec<String>,
+    /// The snapshots taken, in order.
+    pub snapshots: Vec<PassSnapshot>,
+}
+
+/// One snapshot of a [`PassProbe`].
+pub struct PassSnapshot {
+    /// The executed-pass ordinal within its frame (0-based).
+    pub ordinal: usize,
+    /// The pass id.
+    pub pass_id: String,
+    /// The requested id.
+    pub id: String,
+    /// The backend texture it resolved to.
+    pub texture_id: String,
+    pub snapshot: TextureSnapshot,
 }
 
 const SURFACE_USAGE: &str = r#"["render","sample","copySrc","copyDst","storage"]"#;
@@ -287,6 +317,58 @@ impl Pipeline {
             needs_midi_note_grid: false,
             viewport_cache: HashMap::new(),
             last_presented: None,
+            pass_probe: None,
+        }
+    }
+
+    /// The backend texture a probe id names: a global surface (by name or as
+    /// `global_<name>`) resolves to its current read texture (within a frame,
+    /// the frame-local read binding), anything else to the backend texture of
+    /// that id.
+    pub fn resolve_probe_texture(&self, id: &str, in_frame: bool) -> Option<String> {
+        let surface = if self.surfaces.contains_key(id) {
+            Some(id)
+        } else {
+            id.strip_prefix("global_")
+                .filter(|name| self.surfaces.contains_key(*name))
+        };
+        match surface {
+            Some(name) => {
+                let frame = in_frame
+                    .then(|| self.frame_read_textures.get(name).cloned().flatten())
+                    .flatten();
+                frame.or_else(|| self.surfaces.get(name).and_then(|s| s.read.clone()))
+            }
+            None => self
+                .backend
+                .textures
+                .contains_key(id)
+                .then(|| id.to_owned()),
+        }
+    }
+
+    /// Take the [`PassProbe`] snapshots after executed pass `ordinal`.
+    fn take_probe_snapshots(&mut self, p: &Object, ordinal: usize) {
+        let Some(ids) = self.pass_probe.as_ref().map(|probe| probe.ids.clone()) else {
+            return;
+        };
+        let pass_id = to_js_string(pass::get(p, "id"));
+        for id in ids {
+            let Some(texture_id) = self.resolve_probe_texture(&id, true) else {
+                continue;
+            };
+            let Some(snapshot) = self.backend.snapshot_texture(&texture_id) else {
+                continue;
+            };
+            if let Some(probe) = self.pass_probe.as_mut() {
+                probe.snapshots.push(PassSnapshot {
+                    ordinal,
+                    pass_id: pass_id.clone(),
+                    id,
+                    texture_id,
+                    snapshot,
+                });
+            }
         }
     }
 
@@ -1779,6 +1861,9 @@ impl Pipeline {
             self.backend.execute_pass(&current, &state)?;
             *pass_count += 1;
             self.update_frame_surface_bindings(&current, &state);
+            if self.pass_probe.is_some() {
+                self.take_probe_snapshots(&current, *pass_count - 1);
+            }
             if repeat > 1.0 {
                 self.adopt_iteration_bindings(&current);
             }

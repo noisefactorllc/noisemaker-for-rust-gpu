@@ -1,3 +1,3 @@
 search classicNoisedeck
-shapes3d(blendMode: smoothIntersect).write(o0)
+shapes3d(blendMode: smoothIntersect, shapeBScale: 70).write(o0)
 render(o0)

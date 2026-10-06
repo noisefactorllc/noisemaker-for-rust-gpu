@@ -16,7 +16,8 @@
 //! not compile is reported with `formatDslError` and a nonzero exit. A DSL
 //! with a Portable sidecar (`<name>.portable.json`, or `--portable FILE`)
 //! registers that user effect first, as `CanvasRenderer.registerPortableEffect`
-//! does.
+//! does; one with a MIDI sidecar (`<name>.midi.json`) receives those MIDI
+//! messages after it loads.
 
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
@@ -140,6 +141,26 @@ enum Command {
         /// Timed mode: seconds between samples (OUT_STEM.tSEC.png)
         #[arg(long)]
         sample_every: Option<f64>,
+        /// Timed mode: total frames to run (stepping as --run-seconds does)
+        #[arg(long)]
+        run_frames: Option<u64>,
+        /// Timed mode: a sample every N frames (OUT_STEM.fFRAMES.png)
+        #[arg(long, value_name = "N")]
+        sample_every_frames: Option<u64>,
+        /// Timed mode: a sample after each of these frame counts
+        /// (OUT_STEM.fFRAMES.png), e.g. 1,2,3,10
+        #[arg(long, value_name = "LIST", value_delimiter = ',')]
+        sample_frames: Vec<u64>,
+        /// Read a backend texture (or a global surface: its current read
+        /// texture) back as raw little-endian float32 RGBA at every sample,
+        /// OUT_STEM[.LABEL].ID.bin (repeatable)
+        #[arg(long = "dump-texture", value_name = "ID")]
+        dump_textures: Vec<String>,
+        /// Also snapshot the --dump-texture textures after every executed
+        /// pass of each sampled frame: OUT_STEM[.LABEL].pNNN.ID.bin, the pass
+        /// list in OUT_STEM[.LABEL].passes.json
+        #[arg(long, requires = "dump_textures")]
+        dump_passes: bool,
     },
     /// Render a DSL program over its loop to numbered PNG frames
     ///
@@ -244,8 +265,11 @@ enum Command {
     ///
     /// The manifest is an array of {"graph"|"dsl", "out", "size", "time",
     /// "frames", "hostTextures": {id: png}, "obj", "portable", "graphOut",
-    /// "runSeconds", "sampleEvery"}. Failures are reported per fixture; the exit status is
-    /// nonzero if any fixture failed.
+    /// "runSeconds", "sampleEvery", "runFrames", "sampleEveryFrames",
+    /// "sampleFrames": [n], "dumpTextures": [id], "dumpPasses", "midi"} (the
+    /// `render` options of the same names; "midi" defaults to the DSL's
+    /// .midi.json sidecar). Failures are reported per fixture; the
+    /// exit status is nonzero if any fixture failed.
     Batch {
         /// The manifest
         manifest: PathBuf,
@@ -471,6 +495,11 @@ struct RenderArgs {
     portable: Option<PathBuf>,
     run_seconds: Option<f64>,
     sample_every: Option<f64>,
+    run_frames: Option<u64>,
+    sample_every_frames: Option<u64>,
+    sample_frames: Vec<u64>,
+    dump_textures: Vec<String>,
+    dump_passes: bool,
 }
 
 fn render(args: RenderArgs) -> Result<(), Failure> {
@@ -498,11 +527,17 @@ fn render(args: RenderArgs) -> Result<(), Failure> {
         host_textures,
         run_seconds: args.run_seconds.unwrap_or(0.0),
         sample_every: args.sample_every.unwrap_or(5.0),
+        run_frames: args.run_frames.unwrap_or(0),
+        sample_every_frames: args.sample_every_frames.unwrap_or(0),
+        sample_frames: args.sample_frames,
+        dump_textures: args.dump_textures,
+        dump_passes: args.dump_passes,
         obj: args.obj,
         graph_out: args.graph_out,
         params,
         orientation: args.orientation.into(),
         portable: args.portable,
+        midi: None,
     };
     let device = device()?;
     let result = noisemaker_gpu::protocol::run_fixture(&device, &spec, &context);
@@ -962,6 +997,34 @@ fn manifest_spec(entry: &Value) -> Result<(String, noisemaker_gpu::protocol::Fix
     let num = |key: &str, default: f64| entry.get(key).as_f64().unwrap_or(default);
     let path = |key: &str| entry.get(key).as_str().map(PathBuf::from);
     let size = num("size", 256.0);
+    let frame_list = |key: &str| -> Result<Vec<u64>, String> {
+        match entry.get(key) {
+            Value::Undefined => Ok(Vec::new()),
+            Value::Array(items) => items
+                .iter()
+                .map(|v| {
+                    v.as_f64()
+                        .filter(|n| *n >= 1.0 && n.fract() == 0.0)
+                        .map(|n| n as u64)
+                        .ok_or_else(|| format!("{name}: {key} must hold frame counts"))
+                })
+                .collect(),
+            _ => Err(format!("{name}: {key} must be an array")),
+        }
+    };
+    let sample_frames = frame_list("sampleFrames")?;
+    let dump_textures = match entry.get("dumpTextures") {
+        Value::Undefined => Vec::new(),
+        Value::Array(items) => items
+            .iter()
+            .map(|v| {
+                v.as_str()
+                    .map(str::to_owned)
+                    .ok_or_else(|| format!("{name}: dumpTextures must hold texture ids"))
+            })
+            .collect::<Result<_, _>>()?,
+        _ => return Err(format!("{name}: dumpTextures must be an array")),
+    };
     let mut hosts = Vec::new();
     if let Some(map) = entry.get("hostTextures").as_object() {
         for (id, path) in map.iter() {
@@ -983,8 +1046,14 @@ fn manifest_spec(entry: &Value) -> Result<(String, noisemaker_gpu::protocol::Fix
             host_textures: hosts,
             run_seconds: num("runSeconds", 0.0),
             sample_every: num("sampleEvery", 5.0),
+            run_frames: num("runFrames", 0.0) as u64,
+            sample_every_frames: num("sampleEveryFrames", 0.0) as u64,
+            sample_frames,
+            dump_textures,
+            dump_passes: entry.get("dumpPasses").is_truthy(),
             obj: path("obj"),
             portable: path("portable"),
+            midi: path("midi"),
             graph_out: path("graphOut"),
             ..FixtureSpec::default()
         },
@@ -1063,6 +1132,11 @@ fn main() -> ExitCode {
             portable,
             run_seconds,
             sample_every,
+            run_frames,
+            sample_every_frames,
+            sample_frames,
+            dump_textures,
+            dump_passes,
         } => render(RenderArgs {
             graph,
             dsl,
@@ -1081,6 +1155,11 @@ fn main() -> ExitCode {
             portable,
             run_seconds,
             sample_every,
+            run_frames,
+            sample_every_frames,
+            sample_frames,
+            dump_textures,
+            dump_passes,
         }),
         Command::Animate {
             dsl,

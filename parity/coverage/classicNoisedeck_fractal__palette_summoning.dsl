@@ -1,3 +1,3 @@
 search classicNoisedeck
-fractal(palette: summoning).write(o0)
+fractal(palette: summoning, repeatPalette: 4).write(o0)
 render(o0)

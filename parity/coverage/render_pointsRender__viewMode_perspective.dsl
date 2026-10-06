@@ -1,3 +1,3 @@
-search synth, render
-solid().pointsEmit(stateSize: 128).pointsRender(viewMode: perspective).write(o0)
+search synth, points, render
+solid().pointsEmit(stateSize: 512).attractor().pointsRender(viewMode: perspective).write(o0)
 render(o0)

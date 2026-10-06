@@ -17,6 +17,11 @@
 //   3. load the meshes a mesh fixture needs (built-in defaults of each
 //      externalMesh step, then the fixture's .obj sidecar into mesh0, as the
 //      reference demo host does);
+//   3b. a fixture with a MIDI sidecar (<name>.midi.json: {"messages":
+//      [[status, data1, data2], ...]}) connects a MIDI state to the renderer
+//      (CanvasRenderer.setMidiState()) and delivers those raw messages to it
+//      (MidiState.handleMessage), a deterministic stand-in for a device; every
+//      other fixture runs with no MIDI state, as the headless demo page does;
 //   4. wait until host-supplied textures (media, text) exist and every asyncInit
 //      overlay trace (fibers, scratches, strayHair) has finished; save each of
 //      those textures as <name>.<textureId>.png so a candidate can bind the same
@@ -33,14 +38,30 @@
 //      program specs keep their WGSL source and drop GLSL), which a candidate can
 //      render directly.
 //
-// Timed fixtures (--run-seconds N --sample-every S) skip the fresh-state reset's
-// pinned clock: they step pipeline.render(t) with t = frame / 600 and save
-// <name>.golden.t<sec>.png every S seconds.
+// Timed fixtures (--run-seconds N --sample-every S, --run-frames N,
+// --sample-every-frames K, --sample-frames a,b,c) skip the fresh-state reset's
+// pinned clock: they step pipeline.render(t) with t = ((frame + 1) / 600) % 1
+// and save <name>.golden.t<sec>.png every S seconds and
+// <name>.golden.f<frames>.png every K frames and after each listed frame
+// count (nm-render's sample schedule).
+//
+// Exact intermediate state: --dump-texture ID (repeatable) reads a backend
+// texture, or a global surface's current read texture (ID = the surface name
+// or global_<name>), back as raw little-endian float32 RGBA at every sample:
+// <name>.golden[.<label>].<ID>.bin. --dump-passes also snapshots those
+// textures after every executed pass of each sampled frame, copied in the
+// frame's own command encoder: <name>.golden[.<label>].p<NNN>.<ID>.bin, the
+// pass list in <name>.golden[.<label>].passes.json. Texels are decoded from
+// the texture's format in the page (half floats widened exactly, 8-bit
+// channels as byte / 255) and leave the page as a binary upload, like the
+// PNG captures; nm-render --dump-texture/--dump-passes writes the same files.
 //
 // Usage:
 //   NM_REFERENCE_ROOT=/path/to/noisemaker node parity/batch-golden.mjs <outDir> \
 //       [--size 256] [--time 0.25] [--frames 8] [--chunk-size 60] \
-//       [--run-seconds N --sample-every S] [--list names.txt] [--] prog.dsl...
+//       [--run-seconds N --sample-every S] [--run-frames N] \
+//       [--sample-every-frames K] [--sample-frames a,b,c] \
+//       [--dump-texture ID ...] [--dump-passes] [--list names.txt] [--] prog.dsl...
 //
 // Exit 0 when every fixture minted, 1 otherwise. The last stdout lines are
 // "BATCH-GOLDEN: minted=N failed=M total=T" and "DONE".
@@ -207,6 +228,204 @@ async function capture (page, textureId = null) {
     throw new Error(`readback failed: received ${pixels ? pixels.length : 0} bytes for ${result.width}x${result.height}`)
   }
   return encodePng(result.width, result.height, pixels)
+}
+
+// ---- exact state probes ------------------------------------------------------
+
+// In-page helpers of the state probes, installed once per page: resolving a
+// probe id, decoding a texture's texels to float32 RGBA, the pass probe.
+async function installProbeHelpers (page) {
+  await page.evaluate(() => {
+    if (window.__nmProbe) return
+    const layouts = {
+      r8unorm: [1, 'u8', 1], rg8unorm: [2, 'u8', 2], rgba8unorm: [4, 'u8', 4], 'rgba8unorm-srgb': [4, 'u8', 4],
+      bgra8unorm: [4, 'bgra', 4], 'bgra8unorm-srgb': [4, 'bgra', 4],
+      r16float: [2, 'f16', 1], rg16float: [4, 'f16', 2], rgba16float: [8, 'f16', 4],
+      r32float: [4, 'f32', 1], rg32float: [8, 'f32', 2], rgba32float: [16, 'f32', 4],
+      r32uint: [4, 'u32', 1], r32sint: [4, 'i32', 1]
+    }
+    const halfToFloat = (h) => {
+      const sign = (h & 0x8000) ? -1 : 1
+      const e = (h >> 10) & 0x1f
+      const m = h & 0x3ff
+      if (e === 0) return sign * m * 2 ** -24
+      if (e === 31) return m ? NaN : sign * Infinity
+      return sign * (1 + m / 1024) * 2 ** (e - 15)
+    }
+    const probe = {
+      // A global surface (by name or global_<name>): its current read texture
+      // (within a frame, the frame-local read binding); else a backend texture.
+      resolve (p, id, inFrame) {
+        let name = null
+        if (p.surfaces?.has(id)) name = id
+        else if (id.startsWith('global_') && p.surfaces?.has(id.slice(7))) name = id.slice(7)
+        if (name !== null) {
+          const frame = inFrame ? p.frameReadTextures?.get(name) : undefined
+          return frame || p.surfaces.get(name).read || null
+        }
+        return p.backend.textures.has(id) ? id : null
+      },
+      // Read a GPUTexture (level 0) back as float32 RGBA.
+      async readFloat (device, texture) {
+        const layout = layouts[texture.format]
+        if (!layout) throw new Error(`cannot probe a ${texture.format} texture`)
+        const [bpp, kind, count] = layout
+        const width = texture.width
+        const height = texture.height
+        const bytesPerRow = Math.ceil((width * bpp) / 256) * 256
+        const buffer = device.createBuffer({ size: bytesPerRow * height, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ })
+        const encoder = device.createCommandEncoder()
+        encoder.copyTextureToBuffer({ texture }, { buffer, bytesPerRow }, { width, height, depthOrArrayLayers: 1 })
+        device.queue.submit([encoder.finish()])
+        await buffer.mapAsync(GPUMapMode.READ)
+        const bytes = new Uint8Array(buffer.getMappedRange().slice(0))
+        buffer.unmap()
+        buffer.destroy()
+        const view = new DataView(bytes.buffer)
+        const out = new Float32Array(width * height * 4)
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const at = y * bytesPerRow + x * bpp
+            const o = (y * width + x) * 4
+            out[o + 3] = 1
+            for (let c = 0; c < count; c++) {
+              let v
+              if (kind === 'u8') v = bytes[at + c] / 255
+              else if (kind === 'bgra') v = bytes[at + [2, 1, 0, 3][c]] / 255
+              else if (kind === 'f16') v = halfToFloat(view.getUint16(at + c * 2, true))
+              else if (kind === 'f32') v = view.getFloat32(at + c * 4, true)
+              else if (kind === 'u32') v = view.getUint32(at + c * 4, true)
+              else v = view.getInt32(at + c * 4, true)
+              out[o + c] = v
+            }
+          }
+        }
+        return { width, height, data: out }
+      },
+      async upload (token, data) {
+        const res = await fetch(`/__nm_capture/${token}`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/octet-stream' },
+          body: new Blob([data.buffer])
+        })
+        if (res.status !== 204) throw new Error(`probe upload failed (${res.status})`)
+      },
+      // Arm the pass probe for the next frame: after every executed pass
+      // (updateFrameSurfaceBindings runs once per executed pass and repeat
+      // iteration) copy each id's texture in the frame's command encoder.
+      arm (p, ids) {
+        const snaps = []
+        let ordinal = 0
+        const original = Object.getPrototypeOf(p).updateFrameSurfaceBindings
+        p.updateFrameSurfaceBindings = function (pass, state) {
+          const result = original.call(this, pass, state)
+          const backend = this.backend
+          for (const id of ids) {
+            const texId = probe.resolve(this, id, true)
+            const rec = texId ? backend.textures.get(texId) : null
+            const handle = rec?.handle
+            if (!handle || rec.is3D || rec.cube || !(handle.usage & GPUTextureUsage.COPY_SRC)) continue
+            const size = { width: handle.width, height: handle.height, depthOrArrayLayers: 1 }
+            const snap = backend.device.createTexture({ size, format: handle.format, usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.COPY_SRC })
+            const encoder = backend.commandEncoder || backend.device.createCommandEncoder()
+            encoder.copyTextureToTexture({ texture: handle }, { texture: snap }, size)
+            if (encoder !== backend.commandEncoder) backend.device.queue.submit([encoder.finish()])
+            snaps.push({ ordinal, passId: pass.id, id, texId, snap })
+          }
+          ordinal++
+          return result
+        }
+        return snaps
+      },
+      disarm (p) { delete p.updateFrameSurfaceBindings }
+    }
+    window.__nmProbe = probe
+  })
+}
+
+// Read the dump textures of the current state back as float32 RGBA and
+// write <prefix><id>.bin for each.
+async function dumpState (page, ids, prefix) {
+  for (const id of ids) {
+    const token = String(++captureCounter)
+    const result = await page.evaluate(async ({ id, token }) => {
+      const p = window.__noisemakerRenderingPipeline
+      const texId = window.__nmProbe.resolve(p, id, false)
+      const rec = texId ? p.backend.textures.get(texId) : null
+      if (!rec?.handle) return { error: `no such texture or surface ${id}` }
+      if (!(rec.handle.usage & GPUTextureUsage.COPY_SRC)) return { error: `texture ${texId} has no COPY_SRC usage` }
+      const px = await window.__nmProbe.readFloat(p.backend.device, rec.handle)
+      await window.__nmProbe.upload(token, px.data)
+      return { width: px.width, height: px.height }
+    }, { id, token })
+    if (result.error) throw new Error(`dump texture ${id}: ${result.error}`)
+    const bytes = captureUploads.get(token)
+    captureUploads.delete(token)
+    if (!bytes || bytes.length !== result.width * result.height * 16) {
+      throw new Error(`dump texture ${id}: received ${bytes ? bytes.length : 0} bytes for ${result.width}x${result.height}`)
+    }
+    writeFileSync(`${prefix}${fileId(id)}.bin`, bytes)
+  }
+}
+
+// Read the armed frame's pass snapshots back: <prefix>p<NNN>.<id>.bin and
+// the pass list <prefix>passes.json.
+async function dumpPassSnapshots (page, prefix) {
+  const count = await page.evaluate(() => (window.__nmProbeSnaps || []).length)
+  const passes = []
+  for (let i = 0; i < count; i++) {
+    const token = String(++captureCounter)
+    const info = await page.evaluate(async ({ i, token }) => {
+      const p = window.__noisemakerRenderingPipeline
+      const s = window.__nmProbeSnaps[i]
+      const px = await window.__nmProbe.readFloat(p.backend.device, s.snap)
+      s.snap.destroy()
+      await window.__nmProbe.upload(token, px.data)
+      return { ordinal: s.ordinal, passId: s.passId, id: s.id, texId: s.texId, width: px.width, height: px.height }
+    }, { i, token })
+    const bytes = captureUploads.get(token)
+    captureUploads.delete(token)
+    if (!bytes || bytes.length !== info.width * info.height * 16) {
+      throw new Error(`pass snapshot ${info.id}: received ${bytes ? bytes.length : 0} bytes`)
+    }
+    writeFileSync(`${prefix}p${String(info.ordinal).padStart(3, '0')}.${fileId(info.id)}.bin`, bytes)
+    let entry = passes.find(e => e.ordinal === info.ordinal)
+    if (!entry) passes.push(entry = { ordinal: info.ordinal, passId: info.passId, textures: {} })
+    entry.textures[info.id] = info.texId
+  }
+  await page.evaluate(() => { window.__nmProbeSnaps = [] })
+  writeFileSync(`${prefix}passes.json`, JSON.stringify(passes, null, 2) + '\n')
+}
+
+function fileId (id) {
+  return id.replace(/[/\\]/g, '_')
+}
+
+// The timed run's samples in frame order: [{ frame, labels }] (nm-render's
+// FixtureSpec::sample_schedule).
+function sampleSchedule (opts) {
+  const samples = []
+  const add = (frame, label) => {
+    if (frame <= 0) return
+    const s = samples.find(x => x.frame === frame)
+    if (s) { if (!s.labels.includes(label)) s.labels.push(label) } else samples.push({ frame, labels: [label] })
+  }
+  let total = opts.runFrames
+  if (opts.runSeconds > 0) {
+    const everyFrames = Math.max(1, Math.round(opts.sampleEvery * 60))
+    const count = Math.max(1, Math.floor((opts.runSeconds * 60) / everyFrames))
+    for (let s = 0; s < count; s++) add((s + 1) * everyFrames, `t${(s + 1) * opts.sampleEvery}`)
+    total = Math.max(total, count * everyFrames)
+  }
+  if (opts.sampleEveryFrames > 0) {
+    for (let f = opts.sampleEveryFrames; f <= total; f += opts.sampleEveryFrames) add(f, `f${f}`)
+  }
+  for (const f of opts.sampleFrames) add(f, `f${f}`)
+  return samples.sort((a, b) => a.frame - b.frame)
+}
+
+function isTimed (opts) {
+  return opts.runSeconds > 0 || opts.runFrames > 0 || opts.sampleFrames.length > 0
 }
 
 // The graph the page rendered: Maps as objects, functions dropped, program
@@ -383,16 +602,43 @@ async function registerPortable (page, definition) {
   if (result.error) throw new Error(`registerPortableEffect failed: ${result.error}`)
 }
 
+// The MIDI messages of a fixture's sidecar, or null.
+function midiMessages (dslPath) {
+  const sidecar = dslPath.replace(/\.dsl$/, '.midi.json')
+  if (!existsSync(sidecar)) return null
+  const messages = JSON.parse(readFileSync(sidecar, 'utf8')).messages
+  if (!Array.isArray(messages) || !messages.every(m => Array.isArray(m) && m.length > 0 &&
+    m.every(b => Number.isInteger(b) && b >= 0 && b <= 255))) {
+    throw new Error(`${sidecar}: "messages" must be an array of byte arrays`)
+  }
+  return messages
+}
+
 async function mintOne (page, opts, dslPath, dsl, expectedPassCount, programName, portable) {
   await sizePage(page, opts.size)
   await installAsyncInitTracker(page)
-  await page.evaluate(() => { window.__nmAsyncInitNodes = new Set() })
+  await page.evaluate(() => {
+    window.__nmAsyncInitNodes = new Set()
+    // No MIDI state carried over from an earlier fixture of this session.
+    const r = window.__noisemakerCanvasRenderer
+    if (r && r._midiState) {
+      r._midiState = null
+      window.__noisemakerRenderingPipeline?.setMidiState?.(null)
+    }
+  })
   if (portable) await registerPortable(page, portable)
   await runDsl(page, dsl, expectedPassCount)
 
   const graph = await pageGraph(page)
   const meshes = await meshPlan(graph, dslPath)
   if (meshes) await applyMeshPlan(page, meshes)
+  const midi = midiMessages(dslPath)
+  if (midi) {
+    await page.evaluate((messages) => {
+      const state = window.__noisemakerCanvasRenderer.setMidiState()
+      for (const m of messages) state.handleMessage(new Uint8Array(m))
+    }, midi)
+  }
 
   const loadedSize = await page.evaluate(() => {
     const p = window.__noisemakerRenderingPipeline
@@ -453,24 +699,49 @@ async function mintOne (page, opts, dslPath, dsl, expectedPassCount, programName
   }, { keep: hostTextures })
   if (reset.error) throw new Error(`state reset failed: ${reset.error}`)
 
-  if (opts.runSeconds > 0) {
-    const everyFrames = opts.sampleEvery * 60
-    const samples = Math.max(1, Math.floor((opts.runSeconds * 60) / everyFrames))
-    for (let s = 0; s < samples; s++) {
-      await page.evaluate(({ everyFrames, startFrame }) => {
+  const probePasses = opts.dumpPasses && opts.dumpTextures.length > 0
+  if (opts.dumpTextures.length) await installProbeHelpers(page)
+  const base = join(opts.outDir, `${programName}.golden`)
+  if (isTimed(opts)) {
+    let frame = 0
+    for (const sample of sampleSchedule(opts)) {
+      await page.evaluate(({ from, to, probe, ids }) => {
         const p = window.__noisemakerRenderingPipeline
-        for (let i = 0; i < everyFrames; i++) p.render(((startFrame + i + 1) / 600) % 1.0)
-      }, { everyFrames, startFrame: s * everyFrames })
-      const sec = (s + 1) * opts.sampleEvery
-      writeFileSync(join(opts.outDir, `${programName}.golden.t${sec}.png`), await capture(page))
+        for (let f = from; f < to; f++) {
+          const armed = probe && f + 1 === to
+          if (armed) window.__nmProbeSnaps = window.__nmProbe.arm(p, ids)
+          try {
+            p.render(((f + 1) / 600) % 1.0)
+          } finally {
+            if (armed) window.__nmProbe.disarm(p)
+          }
+        }
+      }, { from: frame, to: sample.frame, probe: probePasses, ids: opts.dumpTextures })
+      frame = sample.frame
+      const png = await capture(page)
+      for (const label of sample.labels) {
+        writeFileSync(`${base}.${label}.png`, png)
+        await dumpState(page, opts.dumpTextures, `${base}.${label}.`)
+      }
+      if (probePasses) await dumpPassSnapshots(page, `${base}.${sample.labels[0]}.`)
     }
   } else {
-    await page.evaluate(({ time, frames }) => {
+    await page.evaluate(({ time, frames, probe, ids }) => {
       if (window.__noisemakerSetPausedTime) window.__noisemakerSetPausedTime(time)
       const p = window.__noisemakerRenderingPipeline
-      for (let i = 0; i < frames; i++) p.render(time)
-    }, { time: opts.time, frames: opts.frames })
-    writeFileSync(join(opts.outDir, `${programName}.golden.png`), await capture(page))
+      for (let i = 0; i < frames; i++) {
+        const armed = probe && i + 1 === frames
+        if (armed) window.__nmProbeSnaps = window.__nmProbe.arm(p, ids)
+        try {
+          p.render(time)
+        } finally {
+          if (armed) window.__nmProbe.disarm(p)
+        }
+      }
+    }, { time: opts.time, frames: opts.frames, probe: probePasses, ids: opts.dumpTextures })
+    writeFileSync(`${base}.png`, await capture(page))
+    await dumpState(page, opts.dumpTextures, `${base}.`)
+    if (probePasses) await dumpPassSnapshots(page, `${base}.`)
   }
   writeFileSync(join(opts.outDir, `${programName}.graph.json`), JSON.stringify(graph, null, 2) + '\n')
   return { hostTextures, reset }
@@ -515,7 +786,10 @@ async function withSession (opts, fn) {
 }
 
 function parseArgs (argv) {
-  const opts = { size: 256, time: 0.25, frames: 8, chunkSize: 60, list: null, runSeconds: 0, sampleEvery: 5, dslPaths: [] }
+  const opts = {
+    size: 256, time: 0.25, frames: 8, chunkSize: 60, list: null, runSeconds: 0, sampleEvery: 5,
+    runFrames: 0, sampleEveryFrames: 0, sampleFrames: [], dumpTextures: [], dumpPasses: false, dslPaths: []
+  }
   const pos = []
   let rest = false
   for (let i = 0; i < argv.length; i++) {
@@ -527,8 +801,13 @@ function parseArgs (argv) {
     else if (a === '--frames') opts.frames = parseInt(argv[++i], 10)
     else if (a === '--chunk-size') opts.chunkSize = parseInt(argv[++i], 10)
     else if (a === '--list') opts.list = argv[++i]
-    else if (a === '--run-seconds') opts.runSeconds = parseInt(argv[++i], 10)
-    else if (a === '--sample-every') opts.sampleEvery = parseInt(argv[++i], 10)
+    else if (a === '--run-seconds') opts.runSeconds = parseFloat(argv[++i])
+    else if (a === '--sample-every') opts.sampleEvery = parseFloat(argv[++i])
+    else if (a === '--run-frames') opts.runFrames = parseInt(argv[++i], 10)
+    else if (a === '--sample-every-frames') opts.sampleEveryFrames = parseInt(argv[++i], 10)
+    else if (a === '--sample-frames') opts.sampleFrames.push(...argv[++i].split(',').map(n => parseInt(n, 10)))
+    else if (a === '--dump-texture') opts.dumpTextures.push(argv[++i])
+    else if (a === '--dump-passes') opts.dumpPasses = true
     else if (a.endsWith('.dsl')) opts.dslPaths.push(a)
     else pos.push(a)
   }
@@ -540,7 +819,8 @@ async function main () {
   const opts = parseArgs(process.argv.slice(2))
   if (!opts.outDir) {
     console.error('usage: node parity/batch-golden.mjs <outDir> [--size 256] [--time 0.25] [--frames 8] ' +
-      '[--chunk-size 60] [--run-seconds N --sample-every S] [--list names.txt] [--] prog.dsl...')
+      '[--chunk-size 60] [--run-seconds N --sample-every S] [--run-frames N] [--sample-every-frames K] ' +
+      '[--sample-frames a,b,c] [--dump-texture ID ...] [--dump-passes] [--list names.txt] [--] prog.dsl...')
     process.exit(2)
   }
   mkdirSync(opts.outDir, { recursive: true })
@@ -598,7 +878,7 @@ async function main () {
                 const portable = await portableFor(dslPath)
                 const expectedPassCount = ref.compileGraph(dsl).passes.length
                 for (const file of readdirSync(opts.outDir)) {
-                  if (file.startsWith(`${programName}.`) && file.endsWith('.png')) unlinkSync(join(opts.outDir, file))
+                  if (file.startsWith(`${programName}.`) && /\.(png|bin)$|\.passes\.json$/.test(file)) unlinkSync(join(opts.outDir, file))
                 }
                 const info = await mintOne(page, opts, dslPath, dsl, expectedPassCount, programName, portable)
                 const notes = session.getConsoleMessages().map(m => m.text)

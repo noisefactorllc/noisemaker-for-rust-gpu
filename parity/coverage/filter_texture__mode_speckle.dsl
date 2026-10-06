@@ -1,5 +1,3 @@
 search filter, synth
-
-solid(color: #d1d1d1)
-  .texture(alpha: 0.75, mode: speckle)
-  .write(o0)
+noise(seed: 1, scaleX: 50, scaleY: 50).texture(alpha: 0.75, mode: speckle).write(o0)
+render(o0)

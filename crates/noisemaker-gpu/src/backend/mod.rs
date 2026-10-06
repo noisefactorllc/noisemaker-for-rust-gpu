@@ -13,6 +13,7 @@
 
 mod bind;
 mod passes;
+mod probe;
 mod programs;
 mod textures;
 
@@ -27,6 +28,7 @@ use crate::diagnostics::{DiagnosticCollector, codes};
 use crate::error::RenderError;
 use crate::uniforms::PackScratch;
 
+pub use probe::{FloatPixels, TextureSnapshot};
 pub use programs::{ComputeProgram, Program, ProgramKind, RenderProgram};
 pub use textures::{PixelData, TextureRecord};
 

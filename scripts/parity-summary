@@ -4,11 +4,13 @@
 # Renders the parity cases with this port and grades each against a golden minted
 # by the reference engine's WebGPU backend in the same run, then prints one line:
 #
-#   PARITY-SUMMARY {"expected":N,"executed":N,"exact":N,"strict":N,"near":N,"defer":N,"skip":N,"fail":N,"missing":N}
+#   PARITY-SUMMARY {"expected":N,"executed":N,"exact":N,"strict":N,"near":N,"defer":N,"skip":N,"fail":N,"missing":N,"uninformative":N,"effects":N,"effects_evidenced":N}
 #
 # Cases: with case-id arguments, only those cases are expected; without, every
-# parity/programs/*.dsl, parity/coverage/*.dsl and parity/portable/*.dsl (user
-# Portable effects with their .portable.json sidecars) case is expected.
+# parity/programs/*.dsl, parity/coverage/*.dsl, parity/portable/*.dsl (user
+# Portable effects with their .portable.json sidecars), parity/timed/*.dsl (the
+# timed tier, graded on sample series) and parity/curated/*.dsl (the sibling
+# ports' curated programs) case is expected.
 #
 # The work is the canonical sweep, parity/sweep.py, run fresh (goldens minted in
 # this run, candidates rendered by nm-render from the DSL with the port's own
@@ -16,16 +18,24 @@
 # graded). The ledger goes to a temporary file.
 #
 # Buckets (each case in exactly one):
-#   exact   -- candidate pixels identical to the golden
+#   exact   -- candidate pixels identical to an informative golden
 #   strict  -- within the published contract: max-abs-diff <= 2.001 (8-bit units)
-#              and global SSIM >= 0.98, not identical
+#              and global SSIM >= 0.98, not identical, on an informative golden
 #   near    -- beyond the contract, within the case's recorded policy
 #   defer   -- reserved (no case is deferred)
 #   skip    -- the case could not execute here (infrastructure failure)
 #   fail    -- rendered and graded outside every policy
 #   missing -- no golden or no candidate was produced for the case
-# executed = exact + strict + near + fail. Exit 0 iff every expected case is exact
-# or strict; 1 otherwise; 2 on an infrastructure failure (every case in skip).
+#   uninformative -- exact or strict on a golden that shows no structure
+#              (uniform, more than 99% one colour, or luminance standard
+#              deviation below one 8-bit level; parity/sweep.py): not parity
+#              evidence, listed on stderr. A failure on such a golden is a fail.
+# executed = exact + strict + near + fail + uninformative. Without case-id
+# arguments the summary also counts the catalog effects and those with
+# informative exact or strict evidence of their own (effects_evidenced; the
+# others are listed on stderr). Exit 0 iff no case is near, failing, skipped or
+# missing and (without case-id arguments) every catalog effect is evidenced; 1
+# otherwise; 2 on an infrastructure failure (every case in skip).
 #
 # Environment:
 #   NM_RENDER          candidate binary (default target/release/nm-render; built
@@ -38,12 +48,13 @@ CASE_ARGS=("$@")
 
 count_cases() {
   if [ ${#CASE_ARGS[@]} -gt 0 ]; then echo ${#CASE_ARGS[@]}; return; fi
-  find "$ROOT/parity/programs" "$ROOT/parity/coverage" "$ROOT/parity/portable" -name '*.dsl' 2>/dev/null | wc -l | tr -d ' '
+  find "$ROOT/parity/programs" "$ROOT/parity/coverage" "$ROOT/parity/portable" "$ROOT/parity/timed" \
+    "$ROOT/parity/curated" -name '*.dsl' 2>/dev/null | wc -l | tr -d ' '
 }
 fail_infra() {
   echo "parity-summary: $1" >&2
   n="$(count_cases)"
-  echo "PARITY-SUMMARY {\"expected\":$n,\"executed\":0,\"exact\":0,\"strict\":0,\"near\":0,\"defer\":0,\"skip\":$n,\"fail\":0,\"missing\":0}"
+  echo "PARITY-SUMMARY {\"expected\":$n,\"executed\":0,\"exact\":0,\"strict\":0,\"near\":0,\"defer\":0,\"skip\":$n,\"fail\":0,\"missing\":0,\"uninformative\":0}"
   exit 2
 }
 
@@ -91,27 +102,44 @@ fi
 
 # ---- sweep + classification ---------------------------------------------------------
 LEDGER="$(mktemp -t nm-parity-summary.XXXXXX)"
-trap 'rm -f "$LEDGER"' EXIT
+trap 'rm -f "$LEDGER" "$LEDGER.effects.json"' EXIT
 "$PY" "$ROOT/parity/sweep.py" --ledger "$LEDGER" ${CASE_ARGS[@]+"${CASE_ARGS[@]}"} >&2
 "$PY" - "$LEDGER" ${CASE_ARGS[@]+"${CASE_ARGS[@]}"} <<'EOF'
-import json, sys
+import json, os, sys
 rows = json.load(open(sys.argv[1]))
 only = set(sys.argv[2:])
 rows = [r for r in rows if not only or r["program"] in only]
-c = dict(expected=len(rows), executed=0, exact=0, strict=0, near=0, defer=0, skip=0, fail=0, missing=0)
+c = dict(expected=len(rows), executed=0, exact=0, strict=0, near=0, defer=0, skip=0, fail=0, missing=0,
+         uninformative=0)
 outside = []
+uninformative = []
 for r in rows:
-    v = r["verdict"]
-    if v == "MISSING":
+    b = r.get("bucket", r["verdict"])
+    if b == "MISSING":
         c["missing"] += 1; outside.append(r["program"]); continue
     c["executed"] += 1
-    if v == "EXACT": c["exact"] += 1
-    elif v == "STRICT": c["strict"] += 1
-    elif v == "NEAR": c["near"] += 1; outside.append(r["program"])
+    if b == "EXACT": c["exact"] += 1
+    elif b == "STRICT": c["strict"] += 1
+    elif b == "UNINFORMATIVE": c["uninformative"] += 1; uninformative.append(r["program"])
+    elif b == "NEAR": c["near"] += 1; outside.append(r["program"])
     else: c["fail"] += 1; outside.append(r["program"])
+missing_effects = []
+effects_file = sys.argv[1] + ".effects.json"
+if not only and os.path.exists(effects_file):
+    evidence = json.load(open(effects_file))
+    missing_effects = sorted(k for k, v in evidence.items() if not v)
+    c["effects"] = len(evidence)
+    c["effects_evidenced"] = len(evidence) - len(missing_effects)
 print("PARITY-SUMMARY " + json.dumps(c, separators=(",", ":")))
 if outside:
     print("parity-summary: cases outside the published contract: " + " ".join(outside), file=sys.stderr)
-ok = c["executed"] == c["expected"] and c["exact"] + c["strict"] == c["expected"]
+if uninformative:
+    print("parity-summary: passes on uninformative goldens (not evidence): " + " ".join(uninformative),
+          file=sys.stderr)
+if missing_effects:
+    print("parity-summary: effects without informative exact or strict evidence: " + " ".join(missing_effects),
+          file=sys.stderr)
+ok = c["executed"] == c["expected"] and c["near"] + c["fail"] + c["missing"] + c["skip"] == 0 \
+    and not missing_effects
 sys.exit(0 if ok else 1)
 EOF

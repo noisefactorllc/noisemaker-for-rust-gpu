@@ -10,7 +10,18 @@
 //! frame index and clock zeroed, global uniforms emptied), renders `frames`
 //! frames at the pinned normalized `time` and reads back the render surface's
 //! read texture. Timed fixtures step `render(((frame + 1) / 600) % 1)` and
-//! save a sample every `sample_every` seconds (60 frames per second).
+//! save a sample every `sample_every` seconds (60 frames per second), every
+//! `sample_every_frames` frames and after each frame count of
+//! `sample_frames`.
+//!
+//! Exact intermediate state: `dump_textures` reads backend textures (or
+//! global surfaces: their current read texture) back as raw little-endian
+//! float32 RGBA (`<out stem>[.<label>].<id>.bin`) at every sample, and
+//! `dump_passes` also snapshots them after every executed pass of each
+//! sampled frame (`<out stem>[.<label>].p<NNN>.<id>.bin`, with the pass
+//! list in `<out stem>[.<label>].passes.json`), the files
+//! `parity/batch-golden.mjs --dump-texture/--dump-passes` writes from the
+//! reference page.
 //!
 //! A DSL fixture ([`GraphSource::DslFile`]) runs that whole protocol here:
 //! [`DemoHost`] is the page, and the host inputs are produced natively (the
@@ -20,6 +31,12 @@
 //! and the host textures given as PNGs. Either way, `host_textures` replace
 //! textures with PNGs (texture contents, uploaded with `flipY: false`) — the
 //! minter's captures, to grade with exactly the reference's host inputs.
+//!
+//! A DSL fixture with a MIDI sidecar (`<name>.midi.json`: `{"messages":
+//! [[status, data1, data2], ...]}`) connects a MIDI state to the renderer
+//! after the program loads and delivers those raw messages to it, as the
+//! minter does in the reference page (`CanvasRenderer.setMidiState()`, then
+//! `MidiState.handleMessage`): the deterministic stand-in for a MIDI device.
 //!
 //! A DSL fixture with a Portable sidecar (`<name>.portable.json`, its WGSL in
 //! `<name>.<program>.wgsl` files beside it; [`load_portable_definition`])
@@ -125,6 +142,18 @@ pub struct FixtureSpec {
     pub run_seconds: f64,
     /// Timed mode: seconds between samples.
     pub sample_every: f64,
+    /// Timed mode: total frames (0: from `run_seconds` and the samples).
+    pub run_frames: u64,
+    /// Timed mode: a sample every this many frames (0 disables).
+    pub sample_every_frames: u64,
+    /// Timed mode: a sample after each of these frame counts.
+    pub sample_frames: Vec<u64>,
+    /// Textures (or global surfaces) read back as raw float32 RGBA at every
+    /// sample.
+    pub dump_textures: Vec<String>,
+    /// Also snapshot `dump_textures` after every executed pass of each
+    /// sampled frame.
+    pub dump_passes: bool,
     /// The fixture's OBJ sidecar, loaded into `mesh0`; `None` for a DSL file
     /// means `<dsl without .dsl>.obj` when it exists.
     pub obj: Option<PathBuf>,
@@ -140,6 +169,9 @@ pub struct FixtureSpec {
     /// fixtures only); `None` means `<dsl without .dsl>.portable.json` when
     /// it exists.
     pub portable: Option<PathBuf>,
+    /// The MIDI messages delivered after the program loads (DSL fixtures
+    /// only); `None` means `<dsl without .dsl>.midi.json` when it exists.
+    pub midi: Option<PathBuf>,
 }
 
 impl Default for FixtureSpec {
@@ -154,13 +186,78 @@ impl Default for FixtureSpec {
             host_textures: Vec::new(),
             run_seconds: 0.0,
             sample_every: 5.0,
+            run_frames: 0,
+            sample_every_frames: 0,
+            sample_frames: Vec::new(),
+            dump_textures: Vec::new(),
+            dump_passes: false,
             obj: None,
             graph_out: None,
             params: Vec::new(),
             orientation: Orientation::Texture,
             portable: None,
+            midi: None,
         }
     }
+}
+
+/// The MIDI sidecar of a DSL program: `<dsl without .dsl>.midi.json`.
+pub fn midi_sidecar(dsl: &Path) -> PathBuf {
+    dsl.with_extension("midi.json")
+}
+
+/// Read a MIDI sidecar: its raw messages.
+pub fn load_midi_messages(path: &Path) -> Result<Vec<Vec<u8>>, String> {
+    let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let value = Value::from_json(&text).map_err(|e| format!("{}: {e}", path.display()))?;
+    let messages = value
+        .get("messages")
+        .as_array()
+        .ok_or_else(|| format!("{}: \"messages\" must be an array", path.display()))?;
+    messages
+        .iter()
+        .map(|m| {
+            m.as_array()
+                .filter(|bytes| !bytes.is_empty())
+                .and_then(|bytes| {
+                    bytes
+                        .iter()
+                        .map(|b| {
+                            b.as_f64()
+                                .filter(|n| (0.0..=255.0).contains(n) && n.fract() == 0.0)
+                                .map(|n| n as u8)
+                        })
+                        .collect::<Option<Vec<u8>>>()
+                })
+                .ok_or_else(|| {
+                    format!(
+                        "{}: every message must be an array of bytes",
+                        path.display()
+                    )
+                })
+        })
+        .collect()
+}
+
+/// Connect a MIDI state to `host`'s renderer and deliver the MIDI sidecar's
+/// messages (the given one, else the one next to the DSL when it exists).
+fn apply_midi_sidecar(host: &mut DemoHost, dsl: &Path, midi: Option<&Path>) -> Result<(), String> {
+    let path = match midi {
+        Some(p) => p.to_path_buf(),
+        None => {
+            let p = midi_sidecar(dsl);
+            if !p.exists() {
+                return Ok(());
+            }
+            p
+        }
+    };
+    let messages = load_midi_messages(&path)?;
+    let state = host.renderer_mut().set_midi_state(None);
+    for message in &messages {
+        state.borrow_mut().handle_message(message, None);
+    }
+    Ok(())
 }
 
 /// What a fixture run produced.
@@ -420,8 +517,185 @@ pub fn reset_fresh_state(pipeline: &mut Pipeline, keep: &HashSet<String>) {
     pipeline.last_time = 0.0;
 }
 
+/// One sample of a timed run: after `frame` frames, the labels it is saved
+/// under (`t<sec>` for a seconds sample, `f<frames>` for a frame sample).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Sample {
+    pub frame: u64,
+    pub labels: Vec<String>,
+}
+
+impl FixtureSpec {
+    /// A timed run: run seconds, run frames or sample frames given.
+    pub fn is_timed(&self) -> bool {
+        self.run_seconds > 0.0 || self.run_frames > 0 || !self.sample_frames.is_empty()
+    }
+
+    /// The timed run's samples in frame order (the minter's schedule).
+    pub fn sample_schedule(&self) -> Vec<Sample> {
+        let mut samples: Vec<Sample> = Vec::new();
+        let mut add = |frame: u64, label: String| {
+            if frame == 0 {
+                return;
+            }
+            match samples.iter_mut().find(|s| s.frame == frame) {
+                Some(s) => {
+                    if !s.labels.contains(&label) {
+                        s.labels.push(label)
+                    }
+                }
+                None => samples.push(Sample {
+                    frame,
+                    labels: vec![label],
+                }),
+            }
+        };
+        let mut total = self.run_frames;
+        if self.run_seconds > 0.0 {
+            let every_frames = (self.sample_every * 60.0).round().max(1.0) as u64;
+            let count = ((self.run_seconds * 60.0) / every_frames as f64)
+                .floor()
+                .max(1.0) as u64;
+            for s in 0..count {
+                let seconds = (s + 1) as f64 * self.sample_every;
+                add(
+                    (s + 1) * every_frames,
+                    format!("t{}", noisemaker_dsl::js::number_to_string(seconds)),
+                );
+            }
+            total = total.max(count * every_frames);
+        }
+        if self.sample_every_frames > 0 {
+            let mut f = self.sample_every_frames;
+            while f <= total {
+                add(f, format!("f{f}"));
+                f += self.sample_every_frames;
+            }
+        }
+        for &f in &self.sample_frames {
+            add(f, format!("f{f}"));
+        }
+        samples.sort_by_key(|s| s.frame);
+        samples
+    }
+}
+
+/// `<out without .png>.<suffix>`.
+fn out_with_suffix(out: &Path, suffix: &str) -> PathBuf {
+    let text = out.to_string_lossy();
+    let stem = text.strip_suffix(".png").unwrap_or(&text);
+    PathBuf::from(format!("{stem}.{suffix}"))
+}
+
+/// A probe id as a file-name component.
+fn file_id(id: &str) -> String {
+    id.replace(['/', '\\'], "_")
+}
+
+/// Write the `dump_textures` read-backs of the current state:
+/// `<prefix>.<id>.bin` for each.
+fn dump_state(
+    pipeline: &mut Pipeline,
+    spec: &FixtureSpec,
+    prefix: &str,
+    report: &mut FixtureReport,
+) -> Result<(), String> {
+    for id in &spec.dump_textures {
+        let texture = pipeline
+            .resolve_probe_texture(id, false)
+            .ok_or_else(|| format!("dump texture {id}: no such texture or surface"))?;
+        let pixels = pipeline
+            .backend
+            .read_texture_f32(&texture)
+            .map_err(|e| format!("dump texture {id}: {e}"))?;
+        let path = out_with_suffix(&spec.out, &format!("{prefix}{}.bin", file_id(id)));
+        std::fs::write(&path, pixels.to_le_bytes())
+            .map_err(|e| format!("{}: {e}", path.display()))?;
+        report.outputs.push(path);
+    }
+    Ok(())
+}
+
+/// Write a frame's pass snapshots (`<prefix>p<NNN>.<id>.bin`) and their pass
+/// list (`<prefix>passes.json`).
+fn dump_pass_snapshots(
+    pipeline: &mut Pipeline,
+    spec: &FixtureSpec,
+    prefix: &str,
+    snapshots: Vec<crate::pipeline::PassSnapshot>,
+    report: &mut FixtureReport,
+) -> Result<(), String> {
+    let mut passes: Vec<Value> = Vec::new();
+    for snap in snapshots {
+        let pixels = pipeline
+            .backend
+            .read_handle_f32(
+                &snap.snapshot.texture,
+                snap.snapshot.width,
+                snap.snapshot.height,
+            )
+            .map_err(|e| format!("pass snapshot {}: {e}", snap.id))?;
+        snap.snapshot.texture.destroy();
+        let path = out_with_suffix(
+            &spec.out,
+            &format!("{prefix}p{:03}.{}.bin", snap.ordinal, file_id(&snap.id)),
+        );
+        std::fs::write(&path, pixels.to_le_bytes())
+            .map_err(|e| format!("{}: {e}", path.display()))?;
+        report.outputs.push(path);
+        let entry = match passes
+            .iter_mut()
+            .find(|p| p.get("ordinal").as_f64() == Some(snap.ordinal as f64))
+        {
+            Some(entry) => entry,
+            None => {
+                let mut o = noisemaker_dsl::Object::new();
+                o.insert("ordinal", Value::Number(snap.ordinal as f64));
+                o.insert("passId", Value::from(snap.pass_id.as_str()));
+                o.insert("textures", Value::object());
+                passes.push(Value::Object(o));
+                passes.last_mut().unwrap()
+            }
+        };
+        if let Value::Object(o) = entry
+            && let Some(Value::Object(textures)) = o.get_mut("textures")
+        {
+            textures.insert(&snap.id, Value::from(snap.texture_id.as_str()));
+        }
+    }
+    let path = out_with_suffix(&spec.out, &format!("{prefix}passes.json"));
+    let text = Value::Array(passes).to_json_pretty().unwrap_or_default();
+    std::fs::write(&path, text + "\n").map_err(|e| format!("{}: {e}", path.display()))?;
+    report.outputs.push(path);
+    Ok(())
+}
+
+/// Render one frame, with the pass probe armed when `probe` is set; returns
+/// the snapshots it took.
+fn render_probed(
+    pipeline: &mut Pipeline,
+    spec: &FixtureSpec,
+    time: f64,
+    probe: bool,
+) -> Result<Vec<crate::pipeline::PassSnapshot>, String> {
+    if probe {
+        pipeline.pass_probe = Some(crate::pipeline::PassProbe {
+            ids: spec.dump_textures.clone(),
+            snapshots: Vec::new(),
+        });
+    }
+    let result = pipeline.render(time);
+    let snapshots = pipeline
+        .pass_probe
+        .take()
+        .map(|p| p.snapshots)
+        .unwrap_or_default();
+    result.map_err(|e| format!("render failed: {e}"))?;
+    Ok(snapshots)
+}
+
 /// Render the protocol's frames (or timed samples) on `pipeline`, writing
-/// the PNGs.
+/// the PNGs and the requested texture dumps.
 fn render_frames(
     pipeline: &mut Pipeline,
     spec: &FixtureSpec,
@@ -446,37 +720,49 @@ fn render_frames(
             .read_pixels(&id)
             .map_err(|e| format!("readback failed: {e}"))
     };
-    if spec.run_seconds > 0.0 {
-        let every_frames = (spec.sample_every * 60.0).round().max(1.0) as u64;
-        let samples = ((spec.run_seconds * 60.0) / every_frames as f64)
-            .floor()
-            .max(1.0) as u64;
-        for s in 0..samples {
-            let start = s * every_frames;
-            for i in 0..every_frames {
-                let t = ((start + i + 1) as f64 / 600.0) % 1.0;
-                pipeline
-                    .render(t)
-                    .map_err(|e| format!("render failed: {e}"))?;
+    let probe_passes = spec.dump_passes && !spec.dump_textures.is_empty();
+    if spec.is_timed() {
+        let schedule = spec.sample_schedule();
+        let mut frame = 0u64;
+        for sample in &schedule {
+            let mut snapshots = Vec::new();
+            while frame < sample.frame {
+                let t = ((frame + 1) as f64 / 600.0) % 1.0;
+                let probe = probe_passes && frame + 1 == sample.frame;
+                snapshots = render_probed(pipeline, spec, t, probe)?;
+                frame += 1;
             }
-            let seconds = (s + 1) as f64 * spec.sample_every;
             let pixels = read_output(pipeline)?.oriented(spec.orientation);
-            let path = timed_sample_path(&spec.out, seconds);
-            write_png_rgba8(&path, pixels.width, pixels.height, &pixels.data)?;
-            report.outputs.push(path);
+            for label in &sample.labels {
+                let path = out_with_suffix(&spec.out, &format!("{label}.png"));
+                write_png_rgba8(&path, pixels.width, pixels.height, &pixels.data)?;
+                report.outputs.push(path);
+                dump_state(pipeline, spec, &format!("{label}."), report)?;
+            }
+            if probe_passes && let Some(label) = sample.labels.first() {
+                dump_pass_snapshots(pipeline, spec, &format!("{label}."), snapshots, report)?;
+            }
         }
     } else {
         // __noisemakerSetPausedTime(time): syncTime, so the first frame's
         // deltaTime is 0.
         pipeline.sync_time(spec.time);
-        for _ in 0..spec.frames {
-            pipeline
-                .render(spec.time)
-                .map_err(|e| format!("render failed: {e}"))?;
+        let mut snapshots = Vec::new();
+        for i in 0..spec.frames {
+            snapshots = render_probed(
+                pipeline,
+                spec,
+                spec.time,
+                probe_passes && i + 1 == spec.frames,
+            )?;
         }
         let pixels = read_output(pipeline)?.oriented(spec.orientation);
         write_png_rgba8(&spec.out, pixels.width, pixels.height, &pixels.data)?;
         report.outputs.push(spec.out.clone());
+        dump_state(pipeline, spec, "", report)?;
+        if probe_passes {
+            dump_pass_snapshots(pipeline, spec, "", snapshots, report)?;
+        }
     }
     Ok(())
 }
@@ -790,6 +1076,7 @@ fn run_dsl_fixture(
             &spec.host_textures,
             sidecar(spec).as_deref(),
         )?;
+        apply_midi_sidecar(&mut host, path, spec.midi.as_deref())?;
         let pipeline = host.renderer_mut().pipeline_mut().ok_or("no pipeline")?;
         let mut keep: Vec<String> = external_texture_ids(&pipeline.graph);
         for id in async_overlay_ids(pipeline) {
@@ -976,6 +1263,7 @@ pub fn run_animation(
             &spec.host_textures,
             dsl_sidecar(&spec.dsl, spec.obj.as_deref()).as_deref(),
         )?;
+        apply_midi_sidecar(&mut host, &spec.dsl, None)?;
         let renderer = host.renderer_mut();
         renderer.set_loop_duration(spec.loop_seconds);
         renderer.sync_time(frame_time(0, spec.fps, spec.loop_seconds));
@@ -1028,6 +1316,61 @@ mod tests {
         ] {
             assert!(ParamOverride::parse(bad).is_err(), "{bad}");
         }
+    }
+
+    #[test]
+    fn timed_samples_follow_the_minters_schedule() {
+        // The timed tier's protocol (parity/timed/manifest.json): seconds
+        // samples and early frame samples, in frame order.
+        let spec = FixtureSpec {
+            run_seconds: 5.0,
+            sample_every: 1.0,
+            sample_frames: vec![30, 1, 2, 4, 10],
+            ..FixtureSpec::default()
+        };
+        assert!(spec.is_timed());
+        let schedule = spec.sample_schedule();
+        let frames: Vec<u64> = schedule.iter().map(|s| s.frame).collect();
+        assert_eq!(frames, vec![1, 2, 4, 10, 30, 60, 120, 180, 240, 300]);
+        assert_eq!(schedule[5].labels, vec!["t1".to_owned()]);
+        assert_eq!(schedule[0].labels, vec!["f1".to_owned()]);
+        // A frame sample on a seconds sample's frame shares it; every-N
+        // samples stop at the run's end.
+        let spec = FixtureSpec {
+            run_seconds: 2.0,
+            sample_every: 1.0,
+            sample_every_frames: 50,
+            sample_frames: vec![60],
+            ..FixtureSpec::default()
+        };
+        let schedule = spec.sample_schedule();
+        let frames: Vec<u64> = schedule.iter().map(|s| s.frame).collect();
+        assert_eq!(frames, vec![50, 60, 100, 120]);
+        assert_eq!(schedule[1].labels, vec!["t1".to_owned(), "f60".to_owned()]);
+        assert!(!FixtureSpec::default().is_timed());
+        assert_eq!(
+            out_with_suffix(Path::new("a/b.candidate.png"), "t5.png"),
+            PathBuf::from("a/b.candidate.t5.png")
+        );
+    }
+
+    #[test]
+    fn midi_sidecars_hold_raw_messages() {
+        let dir = std::env::temp_dir().join(format!("nm-midi-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("roll.midi.json");
+        std::fs::write(&path, r#"{"messages": [[144, 60, 100], [128, 60, 0]]}"#).unwrap();
+        assert_eq!(
+            load_midi_messages(&path).unwrap(),
+            vec![vec![144, 60, 100], vec![128, 60, 0]]
+        );
+        std::fs::write(&path, r#"{"messages": [[256]]}"#).unwrap();
+        assert!(load_midi_messages(&path).is_err());
+        assert_eq!(
+            midi_sidecar(Path::new("x/roll.dsl")),
+            PathBuf::from("x/roll.midi.json")
+        );
+        std::fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]

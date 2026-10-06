@@ -1,0 +1,1968 @@
+{
+ "note": "Author-curated programs of the sibling Noisemaker ports, copied verbatim (sha256 of the file), deduplicated against parity/programs, coverage, portable and timed; every one compiles and renders with the pinned reference.",
+ "programs": {
+  "babylonjs_attractor": {
+   "source": "noisemaker-for-babylonjs/parity/programs/attractor.dsl",
+   "sha256": "1b7be3b7b4f419b471fd60b9eb85353dc30b83f8836f4e096a2751df25089ac1",
+   "also": []
+  },
+  "babylonjs_billboard_flow": {
+   "source": "noisemaker-for-babylonjs/parity/programs/billboard_flow.dsl",
+   "sha256": "4b8e729fd253a22dc6d7fa7e0d1113aeb692a8cbe147558d94753a80dfa9505e",
+   "also": []
+  },
+  "babylonjs_buddhabrot": {
+   "source": "noisemaker-for-babylonjs/parity/programs/buddhabrot.dsl",
+   "sha256": "8355930c9ce19906bc6d0058020e080dbcdf5d81b50535a4627987e0284f6587",
+   "also": []
+  },
+  "babylonjs_bulge": {
+   "source": "noisemaker-for-babylonjs/parity/programs/bulge.dsl",
+   "sha256": "0d69c304076df321c12380445f472f186c952878dd059efaeb47c32c18ac91ab",
+   "also": []
+  },
+  "babylonjs_ca3d": {
+   "source": "noisemaker-for-babylonjs/parity/programs/ca3d.dsl",
+   "sha256": "e15ab113c421f203ed96851923a0f2c6dc6ff223a8ca4a749a6787f45fdc68e0",
+   "also": []
+  },
+  "babylonjs_cell3d_lit": {
+   "source": "noisemaker-for-babylonjs/parity/programs/cell3d_lit.dsl",
+   "sha256": "b8a5da73011ed4eb6040fade0dfce6bbcd12760d5bf776f4e3a66ac3407ead1c",
+   "also": []
+  },
+  "babylonjs_cell3d_r": {
+   "source": "noisemaker-for-babylonjs/parity/programs/cell3d_r.dsl",
+   "sha256": "3ae1a329d89d77e85fb7b4f2cf7510268e21e95f3e9f6ced4f56a0d03e0c0217",
+   "also": []
+  },
+  "babylonjs_clouds": {
+   "source": "noisemaker-for-babylonjs/parity/programs/clouds.dsl",
+   "sha256": "99a676800422db0fcefd5c8374ab009f7cf923fcfbddd31f0eee33deea45a2fe",
+   "also": []
+  },
+  "babylonjs_cnd_cellNoise": {
+   "source": "noisemaker-for-babylonjs/parity/programs/cnd_cellNoise.dsl",
+   "sha256": "7fe26d33b2f04fb99ce5700465f4161426a21f11cfcf898fdbdb2c01ebb3bfe8",
+   "also": []
+  },
+  "babylonjs_cnd_coalesce": {
+   "source": "noisemaker-for-babylonjs/parity/programs/cnd_coalesce.dsl",
+   "sha256": "4499bcf03649c712238b110bb63d679296f25f792b2d04c38d7d8e43abaaad17",
+   "also": []
+  },
+  "babylonjs_cnd_composite": {
+   "source": "noisemaker-for-babylonjs/parity/programs/cnd_composite.dsl",
+   "sha256": "2a3b2680eb47c2b357eb21de0dcf46a61dd9bf5f7db37ba66eeae356b5c1d7f0",
+   "also": []
+  },
+  "babylonjs_cnd_shapeMixer": {
+   "source": "noisemaker-for-babylonjs/parity/programs/cnd_shapeMixer.dsl",
+   "sha256": "292e795a28c86ec423bd320f3cc6022999504056b13db27ef78a0bd4eba0e97f",
+   "also": []
+  },
+  "babylonjs_cube3d": {
+   "source": "noisemaker-for-babylonjs/parity/programs/cube3d.dsl",
+   "sha256": "a2e3c1d036866f5fb9249e890b4aa6995c75be326486a417b4029dc62646d224",
+   "also": []
+  },
+  "babylonjs_cubeSurface": {
+   "source": "noisemaker-for-babylonjs/parity/programs/cubeSurface.dsl",
+   "sha256": "4e141900fe3445e9ae69534a9ddbf88572b9a6f86a2a14a66b2e535829cb2e4e",
+   "also": []
+  },
+  "babylonjs_degauss": {
+   "source": "noisemaker-for-babylonjs/parity/programs/degauss.dsl",
+   "sha256": "e5ea209a8b3964b2dd74da39e3ba4f6b2d14876f711e89850c9a5df21f46bf14",
+   "also": []
+  },
+  "babylonjs_dither_bayer4x4": {
+   "source": "noisemaker-for-babylonjs/parity/programs/dither_bayer4x4.dsl",
+   "sha256": "ccf46b1d34dd32508be8663407525784d9c56d8d6dad6253822d3eb21fced7a7",
+   "also": [
+    "noisemaker-for-touchdesigner/parity/programs/dither_type_bayer4x4.dsl"
+   ]
+  },
+  "babylonjs_dla": {
+   "source": "noisemaker-for-babylonjs/parity/programs/dla.dsl",
+   "sha256": "a32a59d28ea4c0208270b1cf5a6af951e211866ac6f7b8e8effad58fd7305f02",
+   "also": []
+  },
+  "babylonjs_edge_bold": {
+   "source": "noisemaker-for-babylonjs/parity/programs/edge_bold.dsl",
+   "sha256": "e5fefacfd442099dfba4043ea6aa71bf6ec3e907589e36ee9c7b067399b183a6",
+   "also": [
+    "noisemaker-for-touchdesigner/parity/programs/edge_kernel_bold.dsl"
+   ]
+  },
+  "babylonjs_emboss_color": {
+   "source": "noisemaker-for-babylonjs/parity/programs/emboss_color.dsl",
+   "sha256": "b2ec232986b4f69c6ddc3882f6f6f87ecabce49f02b1fff6fdda27748b545697",
+   "also": [
+    "noisemaker-for-touchdesigner/parity/programs/emboss_style_color.dsl"
+   ]
+  },
+  "babylonjs_extrude_blocks": {
+   "source": "noisemaker-for-babylonjs/parity/programs/extrude_blocks.dsl",
+   "sha256": "3ca0c2425e2c74cd81f112e06b10c8ead5bfc06159a4f35d7d4666de7e5cf53b",
+   "also": [
+    "noisemaker-for-touchdesigner/parity/programs/extrude_type_blocks.dsl"
+   ]
+  },
+  "babylonjs_fibers": {
+   "source": "noisemaker-for-babylonjs/parity/programs/fibers.dsl",
+   "sha256": "31a4df7b8189611ce9c30254c61a4d9d1c39f7e287a2355d02cdb5de9e883b3e",
+   "also": []
+  },
+  "babylonjs_flock": {
+   "source": "noisemaker-for-babylonjs/parity/programs/flock.dsl",
+   "sha256": "fda1e6e58158707b5b51ee36eb8ba43512e85cab00eb5da90ea978dda836194a",
+   "also": []
+  },
+  "babylonjs_flow": {
+   "source": "noisemaker-for-babylonjs/parity/programs/flow.dsl",
+   "sha256": "7045772fe07c5d1a1cfafc98657e8f08de985cb0488ba98c179713be8904066b",
+   "also": []
+  },
+  "babylonjs_flythrough3d_r": {
+   "source": "noisemaker-for-babylonjs/parity/programs/flythrough3d_r.dsl",
+   "sha256": "af49a4f1516324052ba10d0b4f29ca89b012ba9ca05608535b29c488d9799096",
+   "also": []
+  },
+  "babylonjs_fractal3d_lit": {
+   "source": "noisemaker-for-babylonjs/parity/programs/fractal3d_lit.dsl",
+   "sha256": "5a252f947bc893f2a7b85a6ef29b523761231ed15fa04b5ff2a4e075e833d564",
+   "also": []
+  },
+  "babylonjs_fractal3d_r": {
+   "source": "noisemaker-for-babylonjs/parity/programs/fractal3d_r.dsl",
+   "sha256": "87b9aa9909f99684c4bb1d97dca087bdc84d5cf99373a70efa5eef7a36a22521",
+   "also": []
+  },
+  "babylonjs_grime": {
+   "source": "noisemaker-for-babylonjs/parity/programs/grime.dsl",
+   "sha256": "165f86e20e7a75d8284d5323ada19bfa2ee6d94d20a8b45623dc2ab75264bf8b",
+   "also": []
+  },
+  "babylonjs_halftone_color": {
+   "source": "noisemaker-for-babylonjs/parity/programs/halftone_color.dsl",
+   "sha256": "ec8d68aa0b1cd4d8f75f08ef358837919cef5fcaefdea1dfd41af1a1335f5f0d",
+   "also": [
+    "noisemaker-for-touchdesigner/parity/programs/halftone_mode_color.dsl"
+   ]
+  },
+  "babylonjs_historicPalette": {
+   "source": "noisemaker-for-babylonjs/parity/programs/historicPalette.dsl",
+   "sha256": "be0b2bda8bb39f9dc805613aad8a213a83cc1552810ce35d7ff46d458c1f4fc8",
+   "also": []
+  },
+  "babylonjs_hydraulic": {
+   "source": "noisemaker-for-babylonjs/parity/programs/hydraulic.dsl",
+   "sha256": "55f5f79f59ae280182579c578971a675121b38505302fada14c17abe8021ee67",
+   "also": []
+  },
+  "babylonjs_invert_full": {
+   "source": "noisemaker-for-babylonjs/parity/programs/invert_full.dsl",
+   "sha256": "24e8b16c0c0ee2e66f71e51fb0e022d289b9de003e158c6979d35cf1bf3612f8",
+   "also": [
+    "noisemaker-for-touchdesigner/parity/programs/invert_mode_full.dsl"
+   ]
+  },
+  "babylonjs_lenia": {
+   "source": "noisemaker-for-babylonjs/parity/programs/lenia.dsl",
+   "sha256": "7e752d6148dc91fec3660764b589d3ef6ca31a61d1959901ff33518dc72d3f0a",
+   "also": []
+  },
+  "babylonjs_lens": {
+   "source": "noisemaker-for-babylonjs/parity/programs/lens.dsl",
+   "sha256": "94cd41e3d3916b61ece9ad3d93225034e1e3d05a74b601cf534bfce21d11e727",
+   "also": []
+  },
+  "babylonjs_life": {
+   "source": "noisemaker-for-babylonjs/parity/programs/life.dsl",
+   "sha256": "0d84aef52449084878f597582b9c570a0f951b37c2d0ce585991f64398a7931b",
+   "also": []
+  },
+  "babylonjs_lighting": {
+   "source": "noisemaker-for-babylonjs/parity/programs/lighting.dsl",
+   "sha256": "86110ab062c92eefb2c1cb9ad4190244012122a86d46b76903742df58b904172",
+   "also": []
+  },
+  "babylonjs_loop_accum": {
+   "source": "noisemaker-for-babylonjs/parity/programs/loop_accum.dsl",
+   "sha256": "2652e7138f0e926a7b97f4453ba542b6beb5edfe8191186e3185f025e931715f",
+   "also": []
+  },
+  "babylonjs_lowPoly_border": {
+   "source": "noisemaker-for-babylonjs/parity/programs/lowPoly_border.dsl",
+   "sha256": "781de9ba4b3d401c6a927229463aeb0bf4910244ed51e2d397807921dce2d33d",
+   "also": []
+  },
+  "babylonjs_lowPoly_light": {
+   "source": "noisemaker-for-babylonjs/parity/programs/lowPoly_light.dsl",
+   "sha256": "56dbd5eed545a1b3f8491e3c05877f199c80ffbcdbabd55e333d5c153d3e0e79",
+   "also": [
+    "noisemaker-for-threejs/parity/programs/lowPoly_light.dsl",
+    "noisemaker-for-touchdesigner/parity/programs/lowPoly_lightIntensity_50.dsl"
+   ]
+  },
+  "babylonjs_mashup": {
+   "source": "noisemaker-for-babylonjs/parity/programs/mashup.dsl",
+   "sha256": "5fe297f00c105cdb80bc3b202e0510ea628477492bc4949f85a57f9f78be77cb",
+   "also": []
+  },
+  "babylonjs_mnca": {
+   "source": "noisemaker-for-babylonjs/parity/programs/mnca.dsl",
+   "sha256": "5485f1e68216172e4a7744dd83ed2aec23cad44a88630b3e3f03c2b3e45e2952",
+   "also": []
+  },
+  "babylonjs_morphology_dilate_square": {
+   "source": "noisemaker-for-babylonjs/parity/programs/morphology_dilate_square.dsl",
+   "sha256": "da5add1f87b8936e4ba53d8ecd07fddd31627cf300f190c4d39f3a5f40c69adf",
+   "also": [
+    "noisemaker-for-threejs/parity/programs/morphology_dilate_square.dsl"
+   ]
+  },
+  "babylonjs_noise3d_r": {
+   "source": "noisemaker-for-babylonjs/parity/programs/noise3d_r.dsl",
+   "sha256": "013bc9b0ebae9fd4417ed8c8d1ad904eb7f0f5a2bb14b43be13c3653b4a8c35b",
+   "also": []
+  },
+  "babylonjs_parallax": {
+   "source": "noisemaker-for-babylonjs/parity/programs/parallax.dsl",
+   "sha256": "d03c25b1163cfacbc7ee0d7c1610df2f66da9be00a314bdc4e91394d8637d368",
+   "also": []
+  },
+  "babylonjs_physical": {
+   "source": "noisemaker-for-babylonjs/parity/programs/physical.dsl",
+   "sha256": "078d423042ea2cf13887d7a7b84c2ee013f2251f24c3b0faeb87af1e7e315379",
+   "also": []
+  },
+  "babylonjs_prismaticAberration": {
+   "source": "noisemaker-for-babylonjs/parity/programs/prismaticAberration.dsl",
+   "sha256": "145a45654aa0db8beccf60d4aa24c8a87324a858ff8997016413a9e0e55e9ee5",
+   "also": []
+  },
+  "babylonjs_rd3d_r": {
+   "source": "noisemaker-for-babylonjs/parity/programs/rd3d_r.dsl",
+   "sha256": "cce0db67ca220b2c6392f39ae8d4e7a546d72013cd282b5adc0248af7e9c46f7",
+   "also": []
+  },
+  "babylonjs_remap_zones": {
+   "source": "noisemaker-for-babylonjs/parity/programs/remap_zones.dsl",
+   "sha256": "d31c6bafd5c9d3e31e9da0c19e2b6b49c846d90f7b8387e1c39069aa1eb96a6f",
+   "also": []
+  },
+  "babylonjs_renderLit3d": {
+   "source": "noisemaker-for-babylonjs/parity/programs/renderLit3d.dsl",
+   "sha256": "caa9f2251f9de2f7756723fb6887e88a9e836b021d3fe3f318eba6ecc34c1a0d",
+   "also": []
+  },
+  "babylonjs_scratches": {
+   "source": "noisemaker-for-babylonjs/parity/programs/scratches.dsl",
+   "sha256": "032965c46ce82b0a687b2425efa3feae243f01351d31142e7aa3d38140aabde4",
+   "also": []
+  },
+  "babylonjs_shape3d": {
+   "source": "noisemaker-for-babylonjs/parity/programs/shape3d.dsl",
+   "sha256": "9bab661885d1532b9810f06c7859f0dd90b4620a4cd14ed0cfcc9b2ffcea3bbe",
+   "also": []
+  },
+  "babylonjs_shape3d_voxel": {
+   "source": "noisemaker-for-babylonjs/parity/programs/shape3d_voxel.dsl",
+   "sha256": "14c5b2eb5205b2713654dd01bb65d85b38d9d0608cdb9e1419a226c2c1e0c7ea",
+   "also": []
+  },
+  "babylonjs_simpleAberration": {
+   "source": "noisemaker-for-babylonjs/parity/programs/simpleAberration.dsl",
+   "sha256": "89b48e0c25c67645ff277764dc3cf0889abf77b18220fdb6fec3515fd3e213d7",
+   "also": []
+  },
+  "babylonjs_skew": {
+   "source": "noisemaker-for-babylonjs/parity/programs/skew.dsl",
+   "sha256": "ff2578f56e7fc8079b2899e11e8c9fe6ffb914bea6c407427a20e25922d8e75f",
+   "also": []
+  },
+  "babylonjs_smrticle_physarum": {
+   "source": "noisemaker-for-babylonjs/parity/programs/smrticle_physarum.dsl",
+   "sha256": "b1af7004e7ec13ad812a6b057b32b9aac68de9b9c1bc4aa7e059cd27c37aa6dc",
+   "also": []
+  },
+  "babylonjs_smrticle_physical": {
+   "source": "noisemaker-for-babylonjs/parity/programs/smrticle_physical.dsl",
+   "sha256": "b2c6481b259434ab6b991482688405fe4fa7fde5466428865fecf3ffd0a9c86a",
+   "also": []
+  },
+  "babylonjs_spatter": {
+   "source": "noisemaker-for-babylonjs/parity/programs/spatter.dsl",
+   "sha256": "3e88468eece17727fec39822996de30cdcdda7bf5b53b5782ca0ba47f2b547bb",
+   "also": []
+  },
+  "babylonjs_spookyTicker": {
+   "source": "noisemaker-for-babylonjs/parity/programs/spookyTicker.dsl",
+   "sha256": "01a37c15ed1aa8d0b126dd17af4e473fb8e34363200e0769dd0ee2dc36557b08",
+   "also": []
+  },
+  "babylonjs_strayHair": {
+   "source": "noisemaker-for-babylonjs/parity/programs/strayHair.dsl",
+   "sha256": "df87d469bb5b141d701242dc42a04c31148d314518bdfd6936381a1d8de50336",
+   "also": []
+  },
+  "babylonjs_target_particles": {
+   "source": "noisemaker-for-babylonjs/parity/programs/target_particles.dsl",
+   "sha256": "a9f2bd85900deee042c50297ea10e695529f72bb0cbd2f1b091f77c06422deb2",
+   "also": [
+    "noisemaker-for-touchdesigner/parity/corpus/target_particles.dsl"
+   ]
+  },
+  "babylonjs_temporalAberration": {
+   "source": "noisemaker-for-babylonjs/parity/programs/temporalAberration.dsl",
+   "sha256": "2396b893034ed44a7dae27a6d0331376e62646a58b62885eea8be4d752a4c437",
+   "also": []
+  },
+  "babylonjs_tetraColorArray": {
+   "source": "noisemaker-for-babylonjs/parity/programs/tetraColorArray.dsl",
+   "sha256": "26ec6a03094dce0cbb6ba6042d279cb1f7bac31b072f715fe04f7054445c36e5",
+   "also": []
+  },
+  "babylonjs_tetraCosine": {
+   "source": "noisemaker-for-babylonjs/parity/programs/tetraCosine.dsl",
+   "sha256": "5eab7db20e86b2a67b551760310e061594a248006703bc01ba6aaab5f393c5d4",
+   "also": []
+  },
+  "babylonjs_text": {
+   "source": "noisemaker-for-babylonjs/parity/programs/text.dsl",
+   "sha256": "0bce4cf3a9f7cf6afc6dc035c30a010db28543054be0509d8b46d1c7eb3573cc",
+   "also": []
+  },
+  "babylonjs_texture": {
+   "source": "noisemaker-for-babylonjs/parity/programs/texture.dsl",
+   "sha256": "ccd6d7b3cec0838c90e48a4dfa647cb984c08e34d54875673dd9d7ccfa89affa",
+   "also": []
+  },
+  "babylonjs_texture_canvas": {
+   "source": "noisemaker-for-babylonjs/parity/programs/texture_canvas.dsl",
+   "sha256": "2f275e9b7df007c4af4cecd1c9b61eee5d5ed3263fc741902d98184a44f3a50f",
+   "also": [
+    "noisemaker-for-threejs/parity/programs/texture_canvas.dsl",
+    "noisemaker-for-touchdesigner/parity/programs/texture_mode_canvas.dsl"
+   ]
+  },
+  "babylonjs_texture_crosshatch": {
+   "source": "noisemaker-for-babylonjs/parity/programs/texture_crosshatch.dsl",
+   "sha256": "7d2e0a24c005e4ab1f39957298df40a11b28dd45144374c36c92d25a2b6e5aa3",
+   "also": [
+    "noisemaker-for-threejs/parity/programs/texture_crosshatch.dsl",
+    "noisemaker-for-touchdesigner/parity/programs/texture_mode_crosshatch.dsl"
+   ]
+  },
+  "babylonjs_texture_halftone": {
+   "source": "noisemaker-for-babylonjs/parity/programs/texture_halftone.dsl",
+   "sha256": "a0b2f6b128e0557f95540b68ebb6c5ea3fc53b8c971c99dd64c5506b6ef08107",
+   "also": [
+    "noisemaker-for-threejs/parity/programs/texture_halftone.dsl",
+    "noisemaker-for-touchdesigner/parity/programs/texture_mode_halftone.dsl"
+   ]
+  },
+  "babylonjs_texture_paper": {
+   "source": "noisemaker-for-babylonjs/parity/programs/texture_paper.dsl",
+   "sha256": "51e807fceb8d0eac16811cc0e64567a6c30988f567205709147860b8abaa6653",
+   "also": [
+    "noisemaker-for-touchdesigner/parity/programs/texture_mode_paper.dsl"
+   ]
+  },
+  "babylonjs_texture_stucco": {
+   "source": "noisemaker-for-babylonjs/parity/programs/texture_stucco.dsl",
+   "sha256": "ba3611acdf680a4912ecfa79cb14d1243c3506595893f6dbca58f181c3644569",
+   "also": [
+    "noisemaker-for-threejs/parity/programs/texture_stucco.dsl",
+    "noisemaker-for-touchdesigner/parity/programs/texture_mode_stucco.dsl"
+   ]
+  },
+  "babylonjs_wind_blast": {
+   "source": "noisemaker-for-babylonjs/parity/programs/wind_blast.dsl",
+   "sha256": "78f4f01c1ef5c371aa57023c375568bfb8e6094f0ff2a6f7a39bb1837a76efe3",
+   "also": [
+    "noisemaker-for-touchdesigner/parity/programs/wind_method_blast.dsl"
+   ]
+  },
+  "babylonjs_wormhole": {
+   "source": "noisemaker-for-babylonjs/parity/programs/wormhole.dsl",
+   "sha256": "41fb65abcb0f415c529e23f96366d0d66d4033426454f9ad24536b9fe5690434",
+   "also": []
+  },
+  "blender_bb_only": {
+   "source": "noisemaker-for-blender/parity/programs/bb_only.dsl",
+   "sha256": "f6c977ead027d4c3734a056e27d9e85dc3f5fa00f1cf80eea8df958aa1e50c95",
+   "also": []
+  },
+  "blender_billboard_smoke": {
+   "source": "noisemaker-for-blender/parity/programs/billboard_smoke.dsl",
+   "sha256": "5f6a50ff11e404214ea53efa5eca39c443aee9952678d1fda453d768cda33474",
+   "also": []
+  },
+  "blender_edge_contour": {
+   "source": "noisemaker-for-blender/parity/programs/edge_contour.dsl",
+   "sha256": "1bdc9609efe1a961930800b03907663dd7be965e9f3427bc821ce5a0f9bfd751",
+   "also": []
+  },
+  "blender_edge_fine": {
+   "source": "noisemaker-for-blender/parity/programs/edge_fine.dsl",
+   "sha256": "32b2b932cb4f14c00c6776de77f95d5d8956b30359c99dabf51cd7bc6a975650",
+   "also": []
+  },
+  "blender_emboss_gray": {
+   "source": "noisemaker-for-blender/parity/programs/emboss_gray.dsl",
+   "sha256": "bca3118116eaa9c639792721168999359dd6c59a4fb18db9cbc723ca400ffb3e",
+   "also": []
+  },
+  "blender_extrude_blocksRandom": {
+   "source": "noisemaker-for-blender/parity/programs/extrude_blocksRandom.dsl",
+   "sha256": "9189aca9fe6d259bf6ad61a9f72c087ce75ea06d24725f1d36f2b1c5db6063f9",
+   "also": []
+  },
+  "blender_extrude_pyramidsLuminance": {
+   "source": "noisemaker-for-blender/parity/programs/extrude_pyramidsLuminance.dsl",
+   "sha256": "9c505d386af453c740057481657791330842c7b4645867d235726642ac83f928",
+   "also": []
+  },
+  "blender_extrude_pyramidsRandom": {
+   "source": "noisemaker-for-blender/parity/programs/extrude_pyramidsRandom.dsl",
+   "sha256": "3b701b6485a9c53b281ba1cd8bd3f6518e7f295341cce9799f201fb0ba4a025e",
+   "also": []
+  },
+  "blender_flock_smoke": {
+   "source": "noisemaker-for-blender/parity/programs/flock_smoke.dsl",
+   "sha256": "199954446f04cd8ee4d0ba66ac00cb01e0da8e9cc52e4db324681aaead387c78",
+   "also": []
+  },
+  "blender_flow3d": {
+   "source": "noisemaker-for-blender/parity/programs/flow3d.dsl",
+   "sha256": "1383a5e19de4d65e3284657fab7957dcf65e1b46a04abb8c3fc3b3a164c88c7b",
+   "also": []
+  },
+  "blender_grime": {
+   "source": "noisemaker-for-blender/parity/programs/grime.dsl",
+   "sha256": "7374d44965160c5e983f86b72252d96100b60076b13722f73a80f7c5c8dcfd96",
+   "also": []
+  },
+  "blender_halftone_monoCircle": {
+   "source": "noisemaker-for-blender/parity/programs/halftone_monoCircle.dsl",
+   "sha256": "c099d38b62370811c183bcbc7004bf4814d259a256b8cc39fad6477b5672be80",
+   "also": []
+  },
+  "blender_halftone_monoDot": {
+   "source": "noisemaker-for-blender/parity/programs/halftone_monoDot.dsl",
+   "sha256": "891ec5148cb235d5c03439c929e24eafe1a70adc2d27735ce9b7e67a1407eaea",
+   "also": []
+  },
+  "blender_halftone_monoLine": {
+   "source": "noisemaker-for-blender/parity/programs/halftone_monoLine.dsl",
+   "sha256": "66ab727b5011d2cc9a11d79107f58cda85f505ad1ed94c5d5d465aaa7eb1f4c1",
+   "also": []
+  },
+  "blender_hatch_chalkCharcoal": {
+   "source": "noisemaker-for-blender/parity/programs/hatch_chalkCharcoal.dsl",
+   "sha256": "26162d67e59d6c413b9eb76be2a43699b74275282d48e081a356fb22eec95f70",
+   "also": []
+  },
+  "blender_hatch_charcoal": {
+   "source": "noisemaker-for-blender/parity/programs/hatch_charcoal.dsl",
+   "sha256": "3a1ce84466ed82e8a068d129c3bd8ac9b198628d6c78c591122cb5061689944d",
+   "also": []
+  },
+  "blender_hatch_coloredPencil": {
+   "source": "noisemaker-for-blender/parity/programs/hatch_coloredPencil.dsl",
+   "sha256": "e97a93aaf16882cd00d24085f3a67de8edd3ac00255f2d9c8ab75a51a0c13d38",
+   "also": []
+  },
+  "blender_hatch_coloredPencilLeftDiag": {
+   "source": "noisemaker-for-blender/parity/programs/hatch_coloredPencilLeftDiag.dsl",
+   "sha256": "f8bd3a1f86b59523bb339bfd912065cdb641bd9d71ca7a9e478549ab986b9ddf",
+   "also": []
+  },
+  "blender_hatch_conte": {
+   "source": "noisemaker-for-blender/parity/programs/hatch_conte.dsl",
+   "sha256": "62c1a6f0ddc70a3cc893f89c1dd3f08bd70d7b2deebbf8812b8da3657ff93f6e",
+   "also": []
+  },
+  "blender_hatch_crosshatch": {
+   "source": "noisemaker-for-blender/parity/programs/hatch_crosshatch.dsl",
+   "sha256": "0397388c4106bad76b387cec854959a0a7f4ca48d0d4f00c38262362f8a00dc6",
+   "also": []
+  },
+  "blender_hatch_pen": {
+   "source": "noisemaker-for-blender/parity/programs/hatch_pen.dsl",
+   "sha256": "7a547f4502a86997d1ca79d3d19ef64dc76dba20b57a3d2727adedca6feb7109",
+   "also": []
+  },
+  "blender_int_nobl": {
+   "source": "noisemaker-for-blender/parity/programs/int_nobl.dsl",
+   "sha256": "cb0e7b930f20d081c467d55874e4b1cc208aab2e78635289191efa15b7e8dd9c",
+   "also": []
+  },
+  "blender_int_ns": {
+   "source": "noisemaker-for-blender/parity/programs/int_ns.dsl",
+   "sha256": "32e9b17d0afcaccc7907f2f22c15351ba38f23c7ae77a21bc576e4a0d513486b",
+   "also": []
+  },
+  "blender_invert_solarize": {
+   "source": "noisemaker-for-blender/parity/programs/invert_solarize.dsl",
+   "sha256": "42ba5a1c38417a6f1c4dc7015db0a1e0bd693fed429ff047a7ca2dd9e3c140fb",
+   "also": []
+  },
+  "blender_io0_nobb": {
+   "source": "noisemaker-for-blender/parity/programs/io0_nobb.dsl",
+   "sha256": "31bf26cbe423c9b2c229a2e198d18f650d895a4d77e9e610e0324578d78c97fd",
+   "also": []
+  },
+  "blender_kRK7A": {
+   "source": "noisemaker-for-blender/parity/programs/_kRK7A.dsl",
+   "sha256": "b5191afaea4b15512c7f83ea9c62b8e472a9e9cebd8ddd4b9d6885817b2fc3ea",
+   "also": [
+    "noisemaker-for-blender/parity/corpus/_kRK7A.dsl",
+    "noisemaker-for-threejs/parity/corpus/_kRK7A.dsl",
+    "noisemaker-for-touchdesigner/parity/corpus/_kRK7A.dsl",
+    "noisemaker-for-unity/parity/corpus/_kRK7A.dsl"
+   ]
+  },
+  "blender_lensFlare_moviePrime": {
+   "source": "noisemaker-for-blender/parity/programs/lensFlare_moviePrime.dsl",
+   "sha256": "6e2abb81be7e5d9dcebe8d65fcf330887a2ca72799c057932b6d51e69431b6cf",
+   "also": []
+  },
+  "blender_lensFlare_prime105": {
+   "source": "noisemaker-for-blender/parity/programs/lensFlare_prime105.dsl",
+   "sha256": "5f9c0ff7bc2ebbc5e86ac4b5393dac44a4b346dc3a90f5f658c47fc7dbc33292",
+   "also": []
+  },
+  "blender_lensFlare_prime35": {
+   "source": "noisemaker-for-blender/parity/programs/lensFlare_prime35.dsl",
+   "sha256": "afbf6ed1f9efd5ff05cdc7f52628ce6efcf8213c6b4d773b7dad747f58810985",
+   "also": []
+  },
+  "blender_lensFlare_zoom50_300": {
+   "source": "noisemaker-for-blender/parity/programs/lensFlare_zoom50_300.dsl",
+   "sha256": "c12d0a19414a3462aef1878eee0bfd4e380aa0335ed12b0983fd7dae2081b3f8",
+   "also": []
+  },
+  "blender_lighting": {
+   "source": "noisemaker-for-blender/parity/programs/lighting.dsl",
+   "sha256": "37304c6bed9114d56214146c599665f2889c54de8ea2297d36a64ce804e6ed45",
+   "also": []
+  },
+  "blender_lowPoly_distance2": {
+   "source": "noisemaker-for-blender/parity/programs/lowPoly_distance2.dsl",
+   "sha256": "59b2ca9ce1af8896b0e6ba764272f4beb54e5f3423286fd986f1035fa69d4e6e",
+   "also": []
+  },
+  "blender_lowPoly_distance3": {
+   "source": "noisemaker-for-blender/parity/programs/lowPoly_distance3.dsl",
+   "sha256": "ce76540b34b3ad755b144fe00a9fa4fd28c81f49d2195a357252ae92fbca95b8",
+   "also": []
+  },
+  "blender_lowPoly_edges": {
+   "source": "noisemaker-for-blender/parity/programs/lowPoly_edges.dsl",
+   "sha256": "0d5dcb122308d73f6edb166566f4eee486bc437dd1db88b6ae2e2616877fcb71",
+   "also": []
+  },
+  "blender_lowPoly_flat": {
+   "source": "noisemaker-for-blender/parity/programs/lowPoly_flat.dsl",
+   "sha256": "e259e8d8d84a958c61cc2a0f4c59b6be190b4705c36bb851c44f5b895ee4ad60",
+   "also": []
+  },
+  "blender_mashup": {
+   "source": "noisemaker-for-blender/parity/programs/mashup.dsl",
+   "sha256": "836e4f37a51a95ce00568e98cbe93cf22865a51ac8717e69ed9017189b76da35",
+   "also": []
+  },
+  "blender_morphology_dilateRound": {
+   "source": "noisemaker-for-blender/parity/programs/morphology_dilateRound.dsl",
+   "sha256": "73ce6ca86a2209e3cff78e7d38249f54081e39a7de1be82c8dcda6949a959c6b",
+   "also": []
+  },
+  "blender_morphology_erodeRound": {
+   "source": "noisemaker-for-blender/parity/programs/morphology_erodeRound.dsl",
+   "sha256": "88b085e15751ea14ef1024ae2da5888308c76cb15baa32d98f3963c23e140650",
+   "also": []
+  },
+  "blender_morphology_erodeSquare": {
+   "source": "noisemaker-for-blender/parity/programs/morphology_erodeSquare.dsl",
+   "sha256": "465ace6aca4c779d332725f81be484f636dc84526843084ae7334fc4baa37229",
+   "also": []
+  },
+  "blender_mosaicTiles_mosaic": {
+   "source": "noisemaker-for-blender/parity/programs/mosaicTiles_mosaic.dsl",
+   "sha256": "ce9c40f3d0294b3fc5dbd4b0275ec89ca51d8d02f3b5502497074e70afd9806a",
+   "also": []
+  },
+  "blender_mosaicTiles_shifted": {
+   "source": "noisemaker-for-blender/parity/programs/mosaicTiles_shifted.dsl",
+   "sha256": "5a39371c4040c5d4fdccaa477e486366d97abf145d28864466e100b8cb16abb3",
+   "also": []
+  },
+  "blender_ns145": {
+   "source": "noisemaker-for-blender/parity/programs/ns145.dsl",
+   "sha256": "979315b4770f6ae8c0ad9ca7becf2eea9fbdad9e30080bf0a3322733455d074e",
+   "also": []
+  },
+  "blender_ns_smoke": {
+   "source": "noisemaker-for-blender/parity/programs/ns_smoke.dsl",
+   "sha256": "c9b2ce12ae0efc8cd67255a860c72115e8959f6659d1898e4913e9795fbdd246",
+   "also": []
+  },
+  "blender_oilPaint_daubs": {
+   "source": "noisemaker-for-blender/parity/programs/oilPaint_daubs.dsl",
+   "sha256": "6d053ac7b9c492c48042c7d4450d6e544b7ae5f3a2c17069a11617f44d74ac42",
+   "also": []
+  },
+  "blender_oilPaint_dryBrush": {
+   "source": "noisemaker-for-blender/parity/programs/oilPaint_dryBrush.dsl",
+   "sha256": "f9d8a1523cc888566975d1b4a082739f3571de15a032833e164bc4d0010f5385",
+   "also": []
+  },
+  "blender_oilPaint_facet": {
+   "source": "noisemaker-for-blender/parity/programs/oilPaint_facet.dsl",
+   "sha256": "bff3e4d050cfff5ea918ea99a7cee90c98ca1c0f35239731b01e8a2709eb8d82",
+   "also": []
+  },
+  "blender_oilPaint_fresco": {
+   "source": "noisemaker-for-blender/parity/programs/oilPaint_fresco.dsl",
+   "sha256": "1d09d6fc3a346ca00bddb20f186266fbc7af85d664f4b6b220e9aecb14620166",
+   "also": []
+  },
+  "blender_oilPaint_knife": {
+   "source": "noisemaker-for-blender/parity/programs/oilPaint_knife.dsl",
+   "sha256": "1607cd56fafcd6781d6277ad546bbb7f883f7e2a26cf4024f89be6a69a9ca9a9",
+   "also": []
+  },
+  "blender_oilPaint_sponge": {
+   "source": "noisemaker-for-blender/parity/programs/oilPaint_sponge.dsl",
+   "sha256": "a7075cb5a97c8f4d6a18f4b9708342430ed516fbd32e4da2ef7fb7e28dd5699b",
+   "also": []
+  },
+  "blender_parallax": {
+   "source": "noisemaker-for-blender/parity/programs/parallax.dsl",
+   "sha256": "e42c94a8578f1d8e076bb189dcfe32a4623108abb9c97c9e424e3668bda36b9c",
+   "also": [
+    "noisemaker-for-touchdesigner/parity/programs/parallax.dsl"
+   ]
+  },
+  "blender_perlin3d": {
+   "source": "noisemaker-for-blender/parity/programs/perlin3d.dsl",
+   "sha256": "06aa17c9de39f29aadfb349eb154afb59c3e8bf86d1898f16853aa74ff3b60a2",
+   "also": []
+  },
+  "blender_points_smoke": {
+   "source": "noisemaker-for-blender/parity/programs/points_smoke.dsl",
+   "sha256": "342ef81235d39432333bc7f5ef5544c4767458be3193b748333022b6de7133b5",
+   "also": []
+  },
+  "blender_pondRipples_aroundCenter": {
+   "source": "noisemaker-for-blender/parity/programs/pondRipples_aroundCenter.dsl",
+   "sha256": "aef47615318ca5aa03adbd1e8f691acd51f838665dee2bf87f669da90c696220",
+   "also": []
+  },
+  "blender_pondRipples_outFromCenter": {
+   "source": "noisemaker-for-blender/parity/programs/pondRipples_outFromCenter.dsl",
+   "sha256": "839fcabb562225b37d23902c0c6e16fc883f161ed8c6a1ed43f5525a71eb3b22",
+   "also": []
+  },
+  "blender_pondRipples_pondRipples": {
+   "source": "noisemaker-for-blender/parity/programs/pondRipples_pondRipples.dsl",
+   "sha256": "7a79ac25bc2f4cbd8a18e73252fb6b675ad31f9aee99e8d7ca431ae40a998e70",
+   "also": []
+  },
+  "blender_pondRipples_speedNeg5": {
+   "source": "noisemaker-for-blender/parity/programs/pondRipples_speedNeg5.dsl",
+   "sha256": "07cb7f82d8f156449ead3f9d07c812a57feec142dba907f7d967252bb5c9bd97",
+   "also": []
+  },
+  "blender_pondRipples_wrapClamp": {
+   "source": "noisemaker-for-blender/parity/programs/pondRipples_wrapClamp.dsl",
+   "sha256": "4a400802da6deebd295b74672e6076355dc423467c95b15d3946d8539b1c011d",
+   "also": []
+  },
+  "blender_pondRipples_wrapRepeat": {
+   "source": "noisemaker-for-blender/parity/programs/pondRipples_wrapRepeat.dsl",
+   "sha256": "7c73f378590b7c930e9fef97125b0554bcc5ec8b862ac4afcda6a4db31665c6b",
+   "also": []
+  },
+  "blender_relief_basRelief": {
+   "source": "noisemaker-for-blender/parity/programs/relief_basRelief.dsl",
+   "sha256": "7531127acf95007bd8ed2b0e1509963b619d7a215941dad9d1e2cbfdbf37dc47",
+   "also": []
+  },
+  "blender_relief_notePaper": {
+   "source": "noisemaker-for-blender/parity/programs/relief_notePaper.dsl",
+   "sha256": "17f255543354f47465d80329918ba1213d575198bc7b76212bd224d38c993eec",
+   "also": []
+  },
+  "blender_relief_plaster": {
+   "source": "noisemaker-for-blender/parity/programs/relief_plaster.dsl",
+   "sha256": "9d7408729b30e0ff1f75e471a747bddf35631fc07f3386f8c1c6b40942a8185f",
+   "also": []
+  },
+  "blender_remap": {
+   "source": "noisemaker-for-blender/parity/programs/remap.dsl",
+   "sha256": "177aa76a128273c4212322be48ae1659d4bdc9b2d7516f6c963115c8a2c434cb",
+   "also": [
+    "noisemaker-for-godot/parity/programs/remap.dsl"
+   ]
+  },
+  "blender_render3d": {
+   "source": "noisemaker-for-blender/parity/programs/render3d.dsl",
+   "sha256": "03e560f96dd55ef77c18f1fce59b5d9151c621422f0e94e2463182f0331e09ce",
+   "also": []
+  },
+  "blender_renderLit3d": {
+   "source": "noisemaker-for-blender/parity/programs/renderLit3d.dsl",
+   "sha256": "ab6356d1a4c064b3a531a5c8657dd6683d4a3f81d0ebd17be03cacb6a66aa542",
+   "also": []
+  },
+  "blender_scatter_anisotropic": {
+   "source": "noisemaker-for-blender/parity/programs/scatter_anisotropic.dsl",
+   "sha256": "151407be825139962d8c6974d120fd1a2359e603bca6c3277152130995a111fc",
+   "also": []
+  },
+  "blender_scatter_clumped": {
+   "source": "noisemaker-for-blender/parity/programs/scatter_clumped.dsl",
+   "sha256": "d2f9c3ed504cbfa521dba9474e21e8db37f965d260374b82c0aef8b90f42462c",
+   "also": []
+  },
+  "blender_scatter_darkenOnly": {
+   "source": "noisemaker-for-blender/parity/programs/scatter_darkenOnly.dsl",
+   "sha256": "ad326db1f3647003c6c07d2cb2d0c352b2f6213decfe2a0d8070fb1a7299520b",
+   "also": []
+  },
+  "blender_scatter_lightenOnly": {
+   "source": "noisemaker-for-blender/parity/programs/scatter_lightenOnly.dsl",
+   "sha256": "c1e7f824f3d4cf73a9a75e5a7cdc456fda639ffd09c8d964463a2d1c03b33ee6",
+   "also": []
+  },
+  "blender_scatter_normal": {
+   "source": "noisemaker-for-blender/parity/programs/scatter_normal.dsl",
+   "sha256": "9ab5c4da0456a6c4a576bb8ef5c2678d05efe59cea655213e913aee9c208b102",
+   "also": []
+  },
+  "blender_shapeMixer": {
+   "source": "noisemaker-for-blender/parity/programs/shapeMixer.dsl",
+   "sha256": "41080772e6496f06f3093ed16d556fc7cac46bc6f2bf66f3c8b2e4db94436df9",
+   "also": []
+  },
+  "blender_spookyTicker": {
+   "source": "noisemaker-for-blender/parity/programs/spookyTicker.dsl",
+   "sha256": "8366db426538dc5054780e25fbaa20261daf82f8e1cce08b046d5144407f1d6f",
+   "also": []
+  },
+  "blender_stipple_mezzoDots": {
+   "source": "noisemaker-for-blender/parity/programs/stipple_mezzoDots.dsl",
+   "sha256": "ab22209cf1d7d4a38ca8e07e0f01f5e0a2a5fe272d0d5fa1ee58ea4b3b2f9b0f",
+   "also": []
+  },
+  "blender_stipple_mezzoLines": {
+   "source": "noisemaker-for-blender/parity/programs/stipple_mezzoLines.dsl",
+   "sha256": "80b9c5bbba250daa3401dbe775b7587854d329b5e2d7e0a0cb6de2b925b7d3bf",
+   "also": []
+  },
+  "blender_stipple_mezzoStrokes": {
+   "source": "noisemaker-for-blender/parity/programs/stipple_mezzoStrokes.dsl",
+   "sha256": "8267cf2ec01e012e143bbb03d4d115e5c8c85c3ea7ce5e446d5c5e3ead941d65",
+   "also": []
+  },
+  "blender_stipple_pointillize": {
+   "source": "noisemaker-for-blender/parity/programs/stipple_pointillize.dsl",
+   "sha256": "98f32d9d9c559e0b2b7b953f8100c06772f64098684f6ba7c727adf08915c9e5",
+   "also": []
+  },
+  "blender_stipple_reticulation": {
+   "source": "noisemaker-for-blender/parity/programs/stipple_reticulation.dsl",
+   "sha256": "1839cb0669c02344f25521b417531642bb0f5d99b70766494857b6c3d6d48d2c",
+   "also": []
+  },
+  "blender_strokes_angled": {
+   "source": "noisemaker-for-blender/parity/programs/strokes_angled.dsl",
+   "sha256": "b43528393826286e2b0e26737e2af27d95a2dca8bd31643589d491e58d7512c7",
+   "also": []
+  },
+  "blender_strokes_dark": {
+   "source": "noisemaker-for-blender/parity/programs/strokes_dark.dsl",
+   "sha256": "495d94699a4d15ffbb39369809a362f332a94fb2b179268b955a775020178565",
+   "also": []
+  },
+  "blender_strokes_smudge": {
+   "source": "noisemaker-for-blender/parity/programs/strokes_smudge.dsl",
+   "sha256": "f488a876d1a7d66316b5595b7d9a01c338c9f90452686ecef939fad0aca5fdf5",
+   "also": []
+  },
+  "blender_strokes_sprayed": {
+   "source": "noisemaker-for-blender/parity/programs/strokes_sprayed.dsl",
+   "sha256": "e011bcdc76ebcfc09071b74c139f18da4971906c1646be21e9c8704f9b19d32e",
+   "also": []
+  },
+  "blender_strokes_sumiE": {
+   "source": "noisemaker-for-blender/parity/programs/strokes_sumiE.dsl",
+   "sha256": "cb57f3d35ea7763b0f6e59c8c29bf1242a42cd2145a1745c977532aff06c97d3",
+   "also": []
+  },
+  "blender_texture": {
+   "source": "noisemaker-for-blender/parity/programs/texture.dsl",
+   "sha256": "adbd1fd7176c4657c6ba168abf730cd0bb01baad322a6d0cd3563aff134eac65",
+   "also": []
+  },
+  "blender_texture_clumped": {
+   "source": "noisemaker-for-blender/parity/programs/texture_clumped.dsl",
+   "sha256": "445bbb58742a3e87f7120a5dfb1e71af59a4e82f511daa45d69649764534ed69",
+   "also": []
+  },
+  "blender_texture_contrasty": {
+   "source": "noisemaker-for-blender/parity/programs/texture_contrasty.dsl",
+   "sha256": "1c6cd067d6583410cf3d3eaabf7c885099707ad82968dd502014814f85edc75a",
+   "also": []
+  },
+  "blender_texture_enlarged": {
+   "source": "noisemaker-for-blender/parity/programs/texture_enlarged.dsl",
+   "sha256": "f1a416441c4b1e1a7a0566cdc8b874ffe1595e786acc8ab194bc1de981bf691c",
+   "also": []
+  },
+  "blender_texture_horizontal": {
+   "source": "noisemaker-for-blender/parity/programs/texture_horizontal.dsl",
+   "sha256": "1d7e96120eabdea233b42c53ed712fe6e2b8666d84aab506052b858856297d0b",
+   "also": []
+  },
+  "blender_texture_reference_clumped": {
+   "source": "noisemaker-for-blender/parity/programs/texture_reference_clumped.dsl",
+   "sha256": "a9b540316c2ba46fe25f3b38f32b7e06fcf5eb630d65f8f2984d14d382429b49",
+   "also": []
+  },
+  "blender_texture_reference_contrasty": {
+   "source": "noisemaker-for-blender/parity/programs/texture_reference_contrasty.dsl",
+   "sha256": "6ac2e9b9b2c87464d812f4b94ddd2b97ed3205b261af3c458835664657a5d345",
+   "also": []
+  },
+  "blender_texture_reference_enlarged": {
+   "source": "noisemaker-for-blender/parity/programs/texture_reference_enlarged.dsl",
+   "sha256": "7f05ab7865135ad880383e6306f9aa97733a0ab9bf0fa42f27f6fe02e7e0192f",
+   "also": []
+  },
+  "blender_texture_reference_horizontal": {
+   "source": "noisemaker-for-blender/parity/programs/texture_reference_horizontal.dsl",
+   "sha256": "45c5439c796df2588e5426fe082107e2f2a2a5ba301e82e887a3a337ffd586c1",
+   "also": []
+  },
+  "blender_texture_reference_regular": {
+   "source": "noisemaker-for-blender/parity/programs/texture_reference_regular.dsl",
+   "sha256": "17b61a50376ca541e8e06b8c8ba89510fa70523ebda4199179a409734a4fe1ac",
+   "also": []
+  },
+  "blender_texture_reference_soft": {
+   "source": "noisemaker-for-blender/parity/programs/texture_reference_soft.dsl",
+   "sha256": "db29bc92488724cd2d5772f1eb336622b3247ccc664fa8d37b904e32bd4b6d37",
+   "also": []
+  },
+  "blender_texture_reference_speckle": {
+   "source": "noisemaker-for-blender/parity/programs/texture_reference_speckle.dsl",
+   "sha256": "97883697844167b5d2a09fabd0f3d735a4a6e5e9730306387aca2b57e6136876",
+   "also": []
+  },
+  "blender_texture_reference_sprinkles": {
+   "source": "noisemaker-for-blender/parity/programs/texture_reference_sprinkles.dsl",
+   "sha256": "53ba1466328f5707452f4b9e008d1fd0b71e1cbef1b5e934790ffeac95875268",
+   "also": []
+  },
+  "blender_texture_reference_stippled": {
+   "source": "noisemaker-for-blender/parity/programs/texture_reference_stippled.dsl",
+   "sha256": "06697ab49fccba534090aaac18168a5ec1adcd78433fe8e44d2172803e21e1cc",
+   "also": []
+  },
+  "blender_texture_reference_vertical": {
+   "source": "noisemaker-for-blender/parity/programs/texture_reference_vertical.dsl",
+   "sha256": "bb372018bfbc920cc06b23ae1ed486acd4540cc5becefa9a338b39270944b569",
+   "also": []
+  },
+  "blender_texture_regular": {
+   "source": "noisemaker-for-blender/parity/programs/texture_regular.dsl",
+   "sha256": "0f4d07b1a0f7f8e26d1eea22f2059cd43245320bc84c121780f6868b41e71674",
+   "also": []
+  },
+  "blender_texture_soft": {
+   "source": "noisemaker-for-blender/parity/programs/texture_soft.dsl",
+   "sha256": "44b748e35367652b5ef366d801147ffbf7880453dbb6a7b723b5b635a616700c",
+   "also": []
+  },
+  "blender_texture_speckle": {
+   "source": "noisemaker-for-blender/parity/programs/texture_speckle.dsl",
+   "sha256": "189223e898769ed4f91d65235f8b24ab3ae6dff8f686a8cfb597d63d69efdea5",
+   "also": []
+  },
+  "blender_texture_sprinkles": {
+   "source": "noisemaker-for-blender/parity/programs/texture_sprinkles.dsl",
+   "sha256": "bcf365f044fcb420a86830881b0886aac74688e680c7b268d1030ca9ed4bf009",
+   "also": []
+  },
+  "blender_texture_stippled": {
+   "source": "noisemaker-for-blender/parity/programs/texture_stippled.dsl",
+   "sha256": "e5754245e2c859ee8edffc03aee9986b610ad23378d67736542bc56b15d756c4",
+   "also": []
+  },
+  "blender_texture_vertical": {
+   "source": "noisemaker-for-blender/parity/programs/texture_vertical.dsl",
+   "sha256": "c94a47d497120a190f25b7e5de5cfbde781624a3770d17c5d35aaef006115554",
+   "also": []
+  },
+  "blender_wind_blastFromRight": {
+   "source": "noisemaker-for-blender/parity/programs/wind_blastFromRight.dsl",
+   "sha256": "f33a32bad7cbc78197a3c4259272f56e8e1c1cc164a9a05fb67d7e0490f62c61",
+   "also": []
+  },
+  "blender_wind_staggerFromRight": {
+   "source": "noisemaker-for-blender/parity/programs/wind_staggerFromRight.dsl",
+   "sha256": "56108418a9d7235f5281e66687d6a0820670da9e3d475a32de061c0ac20b8ee1",
+   "also": []
+  },
+  "blender_wind_staggerMethod": {
+   "source": "noisemaker-for-blender/parity/programs/wind_staggerMethod.dsl",
+   "sha256": "0da49be403ac3029f686a5c3237851903b76291fddd3cee4fbee4bc160f07464",
+   "also": []
+  },
+  "blender_wind_windFromRight": {
+   "source": "noisemaker-for-blender/parity/programs/wind_windFromRight.dsl",
+   "sha256": "fafe857964568cd6eff25b06c2b28aabbead74f91a297548e221e38921db88de",
+   "also": []
+  },
+  "blender_wind_windMethod": {
+   "source": "noisemaker-for-blender/parity/programs/wind_windMethod.dsl",
+   "sha256": "2d506de3bda24afd1b99576e65f90c95aada498280a45a6d3294708f4f0f8a59",
+   "also": []
+  },
+  "blender_wobble": {
+   "source": "noisemaker-for-blender/parity/programs/wobble.dsl",
+   "sha256": "44d3bc3e98aae64a6af02273956e7390bffe2ba24a4b8c7f0d509e63a10da40d",
+   "also": []
+  },
+  "cpu_classic_noise_mono": {
+   "source": "noisemaker-for-cpu/parity/programs/classic-noise-mono.dsl",
+   "sha256": "32550e16adc098e9ea8931db1bc707e2ed4511d9eedcfc4ce4352045523a95ed",
+   "also": []
+  },
+  "cpu_classic_noise_static": {
+   "source": "noisemaker-for-cpu/parity/programs/classic-noise-static.dsl",
+   "sha256": "fc0bdab3e9de4efacbdd51fdac79fdb3124f5674abf69166d0c7f0f0e46fbb26",
+   "also": []
+  },
+  "cpu_invert": {
+   "source": "noisemaker-for-cpu/parity/programs/invert.dsl",
+   "sha256": "b92e2605bf8587b49d01b77aa7b7f860d30d10c6bf093b6526fe7222322d1112",
+   "also": []
+  },
+  "cpu_noise": {
+   "source": "noisemaker-for-cpu/parity/programs/noise.dsl",
+   "sha256": "5cd4a209d268ac44d5dc30cd3949794203b2e245ef7845a7fe8a2101160cb970",
+   "also": []
+  },
+  "cpu_solid": {
+   "source": "noisemaker-for-cpu/parity/programs/solid.dsl",
+   "sha256": "6f14f1169866b682aeb054be6ffbba48d4256b18fa40b1433feec87328a7b42d",
+   "also": []
+  },
+  "cpu_wormhole_input": {
+   "source": "noisemaker-for-cpu/parity/programs/wormhole-input.dsl",
+   "sha256": "d2dfb440ebe263175f1169f0dac3bf000624188d58342688e76fc5c7a05c9b02",
+   "also": []
+  },
+  "godot_lensWarp": {
+   "source": "noisemaker-for-godot/parity/programs/lensWarp.dsl",
+   "sha256": "9a0d2085334a10177f6e463f9448334e6ad99d78a8400d342ded12883d8e1beb",
+   "also": []
+  },
+  "threejs_agent_buddhabrot": {
+   "source": "noisemaker-for-threejs/parity/programs/agent_buddhabrot.dsl",
+   "sha256": "6e5dd87712226bf7918acbd18b84dc75ed328272ed519e3d1c91d192bc797c9a",
+   "also": []
+  },
+  "threejs_agent_dla": {
+   "source": "noisemaker-for-threejs/parity/programs/agent_dla.dsl",
+   "sha256": "b12269f75dc3356abfd77dda9da6199abde616f2a0609aa88d73b7bddc1660b9",
+   "also": []
+  },
+  "threejs_agent_physarum": {
+   "source": "noisemaker-for-threejs/parity/programs/agent_physarum.dsl",
+   "sha256": "d4b50ddbb29e4cf49c5b8d9fdc3287864272ce81c7f1131abdb036b8c64f9f13",
+   "also": []
+  },
+  "threejs_agent_physical": {
+   "source": "noisemaker-for-threejs/parity/programs/agent_physical.dsl",
+   "sha256": "e4f2be86ea031eb42b07e2939c0b8aa8ea17a2f6a827499c888a35a7bb1a1d17",
+   "also": []
+  },
+  "threejs_bloom_hdr": {
+   "source": "noisemaker-for-threejs/parity/programs/bloom_hdr.dsl",
+   "sha256": "1310708c0dabf12f1cf045bca1e7035b90f7ec3b3b653d6da27816d31212205d",
+   "also": []
+  },
+  "threejs_bloom_ldr": {
+   "source": "noisemaker-for-threejs/parity/programs/bloom_ldr.dsl",
+   "sha256": "6a03675103dbcea2d4abde9c65de4719ee2e94af93e6784841068a383d17b792",
+   "also": []
+  },
+  "threejs_bulge": {
+   "source": "noisemaker-for-threejs/parity/programs/bulge.dsl",
+   "sha256": "11e43953768783bcdf4f7f67876170a2f15e195cc2339b1484f39cee098431ea",
+   "also": []
+  },
+  "threejs_cellRefract": {
+   "source": "noisemaker-for-threejs/parity/programs/cellRefract.dsl",
+   "sha256": "c0c8118c9b6e8a32a95db5827cad587d8c16b4af8d19dcdf0c439b6c619a3a5f",
+   "also": []
+  },
+  "threejs_clouds": {
+   "source": "noisemaker-for-threejs/parity/programs/clouds.dsl",
+   "sha256": "31123e48ce37f287fb4e55374953ecfff7695ce2248dcc8fbfddd7e7c65abc0e",
+   "also": []
+  },
+  "threejs_coalesce": {
+   "source": "noisemaker-for-threejs/parity/programs/coalesce.dsl",
+   "sha256": "81d456d30b98aed49ae71ad4aafed7fbaad4ac75caf8c9ba2001af8284e86430",
+   "also": []
+  },
+  "threejs_colorLab": {
+   "source": "noisemaker-for-threejs/parity/programs/colorLab.dsl",
+   "sha256": "fda2f09e19404019db10d4bac098d2a36b56d133a01dfd2c7975376eb11b1cc3",
+   "also": []
+  },
+  "threejs_composite": {
+   "source": "noisemaker-for-threejs/parity/programs/composite.dsl",
+   "sha256": "42bf38a7fb8df7f82d3cc01b425049c2a415a787e158c2ae65e3bf0ac06d3d33",
+   "also": []
+  },
+  "threejs_convolutionFeedback": {
+   "source": "noisemaker-for-threejs/parity/programs/convolutionFeedback.dsl",
+   "sha256": "ebd6f71f1c15307693943ba73825706428da6a642e1c8fdfcdff7b5418e15ffa",
+   "also": []
+  },
+  "threejs_corrupt": {
+   "source": "noisemaker-for-threejs/parity/programs/corrupt.dsl",
+   "sha256": "306b3f64fbb918d7b44475c30c006083329ee543dd1aa1180b1696c3b0e9e66e",
+   "also": []
+  },
+  "threejs_degauss": {
+   "source": "noisemaker-for-threejs/parity/programs/degauss.dsl",
+   "sha256": "6acae7fb203cf0fb8f017d3d9d05e9664e052372eee8137ea5a577c12626b429",
+   "also": []
+  },
+  "threejs_effects": {
+   "source": "noisemaker-for-threejs/parity/programs/effects.dsl",
+   "sha256": "07d7c04ab7db92b878e0033660ad587babf46e267fc632797c1a676cc6931655",
+   "also": []
+  },
+  "threejs_extrude_blocks_luminance": {
+   "source": "noisemaker-for-threejs/parity/programs/extrude_blocks_luminance.dsl",
+   "sha256": "e11317c3c818fe3e479177ba954f26c62dabf06cefef201cd355db580b873524",
+   "also": []
+  },
+  "threejs_fibers": {
+   "source": "noisemaker-for-threejs/parity/programs/fibers.dsl",
+   "sha256": "5fc8d7777fcd2e36b5e027ae5419a296e8dbfd95aa12b0977d179ce450c93fee",
+   "also": []
+  },
+  "threejs_fxaa": {
+   "source": "noisemaker-for-threejs/parity/programs/fxaa.dsl",
+   "sha256": "1f5b16c00a3941cf4cdcc91dbb275688e96714bc1ad837952d4d74ae87b2e071",
+   "also": []
+  },
+  "threejs_glitch": {
+   "source": "noisemaker-for-threejs/parity/programs/glitch.dsl",
+   "sha256": "96044b3fa4600446bbd109ff47ab504b97dbed22d31e213b2efc924adda86c91",
+   "also": []
+  },
+  "threejs_glyphMap": {
+   "source": "noisemaker-for-threejs/parity/programs/glyphMap.dsl",
+   "sha256": "378573871f27e76f70272beb793973e054eb37129dbcb666165f2ab1fe5f7e39",
+   "also": []
+  },
+  "threejs_grade": {
+   "source": "noisemaker-for-threejs/parity/programs/grade.dsl",
+   "sha256": "f0fea857ac423ee9d384d50f42d71f13614689a950ece2642e67d757e75d6008",
+   "also": []
+  },
+  "threejs_grime": {
+   "source": "noisemaker-for-threejs/parity/programs/grime.dsl",
+   "sha256": "35dd24345792edca684e128fb26f736e2341c464b436058d0645f3095075f4d8",
+   "also": []
+  },
+  "threejs_halftone_color_dot": {
+   "source": "noisemaker-for-threejs/parity/programs/halftone_color_dot.dsl",
+   "sha256": "b9109cde28700a7293f7a78d75ccc74771f12820fd364aa59a69b31a678748c8",
+   "also": []
+  },
+  "threejs_historicPalette": {
+   "source": "noisemaker-for-threejs/parity/programs/historicPalette.dsl",
+   "sha256": "703a1f97c00bd0fe53e8b7c9c1551fbaae8e765caf65b3ccb6bbbd7d1b277d4b",
+   "also": []
+  },
+  "threejs_kaleido": {
+   "source": "noisemaker-for-threejs/parity/programs/kaleido.dsl",
+   "sha256": "f638088d2d081ebea24724b5a87abb89797aa4a96f7f8590f3c250861c72bd9f",
+   "also": []
+  },
+  "threejs_lens": {
+   "source": "noisemaker-for-threejs/parity/programs/lens.dsl",
+   "sha256": "06c768a7ce63b41d6565be3c14478f7c4c6ea8287b83a1e494add1bc9ad3457e",
+   "also": []
+  },
+  "threejs_lensDistortion": {
+   "source": "noisemaker-for-threejs/parity/programs/lensDistortion.dsl",
+   "sha256": "840c845463b78294746592fcd53dd90ddded577d1545b57068275cb99e628f48",
+   "also": []
+  },
+  "threejs_lensWarp": {
+   "source": "noisemaker-for-threejs/parity/programs/lensWarp.dsl",
+   "sha256": "8d910a57cfe7a1ee17f3710ef7503ed5dc9061df475afb50a5fb15f6881bb23e",
+   "also": []
+  },
+  "threejs_lightLeak": {
+   "source": "noisemaker-for-threejs/parity/programs/lightLeak.dsl",
+   "sha256": "fa3e906ae54715aaee3818cfe8ac25ec25b9f22d1dd6325582aab1eb6d9b242d",
+   "also": []
+  },
+  "threejs_lighting": {
+   "source": "noisemaker-for-threejs/parity/programs/lighting.dsl",
+   "sha256": "2ac084c46df4899d535135020948896c56f673f3c91158dc03cebf730062fb96",
+   "also": []
+  },
+  "threejs_lowPoly_border": {
+   "source": "noisemaker-for-threejs/parity/programs/lowPoly_border.dsl",
+   "sha256": "44a069ace5da82ce0960f636a837b7d44d7ae4f6c9fa86dc596b55b06d7e0300",
+   "also": []
+  },
+  "threejs_mashup": {
+   "source": "noisemaker-for-threejs/parity/programs/mashup.dsl",
+   "sha256": "6a195c5c7931070298decdf11f655e3f65596a9eec181d4d42b06285d166610b",
+   "also": []
+  },
+  "threejs_media": {
+   "source": "noisemaker-for-threejs/parity/programs/media.dsl",
+   "sha256": "c09cb95bb0dde074f4fe69c6b92d865405a37553d2ff28dadc8c10bc9fe8d57e",
+   "also": []
+  },
+  "threejs_mesh": {
+   "source": "noisemaker-for-threejs/parity/programs/mesh.dsl",
+   "sha256": "b3c449c36a466aa35f419723fafdad28911161c0951901defe14480ec27f6f7f",
+   "also": []
+  },
+  "threejs_navierStokes": {
+   "source": "noisemaker-for-threejs/parity/programs/navierStokes.dsl",
+   "sha256": "cdccd723792aeaa89e684cc8668a783879556ae420ea413ac4e3a4b49f97e60f",
+   "also": []
+  },
+  "threejs_normalize": {
+   "source": "noisemaker-for-threejs/parity/programs/normalize.dsl",
+   "sha256": "bdd00cd58f2b54493d8c2e2c221674e699a1accc13eea163143551b8a65199d3",
+   "also": []
+  },
+  "threejs_osd": {
+   "source": "noisemaker-for-threejs/parity/programs/osd.dsl",
+   "sha256": "c4bfcf85bc0cd7e2c406c4c9038c7b3a323484c0c0552d0a08b7c0999a4f9447",
+   "also": []
+  },
+  "threejs_parallax": {
+   "source": "noisemaker-for-threejs/parity/programs/parallax.dsl",
+   "sha256": "8656d8da9f371bd736cfa581041263b4908d31ce94ccb346b1f72667d077849d",
+   "also": []
+  },
+  "threejs_pixelSort": {
+   "source": "noisemaker-for-threejs/parity/programs/pixelSort.dsl",
+   "sha256": "9cb19253edc8bd2a75438c6e0c0e6cc2cbe1ffa337b38a6b1fb9b8359f2eb7c1",
+   "also": []
+  },
+  "threejs_prismaticAberration": {
+   "source": "noisemaker-for-threejs/parity/programs/prismaticAberration.dsl",
+   "sha256": "718e32e9d07c6baac5f5cd9276b0604c5c9779c4640d138a96f8c2340f21ded3",
+   "also": []
+  },
+  "threejs_refract": {
+   "source": "noisemaker-for-threejs/parity/programs/refract.dsl",
+   "sha256": "946191e5adb2abc27dbdab9d8c4066149c9bdf9c77a6df58caf71c3cfd369ad5",
+   "also": []
+  },
+  "threejs_reindex": {
+   "source": "noisemaker-for-threejs/parity/programs/reindex.dsl",
+   "sha256": "b29a992eab07db68af81d2b51ef97c630189899696c6d16348b83bb5cdc912cf",
+   "also": []
+  },
+  "threejs_remap": {
+   "source": "noisemaker-for-threejs/parity/programs/remap.dsl",
+   "sha256": "3b4e1d6f3c4b898257b8fee8c34b4a4c77a887dccba7120963c8d525a0387f8a",
+   "also": []
+  },
+  "threejs_remap_zoned": {
+   "source": "noisemaker-for-threejs/parity/programs/remap_zoned.dsl",
+   "sha256": "e997c89768a2fc3a75d5dda020290a3615335f03f577641005423a10afd57fa9",
+   "also": []
+  },
+  "threejs_reverb": {
+   "source": "noisemaker-for-threejs/parity/programs/reverb.dsl",
+   "sha256": "14758b3ad5c59726c99b17647cb96414109286efb9046c01596b59729a4c4af9",
+   "also": []
+  },
+  "threejs_ridge": {
+   "source": "noisemaker-for-threejs/parity/programs/ridge.dsl",
+   "sha256": "0b907fad937b51eccede6a7376a156e77702d7dd5754cbcdef676343df604f65",
+   "also": []
+  },
+  "threejs_s_blendMode": {
+   "source": "noisemaker-for-threejs/parity/programs/s_blendMode.dsl",
+   "sha256": "daf15fec8de00ec99a3c5ecab34d94d3e83a2c68969df544fe1e97c855cd2755",
+   "also": []
+  },
+  "threejs_s_celShading": {
+   "source": "noisemaker-for-threejs/parity/programs/s_celShading.dsl",
+   "sha256": "aa4db44a33b02755df07c66da48be48054ee61322011d63d4dfb21093f353cb2",
+   "also": []
+  },
+  "threejs_s_chromaticAberration": {
+   "source": "noisemaker-for-threejs/parity/programs/s_chromaticAberration.dsl",
+   "sha256": "265bf96a6772ccfd10cb8fd3beb8d75e70045c1de0c56a4e1847f28ffe292924",
+   "also": []
+  },
+  "threejs_s_mandala": {
+   "source": "noisemaker-for-threejs/parity/programs/s_mandala.dsl",
+   "sha256": "4aeac2bd474f83e829120da507f10f6e486d2cd82a9c45583e50281b781b97d5",
+   "also": []
+  },
+  "threejs_s_smoothstep": {
+   "source": "noisemaker-for-threejs/parity/programs/s_smoothstep.dsl",
+   "sha256": "bb4b9e809fbe5a5abaf4b9f3a52f26569a86dcd97a0fdfe4ea75293522fde7c1",
+   "also": []
+  },
+  "threejs_s_tetraCosine": {
+   "source": "noisemaker-for-threejs/parity/programs/s_tetraCosine.dsl",
+   "sha256": "8563d91329a557d2179436c1685dd9590e9b1fa1b90884908b8c043b39a3e43b",
+   "also": []
+  },
+  "threejs_scale": {
+   "source": "noisemaker-for-threejs/parity/programs/scale.dsl",
+   "sha256": "97ef67015597bdc7826917964294ad0765b30e56ba5dfac5a7e69f4491e3b93a",
+   "also": []
+  },
+  "threejs_scanlineError": {
+   "source": "noisemaker-for-threejs/parity/programs/scanlineError.dsl",
+   "sha256": "401ae46d9ffe959d3676b585dcc83853dadecc272322baec611d3582add56240",
+   "also": []
+  },
+  "threejs_scratches": {
+   "source": "noisemaker-for-threejs/parity/programs/scratches.dsl",
+   "sha256": "0b18149745516c0504738213d1318095c606e5bbdd41ac78bb21b8b1657805d7",
+   "also": []
+  },
+  "threejs_seamless": {
+   "source": "noisemaker-for-threejs/parity/programs/seamless.dsl",
+   "sha256": "7e8631c86148bd6c06ef455ccaa0cf67d2f78cda510ab6873e3101e4e2095ea8",
+   "also": []
+  },
+  "threejs_shapeMixer": {
+   "source": "noisemaker-for-threejs/parity/programs/shapeMixer.dsl",
+   "sha256": "e702450a450703d726308fc4f68b0a4f0f834e59651bf048f977be9ca8c00770",
+   "also": []
+  },
+  "threejs_simpleAberration": {
+   "source": "noisemaker-for-threejs/parity/programs/simpleAberration.dsl",
+   "sha256": "0640eeab53aeddb7584d6ff4f0cd72581cb5dc66750eda935da01108d2610f41",
+   "also": []
+  },
+  "threejs_skew": {
+   "source": "noisemaker-for-threejs/parity/programs/skew.dsl",
+   "sha256": "63cabd5abb805a79c9bd5e53e129b1b35c4bac53ebbc621614a67a6bf7d16753",
+   "also": []
+  },
+  "threejs_snow": {
+   "source": "noisemaker-for-threejs/parity/programs/snow.dsl",
+   "sha256": "11d229dbfa00e070af8598eef24f551a98046c80f48ee5b85b8801255b084a5b",
+   "also": []
+  },
+  "threejs_spatter": {
+   "source": "noisemaker-for-threejs/parity/programs/spatter.dsl",
+   "sha256": "ead69d0aaada598b293359ce857abab81a3744b0b03d6c1e78d8c8d1ac3aeb9e",
+   "also": []
+  },
+  "threejs_spiral": {
+   "source": "noisemaker-for-threejs/parity/programs/spiral.dsl",
+   "sha256": "74673bf7ef783af365b44b1a25200dfffeff25133a3e11842e9c8343b5276242",
+   "also": []
+  },
+  "threejs_splat": {
+   "source": "noisemaker-for-threejs/parity/programs/splat.dsl",
+   "sha256": "e551226d5679b87f446a7ad3dc8682711a0f50e82c6ab962f5d6a64c87ff5041",
+   "also": []
+  },
+  "threejs_spookyTicker": {
+   "source": "noisemaker-for-threejs/parity/programs/spookyTicker.dsl",
+   "sha256": "569a838084e6cbc8b267081c4b2d73212fe11777cc26a5eb01582c5f170850c6",
+   "also": []
+  },
+  "threejs_strayHair": {
+   "source": "noisemaker-for-threejs/parity/programs/strayHair.dsl",
+   "sha256": "46cdadaa096a55282cebd4023d2b55e7b20447853402dadcb6624f5a218a506e",
+   "also": []
+  },
+  "threejs_synth3d_cellularAutomata3d": {
+   "source": "noisemaker-for-threejs/parity/programs/synth3d_cellularAutomata3d.dsl",
+   "sha256": "74e4746ace0c1e757a7438b5d4f165577df0ee2690098bf9422d4edf9148cdc7",
+   "also": [
+    "noisemaker-for-touchdesigner/parity/programs/synth3d_cellularAutomata3d.dsl"
+   ]
+  },
+  "threejs_synth3d_noise": {
+   "source": "noisemaker-for-threejs/parity/programs/synth3d_noise.dsl",
+   "sha256": "f81af6a2e32959bafd720872591ccfb3b2015712b06cb113e71068dbd919f135",
+   "also": []
+  },
+  "threejs_synth3d_renderLit3d": {
+   "source": "noisemaker-for-threejs/parity/programs/synth3d_renderLit3d.dsl",
+   "sha256": "18a9703c38c0cb7779510bfac23a82aa0b9f49ac3f3d600ea3f9e2a88791cbcb",
+   "also": []
+  },
+  "threejs_synth3d_shape3d": {
+   "source": "noisemaker-for-threejs/parity/programs/synth3d_shape3d.dsl",
+   "sha256": "ce30102d08da119f1a6a83721b055de497d9cbaf629525124f804c174c39c939",
+   "also": []
+  },
+  "threejs_temporalAberration": {
+   "source": "noisemaker-for-threejs/parity/programs/temporalAberration.dsl",
+   "sha256": "afd17e08bd3c5aca72facf3b1214fbd47f10e98f9d1a3e365a0007853383062f",
+   "also": []
+  },
+  "threejs_tetraColorArray": {
+   "source": "noisemaker-for-threejs/parity/programs/tetraColorArray.dsl",
+   "sha256": "3707c79ac8c0f55bf7972d67af6d0e875b5ceb5a50d458056efd8af6316c6d24",
+   "also": []
+  },
+  "threejs_tetraCosine": {
+   "source": "noisemaker-for-threejs/parity/programs/tetraCosine.dsl",
+   "sha256": "d0f780197f1f32e607ceb2961114f94e9a38973351d7991a2af30d29106f4627",
+   "also": []
+  },
+  "threejs_text": {
+   "source": "noisemaker-for-threejs/parity/programs/text.dsl",
+   "sha256": "4ffe2909afd2b1e4d5df05cc2961ff63ed73ad1bc257b8854f8baa13224ba698",
+   "also": []
+  },
+  "threejs_texture": {
+   "source": "noisemaker-for-threejs/parity/programs/texture.dsl",
+   "sha256": "2a4911e6cbafab9a46bdbb1fc421c300e03bf19b3e49a9ea1f85139a6617ce0a",
+   "also": []
+  },
+  "threejs_tunnel": {
+   "source": "noisemaker-for-threejs/parity/programs/tunnel.dsl",
+   "sha256": "c2d1087e0dc3fbddab58dd71fa80361bc1bd5cda858d06fef3d0ebf2e5cf2764",
+   "also": []
+  },
+  "threejs_vaseline": {
+   "source": "noisemaker-for-threejs/parity/programs/vaseline.dsl",
+   "sha256": "e086754e4845434adbee2d5df762093d51ee22a3560804d985a400145cb6055e",
+   "also": []
+  },
+  "threejs_warp": {
+   "source": "noisemaker-for-threejs/parity/programs/warp.dsl",
+   "sha256": "23c64df281742190e495b3ab257005038e923ba243730161ce881596ef380293",
+   "also": []
+  },
+  "threejs_waves": {
+   "source": "noisemaker-for-threejs/parity/programs/waves.dsl",
+   "sha256": "531128127f197d88236e4dff39ea2888bbd264b5d3865376201164b9bf6e5574",
+   "also": []
+  },
+  "threejs_wind_blast_fromLeft": {
+   "source": "noisemaker-for-threejs/parity/programs/wind_blast_fromLeft.dsl",
+   "sha256": "691aed528b9121d8bfc67ad0326d3fef6271c79e9131ac13f25bd7efbacfa18d",
+   "also": []
+  },
+  "threejs_wobble": {
+   "source": "noisemaker-for-threejs/parity/programs/wobble.dsl",
+   "sha256": "2bf1f85209f1ecfbd22fd36456e038ec70be7a51dc9d3f28214ec8fd6b4ee053",
+   "also": []
+  },
+  "threejs_wormhole": {
+   "source": "noisemaker-for-threejs/parity/programs/wormhole.dsl",
+   "sha256": "696a80b94f86c50f7fb5c81d289f8159788576044e9ad7227297c98927509ebf",
+   "also": []
+  },
+  "threejs_zoomBlur": {
+   "source": "noisemaker-for-threejs/parity/programs/zoomBlur.dsl",
+   "sha256": "6986b273b9e283088bc0de10d0eab6e6b37add2cc5ddfb44756613877fc20465",
+   "also": []
+  },
+  "touchdesigner_buddhabrot": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/buddhabrot.dsl",
+   "sha256": "e33e25994b2e390bf3244297c69facefc88f01b812540da368f01bc4667114b0",
+   "also": []
+  },
+  "touchdesigner_extrude_depthSource_luminance": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/extrude_depthSource_luminance.dsl",
+   "sha256": "dcff9f07bf2db2d25519bc40f7570724b30442e0406dd248ed18f0be9551ea19",
+   "also": []
+  },
+  "touchdesigner_fibers": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/fibers.dsl",
+   "sha256": "35715783d0330f78bdf150bfb216f2c41412782141e7bf63c6c9331a31542462",
+   "also": []
+  },
+  "touchdesigner_filter3d_flow3d": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/filter3d_flow3d.dsl",
+   "sha256": "f420ceaea70c75de41d07fc71ad34a500df57a110393b51e2844cb315baf5c6f",
+   "also": []
+  },
+  "touchdesigner_filter3d_palette3d": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/filter3d_palette3d.dsl",
+   "sha256": "54b2f9003e34c2196f5e9bf94351008023373287e35edd8a9dbb1c4543c0c4bd",
+   "also": []
+  },
+  "touchdesigner_hatch_direction_rightDiag": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/hatch_direction_rightDiag.dsl",
+   "sha256": "6e915080456d70ededc21d869b7902a82172d3a14c4e2462bf7d15496d10ce28",
+   "also": []
+  },
+  "touchdesigner_lens": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/lens.dsl",
+   "sha256": "83b1f20c020aaf8f10f033649f8710e8160f050e983e8ab9f8c28b2cebd5c2d5",
+   "also": []
+  },
+  "touchdesigner_lowPoly_borderWidth_50": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/lowPoly_borderWidth_50.dsl",
+   "sha256": "484553df0204ce6508ede2aa5b518ae99cc8fa96848548df8defe753159e291e",
+   "also": []
+  },
+  "touchdesigner_median_radius_1": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/median_radius_1.dsl",
+   "sha256": "c882bac3c03cfb5ce0490e883bc09db7a0f776644fa6ba6376e6f27edb739b74",
+   "also": []
+  },
+  "touchdesigner_median_radius_2": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/median_radius_2.dsl",
+   "sha256": "2b000eb5cb69de4f4ae25938d857cc39f1ddfdc2c2ad5be50d29642702ab6509",
+   "also": []
+  },
+  "touchdesigner_morphology_mode_dilate": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/morphology_mode_dilate.dsl",
+   "sha256": "30f61509c927ae358a54cce73f5b32fee7558e648b4541f6106953f468295fc7",
+   "also": []
+  },
+  "touchdesigner_morphology_shape_square": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/morphology_shape_square.dsl",
+   "sha256": "e7fe2b54b172dc04e40029885f7965f0d742c9f266b160b0ccf9490188a62ed3",
+   "also": []
+  },
+  "touchdesigner_physical": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/physical.dsl",
+   "sha256": "7d2d2a93c2c79872d0664dcdd4e427d1dbc069bfade8e8af7a379c83501ae333",
+   "also": []
+  },
+  "touchdesigner_pondRipples_amount_100": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/pondRipples_amount_100.dsl",
+   "sha256": "8ee641601c00e38c1082144385276fb0e526e29ebd4d0362d91993132239308e",
+   "also": []
+  },
+  "touchdesigner_pondRipples_wrap_mirror": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/pondRipples_wrap_mirror.dsl",
+   "sha256": "7c04f74c19e5b875624d5764dcc47ec5cf9e5eb7f85c2c21b6daa112fa49b41e",
+   "also": []
+  },
+  "touchdesigner_remap": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/remap.dsl",
+   "sha256": "a19c4a45c4b14221b63072ae248a4637371958de66ae271d43c71bb7329e1c31",
+   "also": []
+  },
+  "touchdesigner_scratches": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/scratches.dsl",
+   "sha256": "f230d0706d74dc69ced5c04b9dee5997312896157a938dbcde04b27c1faad9e2",
+   "also": []
+  },
+  "touchdesigner_simpleAberration": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/simpleAberration.dsl",
+   "sha256": "c1b0e36c5369d231c6e66b0b9b8c3f6546252de9237854a76631215e72f54d7e",
+   "also": []
+  },
+  "touchdesigner_spookyTicker": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/spookyTicker.dsl",
+   "sha256": "ca73c8ef4620c20594662c39cc7f0bb25383d670a3b869e1acf532c53f240f03",
+   "also": []
+  },
+  "touchdesigner_strayHair": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/strayHair.dsl",
+   "sha256": "0d7dfde2408e2be886d08ae92aaf726b9c434ca70d8ffae8807f0de0953ff4fc",
+   "also": []
+  },
+  "touchdesigner_synth3d_flythrough3d": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/synth3d_flythrough3d.dsl",
+   "sha256": "2580636eb575fb6ecb577fc744800aedac2c52893302fa4db7382cd446bfefb9",
+   "also": []
+  },
+  "touchdesigner_synth3d_renderCubemap3d": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/synth3d_renderCubemap3d.dsl",
+   "sha256": "e389e95dfd114022df6523ecbc177ae81162e5e8d0e3b6070117ee210219d261",
+   "also": []
+  },
+  "touchdesigner_synth3d_renderCubemapSurface": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/synth3d_renderCubemapSurface.dsl",
+   "sha256": "cae2c2f8c867a129ae17fa6312c8d771eaa55037e705e1ec813f9b0dea9bfb27",
+   "also": []
+  },
+  "touchdesigner_synth3d_renderLit3d": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/synth3d_renderLit3d.dsl",
+   "sha256": "d62d76a0f00914147dec91bd46fac6652997b6e75a3674993c9e2d39d80a83f6",
+   "also": []
+  },
+  "touchdesigner_synth3d_shape3d": {
+   "source": "noisemaker-for-touchdesigner/parity/programs/synth3d_shape3d.dsl",
+   "sha256": "2f4e58324a37153db760c87246e48382dedf414789e340e4423fc292ffaa3b58",
+   "also": [
+    "noisemaker-for-touchdesigner/parity/programs/_vs32probe.dsl"
+   ]
+  },
+  "unity_cellRefract_mirror": {
+   "source": "noisemaker-for-unity/parity/programs/cellRefract_mirror.dsl",
+   "sha256": "43675dc4fa3d1b1ac6d42fa21bbb5caa8a7237cee897f47385124d2d0d9c7aee",
+   "also": []
+  },
+  "unity_lighting": {
+   "source": "noisemaker-for-unity/parity/programs/lighting.dsl",
+   "sha256": "0de4c6ddfcc1a2d8a824ec02510c6ba603f4b4b4d54402d55712233ba4153e1b",
+   "also": []
+  },
+  "unity_lighting_hm": {
+   "source": "noisemaker-for-unity/parity/programs/lighting_hm.dsl",
+   "sha256": "131c4c5a17284b4b2ef02202230c845b38d8944209953cefadc293a86ed2fe99",
+   "also": []
+  },
+  "unity_mashup": {
+   "source": "noisemaker-for-unity/parity/programs/mashup.dsl",
+   "sha256": "589c70f4b117c6066162f3785ee5a9d50793ade0d1d9cb4aa7fff0aedc9009f9",
+   "also": []
+  },
+  "unity_nm_adjust_test": {
+   "source": "noisemaker-for-unity/parity/programs/nm_adjust_test.dsl",
+   "sha256": "a5d078e2dc6ffd3647ac14eb744a0427cf4ccd31fa0845b3bc0ea2a0906bcd4c",
+   "also": []
+  },
+  "unity_nm_alphaMask_test": {
+   "source": "noisemaker-for-unity/parity/programs/nm_alphaMask_test.dsl",
+   "sha256": "efe820988bcad2b186e9a627edd78630873eb4bc41cdedc40a6a2cc585b524f3",
+   "also": []
+  },
+  "unity_nm_chrome_test": {
+   "source": "noisemaker-for-unity/parity/programs/nm_chrome_test.dsl",
+   "sha256": "65907169566746da917eabbbf13fe2f45b0e841cb8c43f25aa538b86b7dff24e",
+   "also": []
+  },
+  "unity_nm_grade_test": {
+   "source": "noisemaker-for-unity/parity/programs/nm_grade_test.dsl",
+   "sha256": "cff5eb07cd95cfe9dc3a40723853e4475b2295dd97eaa86f3bd6ed015c85690e",
+   "also": []
+  },
+  "unity_nm_invert_test": {
+   "source": "noisemaker-for-unity/parity/programs/nm_invert_test.dsl",
+   "sha256": "ed20efa823aa5c76d3935c28246856ceb62a6ee985a26938e83cc9843d30ad78",
+   "also": []
+  },
+  "unity_nm_tint_test": {
+   "source": "noisemaker-for-unity/parity/programs/nm_tint_test.dsl",
+   "sha256": "030a1d2e394c8421432efe465a74b5224a374713539815d4b02087d942728042",
+   "also": []
+  },
+  "unity_palette3d": {
+   "source": "noisemaker-for-unity/parity/programs/palette3d.dsl",
+   "sha256": "76a4e403e16d839efea82134414af340e71d2b3380850bf7d9f8675eb9c90b3e",
+   "also": []
+  },
+  "unity_parallax": {
+   "source": "noisemaker-for-unity/parity/programs/parallax.dsl",
+   "sha256": "2c2fcc859c3a45e5add14ca4baa06f68116f18adb80092b9c2da49991365aa6f",
+   "also": []
+  },
+  "unity_parallax_hm": {
+   "source": "noisemaker-for-unity/parity/programs/parallax_hm.dsl",
+   "sha256": "65bac1a2a2ad7828644663d635edc9a5960ab35bb04df893c9ba60f78a93d641",
+   "also": []
+  },
+  "unity_refract_mirror": {
+   "source": "noisemaker-for-unity/parity/programs/refract_mirror.dsl",
+   "sha256": "a6266221a81c11d218186c3b3ecfeff66329f1460a0a7d0930fa384cbf8c206d",
+   "also": []
+  },
+  "unity_remap_zones": {
+   "source": "noisemaker-for-unity/parity/programs/remap_zones.dsl",
+   "sha256": "80ad19be9182be27e747a660685febb6271dd75921236a344250d1193a1e07d8",
+   "also": []
+  },
+  "unity_renderCubemap3d": {
+   "source": "noisemaker-for-unity/parity/programs/renderCubemap3d.dsl",
+   "sha256": "3242f1d07d785e2a8751d2800208e434c6d590ddd2e49df8a73dced862d58c83",
+   "also": []
+  },
+  "unity_renderCubemapSurface": {
+   "source": "noisemaker-for-unity/parity/programs/renderCubemapSurface.dsl",
+   "sha256": "9d6195ed39299e0a324809f09b108f4ae9945651eb1742622b40e684754cc036",
+   "also": []
+  },
+  "unity_simpleAberration": {
+   "source": "noisemaker-for-unity/parity/programs/simpleAberration.dsl",
+   "sha256": "d67bcb3f2bca55629bb51b4ef33b94c0901b08c197d744cc93746c28ce238df7",
+   "also": []
+  },
+  "unity_text_style": {
+   "source": "noisemaker-for-unity/parity/programs/text_style.dsl",
+   "sha256": "d4f21f21afe975817dec883c876847919a4e47001cc3cb1eb9a6dc6c6366460d",
+   "also": []
+  },
+  "unity_v104_chrome_distorted": {
+   "source": "noisemaker-for-unity/parity/programs/v104/chrome_distorted.dsl",
+   "sha256": "10e2fe3c0c33e5e458cc05697949b34ddc498c0d2b3865c0c78d1774c4674a61",
+   "also": []
+  },
+  "unity_v104_chrome_zero_distortion": {
+   "source": "noisemaker-for-unity/parity/programs/v104/chrome_zero_distortion.dsl",
+   "sha256": "56823f02a3cc76d3921de9337a1c721b54cc2dfce9990cc14086db22dd7083c4",
+   "also": []
+  },
+  "unity_v104_craquelure": {
+   "source": "noisemaker-for-unity/parity/programs/v104/craquelure.dsl",
+   "sha256": "19010762e1221df9060cc927e8ff71ec74f7f37f3d041f890c4493c1f1047a8c",
+   "also": []
+  },
+  "unity_v104_directional_blur": {
+   "source": "noisemaker-for-unity/parity/programs/v104/directional_blur.dsl",
+   "sha256": "17b668ece7dfff778ab2dbd84cade1f82741926dd981eb5de3201aecf62657d4",
+   "also": []
+  },
+  "unity_v104_dither_error_diffusion": {
+   "source": "noisemaker-for-unity/parity/programs/v104/dither_error_diffusion.dsl",
+   "sha256": "b54796d5b6b7ceb75c32fd6c8c1acb403718f5a79d0e24d3fded0e9ee399fdbc",
+   "also": []
+  },
+  "unity_v104_edge_contour_lower": {
+   "source": "noisemaker-for-unity/parity/programs/v104/edge_contour_lower.dsl",
+   "sha256": "d73858e9931c848052261ae6a4964b90e01058e2e3a6590be71a125454e771d7",
+   "also": []
+  },
+  "unity_v104_edge_contour_upper": {
+   "source": "noisemaker-for-unity/parity/programs/v104/edge_contour_upper.dsl",
+   "sha256": "39ee1d9b51ce1a2eb4e2c8115eec87fb325a76bc51aed7b46db91a0d991c0fa5",
+   "also": []
+  },
+  "unity_v104_emboss_color": {
+   "source": "noisemaker-for-unity/parity/programs/v104/emboss_color.dsl",
+   "sha256": "2ff75b6a530be5e410bed0008ff5e9b649329756c8d7763eed91e47dd80dca7f",
+   "also": []
+  },
+  "unity_v104_emboss_gray": {
+   "source": "noisemaker-for-unity/parity/programs/v104/emboss_gray.dsl",
+   "sha256": "955a20e77dba1b5fc3c0c1aa0c804e8f8263fc4553289cf14b391c8f4ed754b4",
+   "also": []
+  },
+  "unity_v104_extrude_blocks_luminance": {
+   "source": "noisemaker-for-unity/parity/programs/v104/extrude_blocks_luminance.dsl",
+   "sha256": "9c1acf7ff6f9910426491323d34c0818eb3f040eca4d9b279c0429f2ebba2c95",
+   "also": []
+  },
+  "unity_v104_extrude_pyramids_random": {
+   "source": "noisemaker-for-unity/parity/programs/v104/extrude_pyramids_random.dsl",
+   "sha256": "2e241b7d7c1c98834e73c8878dfde2e03832db15715324a9281c145ef3799429",
+   "also": []
+  },
+  "unity_v104_halftone_color": {
+   "source": "noisemaker-for-unity/parity/programs/v104/halftone_color.dsl",
+   "sha256": "cf11701ab4e5776fc182ca542403418f4829591b53a3c69d767736acb72619a0",
+   "also": []
+  },
+  "unity_v104_halftone_mono_circle": {
+   "source": "noisemaker-for-unity/parity/programs/v104/halftone_mono_circle.dsl",
+   "sha256": "24b4ce464f4b6fbeea0a580ac488c94511fe0fd7ed4c3736ad59bfa000a5540c",
+   "also": []
+  },
+  "unity_v104_halftone_mono_dot": {
+   "source": "noisemaker-for-unity/parity/programs/v104/halftone_mono_dot.dsl",
+   "sha256": "11a730a8235a88ca5ae70f182ad84afb900689ae7f2fc02187f9a47a379dc98c",
+   "also": []
+  },
+  "unity_v104_halftone_mono_line": {
+   "source": "noisemaker-for-unity/parity/programs/v104/halftone_mono_line.dsl",
+   "sha256": "1f30a2332d3e98735e43451f6c3fec29fb4235f1be11901bc74095a046a3bd8d",
+   "also": []
+  },
+  "unity_v104_hatch_colored_pencil": {
+   "source": "noisemaker-for-unity/parity/programs/v104/hatch_colored_pencil.dsl",
+   "sha256": "0736c39f020e6a98f608bdec73876f6a86082dea39a33c5491aa022ecbb88d41",
+   "also": []
+  },
+  "unity_v104_high_pass_large_mono": {
+   "source": "noisemaker-for-unity/parity/programs/v104/high_pass_large_mono.dsl",
+   "sha256": "dacb4740e6b97b04e34f1139ef4ecb715c72fc921fc38b4dcdb6cbca6ea71c6e",
+   "also": []
+  },
+  "unity_v104_invert_solarize": {
+   "source": "noisemaker-for-unity/parity/programs/v104/invert_solarize.dsl",
+   "sha256": "16bffce8c4cd7beeea236c809f5189263c5271d83bb5e1440c91dd2005d6295c",
+   "also": []
+  },
+  "unity_v104_lens_flare_movie_prime": {
+   "source": "noisemaker-for-unity/parity/programs/v104/lens_flare_movie_prime.dsl",
+   "sha256": "df8561d994e497c41995d48f328126a4a38957d2829916d50f41477e75cef438",
+   "also": []
+  },
+  "unity_v104_lens_flare_prime105": {
+   "source": "noisemaker-for-unity/parity/programs/v104/lens_flare_prime105.dsl",
+   "sha256": "6ab46ea60fef410fe6eb4935b76b503718da2e913ca64bc5442886ca7e73bfba",
+   "also": []
+  },
+  "unity_v104_lens_flare_prime35": {
+   "source": "noisemaker-for-unity/parity/programs/v104/lens_flare_prime35.dsl",
+   "sha256": "bf92dcaa41d79a2d384169908ab7bb688c4018e39945cce3f09839f2c88763ae",
+   "also": []
+  },
+  "unity_v104_low_poly_border_lighting": {
+   "source": "noisemaker-for-unity/parity/programs/v104/low_poly_border_lighting.dsl",
+   "sha256": "41bd533aa978e08010b0bccbb9fd170885b887efd9681a7f056bb1ca91a86b88",
+   "also": []
+  },
+  "unity_v104_mandala_large_format": {
+   "source": "noisemaker-for-unity/parity/programs/v104/mandala_large_format.dsl",
+   "sha256": "3562e506aa54c72c14c17436c8235af11ef282b02d1bf894823f511c563b037d",
+   "also": []
+  },
+  "unity_v104_mandala_negative_fractional_speed": {
+   "source": "noisemaker-for-unity/parity/programs/v104/mandala_negative_fractional_speed.dsl",
+   "sha256": "5bb8a749520928dc6b99e2e2db91c92cc2b79ec8f10e99306f444918bbbd6ab0",
+   "also": []
+  },
+  "unity_v104_median_radius_1": {
+   "source": "noisemaker-for-unity/parity/programs/v104/median_radius_1.dsl",
+   "sha256": "aa4afc46e19e235ce2e7bf336bea0f057e17bfb67d05e8df65fbe461fb2d7c35",
+   "also": []
+  },
+  "unity_v104_median_radius_2": {
+   "source": "noisemaker-for-unity/parity/programs/v104/median_radius_2.dsl",
+   "sha256": "805c4f42bc3f287b454032853a96b6046d25dae1c65a9eea50105ecf53d22082",
+   "also": []
+  },
+  "unity_v104_median_radius_3": {
+   "source": "noisemaker-for-unity/parity/programs/v104/median_radius_3.dsl",
+   "sha256": "4b5004c6e56ac54ad9ab260b98d7f8dd0bb51c7852a33d94f10e3e9ae5afaee4",
+   "also": []
+  },
+  "unity_v104_median_threshold_zero": {
+   "source": "noisemaker-for-unity/parity/programs/v104/median_threshold_zero.dsl",
+   "sha256": "7cbe5d3b23f0e309f8dbc656464cd97ff997153ed52df1bdba540e4fcf4e0dcd",
+   "also": []
+  },
+  "unity_v104_morphology_round_erode": {
+   "source": "noisemaker-for-unity/parity/programs/v104/morphology_round_erode.dsl",
+   "sha256": "c290af4e962b8e7463a811b5d62986e1bb1d9ccc70b95cd94c9f99b8934af3ed",
+   "also": []
+  },
+  "unity_v104_morphology_square_dilate": {
+   "source": "noisemaker-for-unity/parity/programs/v104/morphology_square_dilate.dsl",
+   "sha256": "de411b7fb3a5fe536d57218a758f43952c0cc0e9f57ce2b0233eefe49183902b",
+   "also": []
+  },
+  "unity_v104_mosaic_relief": {
+   "source": "noisemaker-for-unity/parity/programs/v104/mosaic_relief.dsl",
+   "sha256": "78cfb316d684d6b8d1d39d0847da71a223122a2e1955cf2aa4a35aed74f9db20",
+   "also": []
+  },
+  "unity_v104_mosaic_shifted_inverse": {
+   "source": "noisemaker-for-unity/parity/programs/v104/mosaic_shifted_inverse.dsl",
+   "sha256": "3a88f4ddfe109abab40832edea1680afbb0a4928a62f1836c2a0337a0c679bee",
+   "also": []
+  },
+  "unity_v104_mosaic_shifted_unaltered": {
+   "source": "noisemaker-for-unity/parity/programs/v104/mosaic_shifted_unaltered.dsl",
+   "sha256": "8e7fd434b4effdfff6a5429acc4c0b8456d00f8129211389e24172c98f8d9aca",
+   "also": []
+  },
+  "unity_v104_oil_paint_sponge": {
+   "source": "noisemaker-for-unity/parity/programs/v104/oil_paint_sponge.dsl",
+   "sha256": "4094808f164d55833ba52eb48dd802b67eba9aca7327543eff0d275068a40100",
+   "also": []
+  },
+  "unity_v104_parallax_large_format": {
+   "source": "noisemaker-for-unity/parity/programs/v104/parallax_large_format.dsl",
+   "sha256": "77ad84a713ec1c208d80e54be386fc2502da2c18ce3ee506c6032a076115a8a8",
+   "also": []
+  },
+  "unity_v104_patchwork": {
+   "source": "noisemaker-for-unity/parity/programs/v104/patchwork.dsl",
+   "sha256": "13ae442603e4431ab30274d86123733056001410f5bf53b5a7ee8db28ce2504b",
+   "also": []
+  },
+  "unity_v104_photocopy": {
+   "source": "noisemaker-for-unity/parity/programs/v104/photocopy.dsl",
+   "sha256": "b90d007b6f3e773e67aaaaf8c304bf53f2c327ce79f8ab64e4a2c5e9430dde2b",
+   "also": []
+  },
+  "unity_v104_plastic_wrap_directed": {
+   "source": "noisemaker-for-unity/parity/programs/v104/plastic_wrap_directed.dsl",
+   "sha256": "ee53b835a861d2caff207a2f85ef1018e4b22405606998eba5edc06954df9aa5",
+   "also": []
+  },
+  "unity_v104_plastic_wrap_zero_light": {
+   "source": "noisemaker-for-unity/parity/programs/v104/plastic_wrap_zero_light.dsl",
+   "sha256": "e58256f545d16ae16d68d939882c2fecf619d0d0d8aacc71ea73135a7d27cefc",
+   "also": []
+  },
+  "unity_v104_pond_clamp_aa": {
+   "source": "noisemaker-for-unity/parity/programs/v104/pond_clamp_aa.dsl",
+   "sha256": "3fb7626e71fb7779c0dba008e5e941b6263a23a4c786b9d6b86e02088673f11c",
+   "also": []
+  },
+  "unity_v104_pond_repeat_no_aa": {
+   "source": "noisemaker-for-unity/parity/programs/v104/pond_repeat_no_aa.dsl",
+   "sha256": "fec4256c73d49e315d45b1d5aaa1e02fd3d247da8a62dea149dbbbd9b27fe499",
+   "also": []
+  },
+  "unity_v104_relief_note_paper": {
+   "source": "noisemaker-for-unity/parity/programs/v104/relief_note_paper.dsl",
+   "sha256": "09032cbe7a3aa970ea416c583f47c8f00a3174beb8fd5bfda390e6ef901c4aa1",
+   "also": []
+  },
+  "unity_v104_relief_plaster": {
+   "source": "noisemaker-for-unity/parity/programs/v104/relief_plaster.dsl",
+   "sha256": "daa2e0811704ed2cf4dc59bc35f8f9daa41b5f0ff2528f8175385cf0f47e59c1",
+   "also": []
+  },
+  "unity_v104_sacred_geometry_large_format": {
+   "source": "noisemaker-for-unity/parity/programs/v104/sacred_geometry_large_format.dsl",
+   "sha256": "abe0a3a3afad5f9edad74d59bdc64a89fc21edaa2e1b115ba252a331169f80d9",
+   "also": []
+  },
+  "unity_v104_sacred_geometry_negative_fractional_speed": {
+   "source": "noisemaker-for-unity/parity/programs/v104/sacred_geometry_negative_fractional_speed.dsl",
+   "sha256": "015c47b5dfc3b70ab11870cfd6d94cc59939c0aea058d1e2e325b31c280acddf",
+   "also": []
+  },
+  "unity_v104_scatter_anisotropic": {
+   "source": "noisemaker-for-unity/parity/programs/v104/scatter_anisotropic.dsl",
+   "sha256": "0c37effb9a351a8edb5e70f50857ba37b7235842e0d30a2200ffdd8c0c9e7ee4",
+   "also": []
+  },
+  "unity_v104_scatter_clumped": {
+   "source": "noisemaker-for-unity/parity/programs/v104/scatter_clumped.dsl",
+   "sha256": "3754d2f2473cacf4f515feba8a4e69037ef4caedd72794d5fb7671189ae1120c",
+   "also": []
+  },
+  "unity_v104_scatter_darken_only": {
+   "source": "noisemaker-for-unity/parity/programs/v104/scatter_darken_only.dsl",
+   "sha256": "75071efd4dd055e1a7e76ce0f78f621f93534766b56d720a9e623351d08a7cd7",
+   "also": []
+  },
+  "unity_v104_scatter_lighten_only": {
+   "source": "noisemaker-for-unity/parity/programs/v104/scatter_lighten_only.dsl",
+   "sha256": "04cdeec7268af9e1851aa7c5985f76f3201454f3d372d28870602984859c0fb6",
+   "also": []
+  },
+  "unity_v104_spin_blur_off_center": {
+   "source": "noisemaker-for-unity/parity/programs/v104/spin_blur_off_center.dsl",
+   "sha256": "25ef61be5beb4a69a595ff321fdfde36a5da88572d044ee1e571f3871254c558",
+   "also": []
+  },
+  "unity_v104_stamp_roughness": {
+   "source": "noisemaker-for-unity/parity/programs/v104/stamp_roughness.dsl",
+   "sha256": "80b9c019ea5b9e9ea63e086b67b66c46538e4a929300e6ab81f943900a422c6e",
+   "also": []
+  },
+  "unity_v104_stipple_mezzo_strokes": {
+   "source": "noisemaker-for-unity/parity/programs/v104/stipple_mezzo_strokes.dsl",
+   "sha256": "d0ceb98c4b37a58ffcef6eba9c22c27531002a860c7a18858c99b7a5e139664a",
+   "also": []
+  },
+  "unity_v104_stipple_reticulation": {
+   "source": "noisemaker-for-unity/parity/programs/v104/stipple_reticulation.dsl",
+   "sha256": "fc6375706ad6ee84bd966318bf55743795bedb0aff0b77cf72663270307a45c2",
+   "also": []
+  },
+  "unity_v104_strokes_smudge": {
+   "source": "noisemaker-for-unity/parity/programs/v104/strokes_smudge.dsl",
+   "sha256": "8f3601530a8a1a827caf25fea5a97e1669f9c78a1521d6977c85e9f37e405acc",
+   "also": []
+  },
+  "unity_v104_strokes_sumi_e": {
+   "source": "noisemaker-for-unity/parity/programs/v104/strokes_sumi_e.dsl",
+   "sha256": "7b7a84ec22850be05e1c9e0cd8503a84a4bd227c47fbe2b73107af7cdb3b4374",
+   "also": []
+  },
+  "unity_v104_texture_clumped": {
+   "source": "noisemaker-for-unity/parity/programs/v104/texture_clumped.dsl",
+   "sha256": "b2b5b52b7293a09ed03eee2cd731ce6fa0ac6c8f78e48da1ac3f0aabb966d887",
+   "also": []
+  },
+  "unity_v104_texture_contrasty": {
+   "source": "noisemaker-for-unity/parity/programs/v104/texture_contrasty.dsl",
+   "sha256": "87d0f89594603de1421405bbfb52de4ab4d9953d61ceb94cfe8c0f4f6e8b54a2",
+   "also": []
+  },
+  "unity_v104_texture_enlarged": {
+   "source": "noisemaker-for-unity/parity/programs/v104/texture_enlarged.dsl",
+   "sha256": "3e1733d7ed01646a74148fb88a675653464b7f13ccac035e5370e32347ff2abb",
+   "also": []
+  },
+  "unity_v104_texture_horizontal": {
+   "source": "noisemaker-for-unity/parity/programs/v104/texture_horizontal.dsl",
+   "sha256": "fdc2069b29ab72d6661def739016c5566bc1154d35b5e77a564bce121bc240c5",
+   "also": []
+  },
+  "unity_v104_texture_regular": {
+   "source": "noisemaker-for-unity/parity/programs/v104/texture_regular.dsl",
+   "sha256": "d3ace1b1fbee9c17692180f009592445a465d85ed5409df8ecd03c1a1d94e904",
+   "also": []
+  },
+  "unity_v104_texture_soft": {
+   "source": "noisemaker-for-unity/parity/programs/v104/texture_soft.dsl",
+   "sha256": "f3990f43b67f9dbbe021644f0b0523f62b73435744d610730492be995acebfea",
+   "also": []
+  },
+  "unity_v104_texture_speckle": {
+   "source": "noisemaker-for-unity/parity/programs/v104/texture_speckle.dsl",
+   "sha256": "f5788b3cff01e2fc9bfd0ffca2de9631c3e429d53c7bde805f8e1ac2c47cc46e",
+   "also": []
+  },
+  "unity_v104_texture_sprinkles": {
+   "source": "noisemaker-for-unity/parity/programs/v104/texture_sprinkles.dsl",
+   "sha256": "66ca21d174bf3ed86dde3569f17a6d3701fc7db9c5dc63ef68e90088e017464a",
+   "also": []
+  },
+  "unity_v104_texture_stippled": {
+   "source": "noisemaker-for-unity/parity/programs/v104/texture_stippled.dsl",
+   "sha256": "1e93ada3f18c5cb9f27781ca4c7691cd9f7d3bfe4f8687f551989e6f5848e429",
+   "also": []
+  },
+  "unity_v104_texture_vertical": {
+   "source": "noisemaker-for-unity/parity/programs/v104/texture_vertical.dsl",
+   "sha256": "acfa4a889f6ebc5614b52a7b01dbcfa8207fc280956646356bc2f30b6f24426e",
+   "also": []
+  },
+  "unity_v104_unsharp_mask_large_radius": {
+   "source": "noisemaker-for-unity/parity/programs/v104/unsharp_mask_large_radius.dsl",
+   "sha256": "20d4a9b08ec4d83fec1e06d2782eb35f0d1bfb77ac1415115f3909f0b286fa2e",
+   "also": []
+  },
+  "unity_v104_watercolor": {
+   "source": "noisemaker-for-unity/parity/programs/v104/watercolor.dsl",
+   "sha256": "3e97a00fd6c947aa42158b19401a268fb1602bebd09d8c3911e547178bab490b",
+   "also": []
+  },
+  "unity_v104_wind_stagger_from_right": {
+   "source": "noisemaker-for-unity/parity/programs/v104/wind_stagger_from_right.dsl",
+   "sha256": "48da3b0e94b87f9b3b2e9b5e2c85bcb2e612d9a3b4cf62a2a335e4cc24e08e7d",
+   "also": []
+  },
+  "unity_v104_wind_strength_zero": {
+   "source": "noisemaker-for-unity/parity/programs/v104/wind_strength_zero.dsl",
+   "sha256": "f0891adea72d3a02fe9030e40dd5ab375b790f63d89b1489fcf44d2d4cd7f8c6",
+   "also": []
+  },
+  "unity_v104_wind_wind": {
+   "source": "noisemaker-for-unity/parity/programs/v104/wind_wind.dsl",
+   "sha256": "7987c1fe0f26b2b367d9bac56ee2b796f5877ee1396f5d9973187d13a9f812ed",
+   "also": []
+  }
+ }
+}

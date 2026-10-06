@@ -1,3 +1,4 @@
-search synth, classicNoisedeck
-noise(seed: 1, scaleX: 50, scaleY: 50).shapeMixer(palette: vibrant).write(o0)
-render(o0)
+search synth, filter, classicNoisedeck
+noise(seed: 1, scaleX: 50, scaleY: 50).write(o0)
+gradient(seed: 1).shapeMixer(tex: o0, palette: vibrant).write(o1)
+render(o1)

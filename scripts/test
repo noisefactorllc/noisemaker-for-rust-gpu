@@ -5,12 +5,14 @@
 // (parity/reference.json):
 //   - the catalog freshness gate (parity/check_effects.mjs): definitions, WGSL,
 //     manifest, meshes and palettes byte-identical to the reference;
-//   - the coverage corpus freshness gate (tools/generate-coverage.mjs --check);
+//   - the coverage corpus and timed tier freshness gate
+//     (tools/generate-coverage.mjs --check: parity/coverage, parity/timed);
 //   - the Rust unit and integration tests of the GPU-free crates
 //     (noisemaker-effects, noisemaker-dsl);
 //   - the frontend parity gate (parity/check_frontend.mjs): tokens, AST,
 //     validated plans, expanded passes and the render graph of every fixture
-//     (parity/programs, parity/corpus, parity/coverage) equal to the reference's;
+//     (parity/programs, parity/corpus, parity/coverage, parity/timed,
+//     parity/curated) equal to the reference's;
 //   - the DSL tooling gate (parity/check_dsl_tools.mjs --rust-frontend):
 //     unparse, formatValue, parameter updates, transforms, error formatting and
 //     effect-definition validation equal to the reference's;
@@ -90,7 +92,7 @@ run('node', ['parity/check_effects.mjs'], { env })
 run('node', ['tools/generate-coverage.mjs', '--check'], { env })
 run(cargo, ['test', '--release', '-p', 'noisemaker-effects', '-p', 'noisemaker-dsl', '-p', 'noisemaker-input'], { env })
 run(cargo, ['build', '--release', '-p', 'nm-render', '-p', 'noisemaker-dsl', '-p', 'noisemaker-input', '--bins'], { env })
-const programs = ['programs', 'corpus', 'coverage'].flatMap(dir =>
+const programs = ['programs', 'corpus', 'coverage', 'timed', 'curated'].flatMap(dir =>
   readdirSync(join(ROOT, 'parity', dir)).filter(f => f.endsWith('.dsl')).sort().map(f => join(ROOT, 'parity', dir, f)))
 run('node', ['parity/check_frontend.mjs', '--programs', ...programs], {
   env: { ...env, NM_RENDER: join(ROOT, 'target', 'release', 'nm-render') }

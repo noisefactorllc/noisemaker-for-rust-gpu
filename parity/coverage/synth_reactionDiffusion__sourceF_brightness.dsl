@@ -1,3 +1,4 @@
 search synth
-reactionDiffusion(sourceF: brightness).write(o0)
+noise(seed: 3, scaleX: 30, scaleY: 30).write(o1)
+reactionDiffusion(tex: read(o1), sourceF: brightness).write(o0)
 render(o0)

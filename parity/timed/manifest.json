@@ -1,0 +1,1407 @@
+{
+  "protocol": {
+    "runSeconds": 5,
+    "sampleEvery": 1,
+    "sampleFrames": [
+      1,
+      2,
+      4,
+      10,
+      30
+    ]
+  },
+  "cases": {
+    "timed_agentsPoints": {
+      "effect": null,
+      "program": "parity/programs/agentsPoints.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.flow",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_agentsPointsState256": {
+      "effect": null,
+      "program": "parity/programs/agentsPointsState256.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.flow",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_babylonjs_attractor": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_attractor.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.attractor",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_babylonjs_billboard_flow": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_billboard_flow.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.flow",
+        "render.pointsBillboardRender",
+        "render.pointsEmit"
+      ]
+    },
+    "timed_babylonjs_buddhabrot": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_buddhabrot.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.buddhabrot",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_babylonjs_ca3d": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_ca3d.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "synth3d.cellularAutomata3d"
+      ]
+    },
+    "timed_babylonjs_dla": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_dla.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.dla",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_babylonjs_flock": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_flock.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.flock",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_babylonjs_flow": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_flow.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.flow",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_babylonjs_hydraulic": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_hydraulic.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.hydraulic",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_babylonjs_lenia": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_lenia.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.lenia",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_babylonjs_life": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_life.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.life",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_babylonjs_loop_accum": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_loop_accum.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "render.loopBegin",
+        "render.loopEnd"
+      ]
+    },
+    "timed_babylonjs_mnca": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_mnca.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "synth.mnca"
+      ]
+    },
+    "timed_babylonjs_physical": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_physical.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.physical",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_babylonjs_rd3d_r": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_rd3d_r.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "synth3d.reactionDiffusion3d"
+      ]
+    },
+    "timed_babylonjs_smrticle_physarum": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_smrticle_physarum.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.physarum",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_babylonjs_smrticle_physical": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_smrticle_physical.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.physical",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_babylonjs_target_particles": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_target_particles.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.flow",
+        "render.pointsBillboardRender",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_babylonjs_temporalAberration": {
+      "effect": null,
+      "program": "parity/curated/babylonjs_temporalAberration.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "filter.temporalAberration"
+      ]
+    },
+    "timed_blender_bb_only": {
+      "effect": null,
+      "program": "parity/curated/blender_bb_only.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.flow",
+        "render.pointsBillboardRender",
+        "render.pointsEmit"
+      ]
+    },
+    "timed_blender_billboard_smoke": {
+      "effect": null,
+      "program": "parity/curated/blender_billboard_smoke.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.flow",
+        "render.pointsBillboardRender",
+        "render.pointsEmit"
+      ]
+    },
+    "timed_blender_flock_smoke": {
+      "effect": null,
+      "program": "parity/curated/blender_flock_smoke.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.flock",
+        "points.flow",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_blender_flow3d": {
+      "effect": null,
+      "program": "parity/curated/blender_flow3d.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "filter3d.flow3d"
+      ]
+    },
+    "timed_blender_int_nobl": {
+      "effect": null,
+      "program": "parity/curated/blender_int_nobl.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.flow",
+        "render.pointsBillboardRender",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_blender_int_ns": {
+      "effect": null,
+      "program": "parity/curated/blender_int_ns.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.flow",
+        "render.pointsBillboardRender",
+        "render.pointsEmit",
+        "render.pointsRender",
+        "synth.navierStokes"
+      ]
+    },
+    "timed_blender_io0_nobb": {
+      "effect": null,
+      "program": "parity/curated/blender_io0_nobb.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.flow",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_blender_kRK7A": {
+      "effect": null,
+      "program": "parity/curated/blender_kRK7A.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.flow",
+        "render.pointsEmit",
+        "render.pointsRender",
+        "synth.navierStokes"
+      ]
+    },
+    "timed_blender_ns145": {
+      "effect": null,
+      "program": "parity/curated/blender_ns145.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "synth.navierStokes"
+      ]
+    },
+    "timed_blender_ns_smoke": {
+      "effect": null,
+      "program": "parity/curated/blender_ns_smoke.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "synth.navierStokes"
+      ]
+    },
+    "timed_blender_points_smoke": {
+      "effect": null,
+      "program": "parity/curated/blender_points_smoke.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.flow",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_cellularAutomata": {
+      "effect": null,
+      "program": "parity/programs/cellularAutomata.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "synth.cellularAutomata"
+      ]
+    },
+    "timed_classicNoisedeck_bitEffects": {
+      "effect": "classicNoisedeck.bitEffects",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_classicNoisedeck_caustic": {
+      "effect": "classicNoisedeck.caustic",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_classicNoisedeck_cellNoise": {
+      "effect": "classicNoisedeck.cellNoise",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_classicNoisedeck_cellRefract": {
+      "effect": "classicNoisedeck.cellRefract",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_classicNoisedeck_colorLab": {
+      "effect": "classicNoisedeck.colorLab",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_classicNoisedeck_fractal": {
+      "effect": "classicNoisedeck.fractal",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_classicNoisedeck_glitch": {
+      "effect": "classicNoisedeck.glitch",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_classicNoisedeck_kaleido": {
+      "effect": "classicNoisedeck.kaleido",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_classicNoisedeck_lensDistortion": {
+      "effect": "classicNoisedeck.lensDistortion",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_classicNoisedeck_moodscape": {
+      "effect": "classicNoisedeck.moodscape",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_classicNoisedeck_noise": {
+      "effect": "classicNoisedeck.noise",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_classicNoisedeck_noise3d": {
+      "effect": "classicNoisedeck.noise3d",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_classicNoisedeck_shapeMixer": {
+      "effect": "classicNoisedeck.shapeMixer",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_classicNoisedeck_shapes": {
+      "effect": "classicNoisedeck.shapes",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_classicNoisedeck_shapes3d": {
+      "effect": "classicNoisedeck.shapes3d",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_classicNoisedeck_splat": {
+      "effect": "classicNoisedeck.splat",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_convolutionFeedback": {
+      "effect": null,
+      "program": "parity/programs/convolutionFeedback.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "filter.convolutionFeedback"
+      ]
+    },
+    "timed_convolutionFeedbackNoFeedback": {
+      "effect": null,
+      "program": "parity/programs/convolutionFeedbackNoFeedback.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "filter.convolutionFeedback"
+      ]
+    },
+    "timed_feedback": {
+      "effect": null,
+      "program": "parity/programs/feedback.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "filter.feedback"
+      ]
+    },
+    "timed_filter3dFlow3d": {
+      "effect": null,
+      "program": "parity/programs/filter3dFlow3d.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "filter3d.flow3d"
+      ]
+    },
+    "timed_filter3d_flow3d": {
+      "effect": "filter3d.flow3d",
+      "reasons": [
+        "state",
+        "sim",
+        "time"
+      ]
+    },
+    "timed_filter3d_palette3d": {
+      "effect": "filter3d.palette3d",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_clouds": {
+      "effect": "filter.clouds",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_convolutionFeedback": {
+      "effect": "filter.convolutionFeedback",
+      "reasons": [
+        "sim"
+      ]
+    },
+    "timed_filter_corrupt": {
+      "effect": "filter.corrupt",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_degauss": {
+      "effect": "filter.degauss",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_dither": {
+      "effect": "filter.dither",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_feedback": {
+      "effect": "filter.feedback",
+      "reasons": [
+        "state",
+        "sim"
+      ]
+    },
+    "timed_filter_grain": {
+      "effect": "filter.grain",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_historicPalette": {
+      "effect": "filter.historicPalette",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_lensWarp": {
+      "effect": "filter.lensWarp",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_lightLeak": {
+      "effect": "filter.lightLeak",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_lowPoly": {
+      "effect": "filter.lowPoly",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_motionBlur": {
+      "effect": "filter.motionBlur",
+      "reasons": [
+        "state"
+      ]
+    },
+    "timed_filter_octaveWarp": {
+      "effect": "filter.octaveWarp",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_osd": {
+      "effect": "filter.osd",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_palette": {
+      "effect": "filter.palette",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_polar": {
+      "effect": "filter.polar",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_pondRipples": {
+      "effect": "filter.pondRipples",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_prismaticAberration": {
+      "effect": "filter.prismaticAberration",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_rotate": {
+      "effect": "filter.rotate",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_scanlineError": {
+      "effect": "filter.scanlineError",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_scroll": {
+      "effect": "filter.scroll",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_snow": {
+      "effect": "filter.snow",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_spiral": {
+      "effect": "filter.spiral",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_spookyTicker": {
+      "effect": "filter.spookyTicker",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_temporalAberration": {
+      "effect": "filter.temporalAberration",
+      "reasons": [
+        "state"
+      ]
+    },
+    "timed_filter_tetraColorArray": {
+      "effect": "filter.tetraColorArray",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_tetraCosine": {
+      "effect": "filter.tetraCosine",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_texture": {
+      "effect": "filter.texture",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_tunnel": {
+      "effect": "filter.tunnel",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_warp": {
+      "effect": "filter.warp",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_waves": {
+      "effect": "filter.waves",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_filter_wobble": {
+      "effect": "filter.wobble",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_funcHiddenParam": {
+      "effect": null,
+      "program": "parity/programs/funcHiddenParam.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "synth.cellularAutomata"
+      ]
+    },
+    "timed_heightGrid_billboard": {
+      "effect": null,
+      "program": "parity/programs/heightGrid_billboard.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.heightGrid",
+        "render.pointsBillboardRender",
+        "render.pointsEmit"
+      ]
+    },
+    "timed_heightGrid_billboard_alpha": {
+      "effect": null,
+      "program": "parity/programs/heightGrid_billboard_alpha.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.heightGrid",
+        "render.pointsBillboardRender",
+        "render.pointsEmit"
+      ]
+    },
+    "timed_heightGrid_pointsRender_perspective": {
+      "effect": null,
+      "program": "parity/programs/heightGrid_pointsRender_perspective.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.heightGrid",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_hero": {
+      "effect": null,
+      "program": "parity/programs/hero.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.flow",
+        "render.pointsBillboardRender",
+        "render.pointsEmit",
+        "render.pointsRender",
+        "synth.navierStokes"
+      ]
+    },
+    "timed_mixer_cellSplit": {
+      "effect": "mixer.cellSplit",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_mixer_shapeMask": {
+      "effect": "mixer.shapeMask",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_mixer_split": {
+      "effect": "mixer.split",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_mnca": {
+      "effect": null,
+      "program": "parity/programs/mnca.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "synth.mnca"
+      ]
+    },
+    "timed_motionBlur": {
+      "effect": null,
+      "program": "parity/programs/motionBlur.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "filter.motionBlur"
+      ]
+    },
+    "timed_navierStokes": {
+      "effect": null,
+      "program": "parity/programs/navierStokes.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "synth.navierStokes"
+      ]
+    },
+    "timed_osc_noise": {
+      "effect": "synth.noise",
+      "reasons": [
+        "oscillator"
+      ]
+    },
+    "timed_osc_saw": {
+      "effect": "synth.noise",
+      "reasons": [
+        "oscillator"
+      ]
+    },
+    "timed_osc_sawInv": {
+      "effect": "synth.noise",
+      "reasons": [
+        "oscillator"
+      ]
+    },
+    "timed_osc_sine": {
+      "effect": "synth.noise",
+      "reasons": [
+        "oscillator"
+      ]
+    },
+    "timed_osc_square": {
+      "effect": "synth.noise",
+      "reasons": [
+        "oscillator"
+      ]
+    },
+    "timed_osc_tri": {
+      "effect": "synth.noise",
+      "reasons": [
+        "oscillator"
+      ]
+    },
+    "timed_physarum": {
+      "effect": null,
+      "program": "parity/programs/physarum.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.physarum",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_physarumNoSense": {
+      "effect": null,
+      "program": "parity/programs/physarumNoSense.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.physarum",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_pointsRenderOnly": {
+      "effect": null,
+      "program": "parity/programs/pointsRenderOnly.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_points_attractor": {
+      "effect": "points.attractor",
+      "reasons": [
+        "state",
+        "particles",
+        "sim",
+        "time"
+      ]
+    },
+    "timed_points_buddhabrot": {
+      "effect": "points.buddhabrot",
+      "reasons": [
+        "state",
+        "particles",
+        "sim",
+        "time"
+      ]
+    },
+    "timed_points_dla": {
+      "effect": "points.dla",
+      "reasons": [
+        "state",
+        "particles",
+        "sim"
+      ]
+    },
+    "timed_points_flock": {
+      "effect": "points.flock",
+      "reasons": [
+        "state",
+        "particles",
+        "sim",
+        "time"
+      ]
+    },
+    "timed_points_flow": {
+      "effect": "points.flow",
+      "reasons": [
+        "state",
+        "particles",
+        "sim",
+        "time"
+      ]
+    },
+    "timed_points_heightGrid": {
+      "effect": "points.heightGrid",
+      "reasons": [
+        "state",
+        "particles"
+      ]
+    },
+    "timed_points_hydraulic": {
+      "effect": "points.hydraulic",
+      "reasons": [
+        "state",
+        "particles",
+        "sim"
+      ]
+    },
+    "timed_points_lenia": {
+      "effect": "points.lenia",
+      "reasons": [
+        "state",
+        "particles",
+        "sim"
+      ]
+    },
+    "timed_points_life": {
+      "effect": "points.life",
+      "reasons": [
+        "state",
+        "particles",
+        "sim",
+        "time"
+      ]
+    },
+    "timed_points_physarum": {
+      "effect": "points.physarum",
+      "reasons": [
+        "state",
+        "particles",
+        "sim",
+        "time"
+      ]
+    },
+    "timed_points_physical": {
+      "effect": "points.physical",
+      "reasons": [
+        "state",
+        "particles",
+        "sim",
+        "time"
+      ]
+    },
+    "timed_reactionDiffusion": {
+      "effect": null,
+      "program": "parity/programs/reactionDiffusion.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "synth.reactionDiffusion"
+      ]
+    },
+    "timed_render_loopBegin": {
+      "effect": "render.loopBegin",
+      "reasons": [
+        "sim"
+      ]
+    },
+    "timed_render_loopEnd": {
+      "effect": "render.loopEnd",
+      "reasons": [
+        "sim"
+      ]
+    },
+    "timed_render_pointsBillboardRender": {
+      "effect": "render.pointsBillboardRender",
+      "reasons": [
+        "state",
+        "particles"
+      ]
+    },
+    "timed_render_pointsEmit": {
+      "effect": "render.pointsEmit",
+      "reasons": [
+        "state",
+        "particles",
+        "time"
+      ]
+    },
+    "timed_render_pointsRender": {
+      "effect": "render.pointsRender",
+      "reasons": [
+        "state",
+        "particles"
+      ]
+    },
+    "timed_render_render3d": {
+      "effect": "render.render3d",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_render_renderLit3d": {
+      "effect": "render.renderLit3d",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth3dCellularAutomata3d": {
+      "effect": null,
+      "program": "parity/programs/synth3dCellularAutomata3d.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "synth3d.cellularAutomata3d"
+      ]
+    },
+    "timed_synth3dReactionDiffusion3d": {
+      "effect": null,
+      "program": "parity/programs/synth3dReactionDiffusion3d.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "synth3d.reactionDiffusion3d"
+      ]
+    },
+    "timed_synth3d_cellularAutomata3d": {
+      "effect": "synth3d.cellularAutomata3d",
+      "reasons": [
+        "state",
+        "sim"
+      ]
+    },
+    "timed_synth3d_flythrough3d": {
+      "effect": "synth3d.flythrough3d",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth3d_noise3d": {
+      "effect": "synth3d.noise3d",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth3d_reactionDiffusion3d": {
+      "effect": "synth3d.reactionDiffusion3d",
+      "reasons": [
+        "state",
+        "sim"
+      ]
+    },
+    "timed_synth3d_shape3d": {
+      "effect": "synth3d.shape3d",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_bitwise": {
+      "effect": "synth.bitwise",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_cell": {
+      "effect": "synth.cell",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_cellularAutomata": {
+      "effect": "synth.cellularAutomata",
+      "reasons": [
+        "state",
+        "sim",
+        "time"
+      ]
+    },
+    "timed_synth_curl": {
+      "effect": "synth.curl",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_gabor": {
+      "effect": "synth.gabor",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_gradient": {
+      "effect": "synth.gradient",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_julia": {
+      "effect": "synth.julia",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_mandala": {
+      "effect": "synth.mandala",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_mandelbrot": {
+      "effect": "synth.mandelbrot",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_media": {
+      "effect": "synth.media",
+      "reasons": [
+        "time",
+        "onUpdate"
+      ]
+    },
+    "timed_synth_mnca": {
+      "effect": "synth.mnca",
+      "reasons": [
+        "state",
+        "sim",
+        "time"
+      ]
+    },
+    "timed_synth_modPattern": {
+      "effect": "synth.modPattern",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_navierStokes": {
+      "effect": "synth.navierStokes",
+      "reasons": [
+        "state",
+        "sim"
+      ]
+    },
+    "timed_synth_newton": {
+      "effect": "synth.newton",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_noise": {
+      "effect": "synth.noise",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_osc2d": {
+      "effect": "synth.osc2d",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_pattern": {
+      "effect": "synth.pattern",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_perlin": {
+      "effect": "synth.perlin",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_reactionDiffusion": {
+      "effect": "synth.reactionDiffusion",
+      "reasons": [
+        "state",
+        "sim",
+        "time"
+      ]
+    },
+    "timed_synth_remap": {
+      "effect": "synth.remap",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_roll": {
+      "effect": "synth.roll",
+      "reasons": [
+        "state",
+        "time"
+      ]
+    },
+    "timed_synth_sacredGeometry": {
+      "effect": "synth.sacredGeometry",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_shape": {
+      "effect": "synth.shape",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_synth_subdivide": {
+      "effect": "synth.subdivide",
+      "reasons": [
+        "time"
+      ]
+    },
+    "timed_temporalAberration": {
+      "effect": null,
+      "program": "parity/programs/temporalAberration.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "filter.temporalAberration"
+      ]
+    },
+    "timed_threejs_agent_buddhabrot": {
+      "effect": null,
+      "program": "parity/curated/threejs_agent_buddhabrot.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.buddhabrot",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_threejs_agent_dla": {
+      "effect": null,
+      "program": "parity/curated/threejs_agent_dla.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.dla",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_threejs_agent_physarum": {
+      "effect": null,
+      "program": "parity/curated/threejs_agent_physarum.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.physarum",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_threejs_agent_physical": {
+      "effect": null,
+      "program": "parity/curated/threejs_agent_physical.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.physical",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_threejs_convolutionFeedback": {
+      "effect": null,
+      "program": "parity/curated/threejs_convolutionFeedback.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "filter.convolutionFeedback"
+      ]
+    },
+    "timed_threejs_media": {
+      "effect": null,
+      "program": "parity/curated/threejs_media.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "synth.media"
+      ]
+    },
+    "timed_threejs_navierStokes": {
+      "effect": null,
+      "program": "parity/curated/threejs_navierStokes.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "synth.navierStokes"
+      ]
+    },
+    "timed_threejs_synth3d_cellularAutomata3d": {
+      "effect": null,
+      "program": "parity/curated/threejs_synth3d_cellularAutomata3d.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "synth3d.cellularAutomata3d"
+      ]
+    },
+    "timed_threejs_temporalAberration": {
+      "effect": null,
+      "program": "parity/curated/threejs_temporalAberration.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "filter.temporalAberration"
+      ]
+    },
+    "timed_touchdesigner_buddhabrot": {
+      "effect": null,
+      "program": "parity/curated/touchdesigner_buddhabrot.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.buddhabrot",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    },
+    "timed_touchdesigner_filter3d_flow3d": {
+      "effect": null,
+      "program": "parity/curated/touchdesigner_filter3d_flow3d.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "filter3d.flow3d"
+      ]
+    },
+    "timed_touchdesigner_physical": {
+      "effect": null,
+      "program": "parity/curated/touchdesigner_physical.dsl",
+      "reasons": [
+        "program"
+      ],
+      "evolving": [
+        "points.physical",
+        "render.pointsEmit",
+        "render.pointsRender"
+      ]
+    }
+  }
+}

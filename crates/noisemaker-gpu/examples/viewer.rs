@@ -19,6 +19,7 @@
 //! error formatter while the last good program keeps running. Escape or
 //! closing the window quits.
 //!
+//! `synth/media` steps show the demo's test card, or the `--media` PNG.
 //! `--exit-after SECONDS` quits after that long, for scripted runs;
 //! `--screenshot` then renders the frame of that moment and writes what the
 //! window shows, read back through the same blit.
@@ -29,7 +30,7 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime};
 
-use noisemaker_gpu::demo::{DemoHost, DemoHostOptions};
+use noisemaker_gpu::demo::{DemoHost, DemoHostOptions, default_media_image};
 use noisemaker_gpu::dsl::error_formatter::format_compile_error;
 use noisemaker_gpu::host::{CanvasRenderer, CanvasRendererOptions};
 use noisemaker_gpu::png_io::{read_png_rgba8, write_png_rgba8};
@@ -182,14 +183,15 @@ impl Running {
                 ..Default::default()
             },
         );
+        // The demo's media image: --media, else its default test card.
         let default_media = match &args.media {
-            Some(path) => Some(Rc::new(read_png_rgba8(path)?)),
-            None => None,
+            Some(path) => Rc::new(read_png_rgba8(path)?),
+            None => default_media_image(),
         };
         let host = DemoHost::new(
             renderer,
             DemoHostOptions {
-                default_media,
+                default_media: Some(default_media),
                 ..Default::default()
             },
         );

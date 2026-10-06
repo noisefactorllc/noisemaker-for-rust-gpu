@@ -4,9 +4,11 @@
 // Regenerates the embedded effect catalog from the reference at
 // $NM_REFERENCE_ROOT into a temporary directory (tools/convert-effects.mjs) and
 // requires it to be byte-identical to crates/noisemaker-effects/catalog: every
-// definition, every WGSL program, the manifest, the built-in meshes and the
-// palette table. A stale catalog, a hand-edited shader or definition, or a
-// missing file fails the gate.
+// definition, every WGSL program, the manifest, the built-in meshes, the
+// palette table, the string catalogs, the demo font and the demo's default
+// media image (share/img/testcard.png, also compared directly with the
+// reference's demo/shaders/img/testcard.png). A stale catalog, a hand-edited
+// shader or definition, or a missing file fails the gate.
 //
 // It also reports whether the reference checkout is at the pinned commit
 // (parity/reference.json); a different commit is an error unless
@@ -15,13 +17,15 @@
 // Usage: NM_REFERENCE_ROOT=/path/to/noisemaker node parity/check_effects.mjs
 
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const CATALOG = join(ROOT, 'crates', 'noisemaker-effects', 'catalog')
+// Catalog files that must be byte copies of these reference files.
+const REFERENCE_COPIES = [['share/img/testcard.png', 'demo/shaders/img/testcard.png']]
 
 if (!process.env.NM_REFERENCE_ROOT) {
   console.error('NM_REFERENCE_ROOT is not set; point it at a checkout of the noisemaker reference repository')
@@ -64,6 +68,14 @@ try {
   for (const p of differ) console.error(`check_effects: differs ${p}`)
   if (missing.length || extra.length || differ.length) failed = true
   console.log(`CATALOG: ${expected.length} files, ${missing.length} missing, ${extra.length} unexpected, ${differ.length} differ`)
+  for (const [catalogPath, referencePath] of REFERENCE_COPIES) {
+    const ours = join(CATALOG, catalogPath)
+    const theirs = join(process.env.NM_REFERENCE_ROOT, referencePath)
+    if (!existsSync(ours) || !existsSync(theirs) || !readFileSync(ours).equals(readFileSync(theirs))) {
+      console.error(`check_effects: ${catalogPath} is not a byte copy of the reference's ${referencePath}`)
+      failed = true
+    }
+  }
 } finally {
   rmSync(work, { recursive: true, force: true })
 }

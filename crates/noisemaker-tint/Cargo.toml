@@ -10,7 +10,20 @@ keywords = ["tint", "dawn", "wgsl", "msl", "metal"]
 categories = ["graphics", "rendering"]
 links = "nm_tint"
 build = "build.rs"
-include = ["Cargo.toml", "build.rs", "dawn.json", "cmake/**", "shim/**", "src/**", "tests/**"]
+# LICENSE-dawn.txt (BSD-3-Clause), LICENSE-abseil-cpp.txt (Apache-2.0) and
+# LICENSE-spirv-headers.txt are the license texts, at the commits dawn.json
+# pins, of the third-party sources the build compiles into the static
+# library it links on Apple targets.
+include = [
+    "Cargo.toml",
+    "build.rs",
+    "dawn.json",
+    "LICENSE-*.txt",
+    "cmake/**",
+    "shim/**",
+    "src/**",
+    "tests/**",
+]
 
 [dependencies]
 

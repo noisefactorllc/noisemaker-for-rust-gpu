@@ -10,14 +10,15 @@
 //! through ProgramState, its host inputs — text canvases, meshes, overlays and
 //! the media image — produced), rendered `--frames` times at the normalized
 //! loop time `--time`, and the render surface is written in the orientation
-//! a canvas shows it. A program that does not compile is reported with the
-//! DSL error formatter and exit status 1.
+//! a canvas shows it. `synth/media` steps show the demo's test card, or the
+//! `--media` PNG. A program that does not compile is reported with the DSL
+//! error formatter and exit status 1.
 
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::rc::Rc;
 
-use noisemaker_gpu::demo::{DemoHost, DemoHostOptions};
+use noisemaker_gpu::demo::{DemoHost, DemoHostOptions, default_media_image};
 use noisemaker_gpu::dsl::error_formatter::format_compile_error;
 use noisemaker_gpu::host::{CanvasRenderer, CanvasRendererOptions};
 use noisemaker_gpu::png_io::{read_png_rgba8, write_png_rgba8};
@@ -99,14 +100,15 @@ fn run(args: &Args, source: &str) -> Result<(), RenderError> {
             ..Default::default()
         },
     );
+    // The demo's media image: --media, else its default test card.
     let default_media = match &args.media {
-        Some(path) => Some(Rc::new(read_png_rgba8(path).map_err(RenderError::Js)?)),
-        None => None,
+        Some(path) => Rc::new(read_png_rgba8(path).map_err(RenderError::Js)?),
+        None => default_media_image(),
     };
     let mut host = DemoHost::new(
         renderer,
         DemoHostOptions {
-            default_media,
+            default_media: Some(default_media),
             ..Default::default()
         },
     );

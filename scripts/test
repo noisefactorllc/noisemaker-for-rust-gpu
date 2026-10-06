@@ -4,7 +4,10 @@
 // Runs every check that needs no GPU, against the pinned reference revision
 // (parity/reference.json):
 //   - the catalog freshness gate (parity/check_effects.mjs): definitions, WGSL,
-//     manifest, meshes and palettes byte-identical to the reference;
+//     manifest, meshes, palettes, strings, the demo font and the demo's test
+//     card byte-identical to the reference;
+//   - the export kit's effect list freshness gate
+//     (tools/generate-kit-compat.mjs --check: export-kit/compat-effects.json);
 //   - the coverage corpus and timed tier freshness gate
 //     (tools/generate-coverage.mjs --check: parity/coverage, parity/timed);
 //   - the Rust unit and integration tests of the GPU-free crates
@@ -89,6 +92,7 @@ const cargo = findCargo()
 
 // ---- gates ---------------------------------------------------------------------------
 run('node', ['parity/check_effects.mjs'], { env })
+run('node', ['tools/generate-kit-compat.mjs', '--check'], { env })
 run('node', ['tools/generate-coverage.mjs', '--check'], { env })
 run(cargo, ['test', '--release', '-p', 'noisemaker-effects', '-p', 'noisemaker-dsl', '-p', 'noisemaker-input'], { env })
 run(cargo, ['build', '--release', '-p', 'nm-render', '-p', 'noisemaker-dsl', '-p', 'noisemaker-input', '--bins'], { env })

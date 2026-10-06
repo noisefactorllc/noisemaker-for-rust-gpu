@@ -10,13 +10,20 @@
 //! (`metal/ShaderModuleMTL.mm` `TranslateToMSL`), and prepends the heading
 //! Dawn prepends. [`dawn`] holds the option values Dawn's Metal backend uses
 //! for a Chromium WebGPU device.
+//!
+//! Tint is built for Apple targets only, the targets with a Metal backend.
+//! For any other target the build compiles nothing native, and the crate
+//! has the option types and [`dawn`] without the compiler functions
+//! (`wgsl_to_msl`, `math_mode_pragma_available`, `linked_dawn_revision`).
 
+#[cfg(target_vendor = "apple")]
 use std::ffi::{CStr, CString, c_char, c_int};
 use std::fmt;
 
 /// The Dawn revision this Tint is built from (`dawn.json`).
 pub const DAWN_COMMIT: &str = env!("NM_TINT_DAWN_COMMIT");
 
+#[cfg(target_vendor = "apple")]
 mod ffi {
     use std::ffi::{c_char, c_int};
 
@@ -230,15 +237,18 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
+#[cfg(target_vendor = "apple")]
 fn flag(b: bool) -> u8 {
     u8::from(b)
 }
 
+#[cfg(target_vendor = "apple")]
 fn c_string(s: &str, what: &str) -> Result<CString, Error> {
     CString::new(s).map_err(|_| Error(format!("{what} contains a NUL byte")))
 }
 
 /// Translate `wgsl` to MSL with `options`.
+#[cfg(target_vendor = "apple")]
 pub fn wgsl_to_msl(wgsl: &str, options: &MslOptions) -> Result<Msl, Error> {
     let entry_point = c_string(&options.entry_point, "the entry point name")?;
     let remapped = c_string(
@@ -352,6 +362,7 @@ pub fn wgsl_to_msl(wgsl: &str, options: &MslOptions) -> Result<Msl, Error> {
 
 /// `true` where Dawn adds the math-mode pragma to its heading
 /// (`@available(macOS 15.0, iOS 18.0, *)`).
+#[cfg(target_vendor = "apple")]
 pub fn math_mode_pragma_available() -> bool {
     // SAFETY: a pure query without arguments.
     unsafe { ffi::nm_tint_math_mode_pragma_available() != 0 }
@@ -359,6 +370,7 @@ pub fn math_mode_pragma_available() -> bool {
 
 /// The Dawn revision the linked shim was built from (equal to
 /// [`DAWN_COMMIT`]).
+#[cfg(target_vendor = "apple")]
 pub fn linked_dawn_revision() -> &'static str {
     // SAFETY: the shim returns a pointer to a static NUL-terminated string.
     unsafe { CStr::from_ptr(ffi::nm_tint_dawn_revision()) }

@@ -291,16 +291,17 @@ pub struct ProtocolContext {
 
 impl ProtocolContext {
     /// A context with the embedded catalog, the default fonts and the media
-    /// image at `media` (when given).
+    /// image at `media`, or else the demo's own (the test card the catalog
+    /// embeds, [`crate::demo::default_media_image`]).
     pub fn new(media: Option<&Path>) -> Result<ProtocolContext, String> {
         let default_media = match media {
-            Some(path) => Some(Rc::new(read_png_rgba8(path)?)),
-            None => None,
+            Some(path) => Rc::new(read_png_rgba8(path)?),
+            None => crate::demo::default_media_image(),
         };
         Ok(ProtocolContext {
             registry: Rc::new(Registry::with_catalog()),
             fonts: Rc::new(TextFonts::default()),
-            default_media,
+            default_media: Some(default_media),
         })
     }
 

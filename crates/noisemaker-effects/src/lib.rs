@@ -5,6 +5,9 @@
 //! the reference engine. Definitions are the reference `definition.js` instances
 //! serialized with `JSON.stringify` semantics; WGSL programs are byte-identical
 //! copies of the reference shaders (`parity/check_effects.mjs` gates both).
+//! The shared files beside them ([`share_file`]: built-in meshes, palettes,
+//! effect strings, the demo's text font and its default media image,
+//! [`test_card_png`]) are byte copies of the reference's.
 
 /// One effect of the catalog.
 #[derive(Debug, Clone, Copy)]
@@ -51,6 +54,21 @@ pub fn share_file(path: &str) -> Option<&'static [u8]> {
         .map(|(_, b)| *b)
 }
 
+/// The catalog path of [`test_card_png`].
+pub const TEST_CARD_PATH: &str = "share/img/testcard.png";
+
+/// The reference demo's default media image (`demo/shaders/img/testcard.png`,
+/// which `parity/check_effects.mjs` requires this copy to equal byte for
+/// byte): the image the demo loads into every `synth/media` step until the
+/// user picks another. PNG bytes, 768x576, 8-bit RGB.
+///
+/// Philips PM5544 test card, by Ebnz, modified by Tucvbif (Wikimedia Commons,
+/// File:Philips_PM5544.svg), CC BY 2.5; rasterized to 768×576 for the
+/// Noisemaker demo.
+pub fn test_card_png() -> &'static [u8] {
+    share_file(TEST_CARD_PATH).expect("the catalog ships the test card")
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -65,5 +83,6 @@ mod tests {
                 .is_some()
         );
         assert!(super::share_file("share/meshes/cube.obj").is_some());
+        assert!(super::test_card_png().starts_with(b"\x89PNG\r\n\x1a\n"));
     }
 }

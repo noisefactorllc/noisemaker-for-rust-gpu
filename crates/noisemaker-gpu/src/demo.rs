@@ -11,7 +11,8 @@
 //! Building the controls also starts the host inputs:
 //!
 //! - `synth/media` steps (`externalTexture` other than `textTex`) load the
-//!   demo's default image (`img/testcard.png`; [`DemoHostOptions::default_media`])
+//!   demo's default image ([`DemoHostOptions::default_media`]: by default
+//!   `img/testcard.png`, embedded in the catalog, [`default_media_image`])
 //!   into `<externalTexture>_step_N` with `flipY: false` and set the step's
 //!   `imageSize`;
 //! - `filter/text` steps (`externalTexture: 'textTex'`) draw their text
@@ -38,18 +39,37 @@ use noisemaker_host::text::{HostStyle, TextColor, TextFonts, TextParams, demo_ca
 use crate::error::RenderError;
 use crate::host::{CanvasRenderer, CompileOptions, TextureUpdateOptions};
 use crate::jsv::{to_js_string, to_number};
-use crate::png_io::Rgba8Image;
+use crate::png_io::{Rgba8Image, decode_png_rgba8};
 
 /// Where the reference demo keeps its default media image, relative to a
 /// reference checkout (`_loadDefaultMediaImage`: `img/testcard.png` of
-/// `demo/shaders/`).
+/// `demo/shaders/`). The catalog embeds a byte copy of it
+/// ([`noisemaker_effects::test_card_png`], decoded by
+/// [`default_media_image`]).
 pub const DEFAULT_MEDIA_PATH: &str = "demo/shaders/img/testcard.png";
+
+/// The reference demo's default media image, decoded: the Philips PM5544 test
+/// card the catalog embeds ([`noisemaker_effects::test_card_png`], which
+/// carries its attribution), 768x576. Decoded once per thread.
+pub fn default_media_image() -> Rc<Rgba8Image> {
+    thread_local! {
+        static IMAGE: Rc<Rgba8Image> = Rc::new(
+            decode_png_rgba8(
+                noisemaker_effects::test_card_png(),
+                noisemaker_effects::TEST_CARD_PATH,
+            )
+            .expect("the embedded test card decodes"),
+        );
+    }
+    IMAGE.with(Rc::clone)
+}
 
 /// Options of [`DemoHost::new`].
 #[derive(Clone)]
 pub struct DemoHostOptions {
-    /// The image each media step loads by default; `None` is the page's
-    /// failed load ("no media loaded": no texture is uploaded).
+    /// The image each media step loads by default (default: the demo's test
+    /// card, [`default_media_image`]); `None` is the page's failed load ("no
+    /// media loaded": no texture is uploaded).
     pub default_media: Option<Rc<Rgba8Image>>,
     /// Whether `requestMIDIAccess()` succeeds when a program needs MIDI (the
     /// page then gives the renderer a MIDI state). Headless Chromium denies it.
@@ -69,7 +89,7 @@ pub struct DemoHostOptions {
 impl Default for DemoHostOptions {
     fn default() -> Self {
         DemoHostOptions {
-            default_media: None,
+            default_media: Some(default_media_image()),
             midi_access: false,
             audio_access: false,
             render_on_change: None,

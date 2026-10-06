@@ -14,19 +14,23 @@ pub struct Rgba8Image {
 /// Read a PNG as RGBA8 (gray, gray+alpha, RGB, palette and 16-bit images are
 /// converted the way `PIL.Image.convert('RGBA')` converts them).
 pub fn read_png_rgba8(path: &Path) -> Result<Rgba8Image, String> {
-    let file = std::fs::File::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
-    let mut decoder = png::Decoder::new(std::io::BufReader::new(file));
+    let bytes = std::fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    decode_png_rgba8(&bytes, &path.display().to_string())
+}
+
+/// Decode PNG bytes as RGBA8, as [`read_png_rgba8`] reads a file; `name`
+/// labels errors.
+pub fn decode_png_rgba8(bytes: &[u8], name: &str) -> Result<Rgba8Image, String> {
+    let mut decoder = png::Decoder::new(std::io::Cursor::new(bytes));
     decoder.set_transformations(png::Transformations::EXPAND | png::Transformations::STRIP_16);
-    let mut reader = decoder
-        .read_info()
-        .map_err(|e| format!("{}: {e}", path.display()))?;
+    let mut reader = decoder.read_info().map_err(|e| format!("{name}: {e}"))?;
     let size = reader
         .output_buffer_size()
-        .ok_or_else(|| format!("{}: image too large", path.display()))?;
+        .ok_or_else(|| format!("{name}: image too large"))?;
     let mut buf = vec![0u8; size];
     let info = reader
         .next_frame(&mut buf)
-        .map_err(|e| format!("{}: {e}", path.display()))?;
+        .map_err(|e| format!("{name}: {e}"))?;
     let (width, height) = (info.width, info.height);
     let pixels = (width * height) as usize;
     let src = &buf[..info.buffer_size()];
@@ -46,11 +50,11 @@ pub fn read_png_rgba8(path: &Path) -> Result<Rgba8Image, String> {
             .collect(),
         png::ColorType::Grayscale => src.iter().flat_map(|&g| [g, g, g, 255]).collect(),
         png::ColorType::Indexed => {
-            return Err(format!("{}: unexpanded palette image", path.display()));
+            return Err(format!("{name}: unexpanded palette image"));
         }
     };
     if data.len() != pixels * 4 {
-        return Err(format!("{}: unexpected pixel data size", path.display()));
+        return Err(format!("{name}: unexpected pixel data size"));
     }
     Ok(Rgba8Image {
         width,

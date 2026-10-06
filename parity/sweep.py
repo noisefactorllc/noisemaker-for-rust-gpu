@@ -21,9 +21,10 @@ parity/curated/sources.json); a case id is the file stem. One run:
              candidate runs the DSL through the port's demo host (the live Rust
              frontend, ProgramState and the demo's control initialization, then
              applyStepParameterValues) and produces every host input natively:
-             the demo's default media image ($NM_REFERENCE_ROOT/demo/shaders/img/
-             testcard.png), text canvases, asyncInit overlays and meshes (the
-             fixture's .obj sidecar into mesh0, as the minter loads it); a
+             the demo's default media image (the catalog's byte copy of
+             demo/shaders/img/testcard.png), text canvases, asyncInit overlays
+             and meshes (the fixture's .obj sidecar into mesh0, as the minter
+             loads it); a
              fixture's .midi.json sidecar (raw MIDI messages) reaches a MIDI
              state connected after the program loads, in both engines.
              --captured-host-inputs grades with the minter's saved host-input PNGs

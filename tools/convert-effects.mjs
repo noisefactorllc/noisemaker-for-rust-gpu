@@ -21,6 +21,10 @@
 //                                          host serves for canvas text (demo/font:
 //                                          Nunito, filter/text's default family) and
 //                                          their licenses (OFL.txt)
+//   share/img/testcard.png                 byte copy of the reference demo's default
+//                                          media image (demo/shaders/img/testcard.png),
+//                                          the image synth/media steps show when the
+//                                          host supplies none
 //
 // Behavior that a definition carries as JavaScript functions cannot be serialized.
 // Those functions are listed by name in the definition's "jsHooks" array so the
@@ -49,6 +53,8 @@ const SHADERS_DIR = join(REFERENCE_ROOT, 'shaders')
 const EFFECTS_DIR = join(SHADERS_DIR, 'effects')
 // demo/font/<family>/<file> copied to share/fonts/<family>/<file>
 const DEMO_FONTS = [['Nunito', ['Nunito-VariableFont_wght.ttf', 'OFL.txt']]]
+// The demo's default media image (_loadDefaultMediaImage) and its catalog path.
+const DEMO_MEDIA = [join('demo', 'shaders', 'img', 'testcard.png'), join('share', 'img', 'testcard.png')]
 
 function parseArgs (argv) {
   const opts = { out: join(REPO, 'crates', 'noisemaker-effects', 'catalog') }
@@ -174,7 +180,12 @@ async function main () {
     }
   }
 
-  console.error(`[convert-effects] ${effects} definitions, ${programs} WGSL programs, ${meshes.size} meshes, ${fonts} font files, ${stringCatalogs.length} string catalogs -> ${opts.out}`)
+  // The demo's default media image, so that hosts show it without a
+  // reference checkout.
+  mkdirSync(join(opts.out, dirname(DEMO_MEDIA[1])), { recursive: true })
+  copyFileSync(join(REFERENCE_ROOT, DEMO_MEDIA[0]), join(opts.out, DEMO_MEDIA[1]))
+
+  console.error(`[convert-effects] ${effects} definitions, ${programs} WGSL programs, ${meshes.size} meshes, ${fonts} font files, ${stringCatalogs.length} string catalogs, 1 media image -> ${opts.out}`)
 }
 
 main().catch(err => {

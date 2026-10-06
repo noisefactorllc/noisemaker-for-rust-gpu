@@ -6,6 +6,9 @@
 //! default vertex shader and a texture passthrough fragment shader. The
 //! options are `dawn::options` with Dawn's Metal argument-table indices and
 //! the entry point name Chromium derives from the page's origin.
+//!
+//! Tint is built for Apple targets only, so this test runs there only.
+#![cfg(target_vendor = "apple")]
 
 use noisemaker_tint::{Binding, MslOptions, ResourceClass, Stage, dawn, wgsl_to_msl};
 

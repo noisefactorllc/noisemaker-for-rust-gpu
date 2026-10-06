@@ -1,0 +1,76 @@
+{
+  "configVersion": 1,
+  "id": "rust-gpu",
+  "series": "0.1",
+  "shaderSource": "kit",
+  "engineSource": "kit",
+  "pageTemplate": false,
+  "subtrees": [
+    { "from": "Cargo.toml", "to": "engine/Cargo.toml" },
+    { "from": "Cargo.lock", "to": "engine/Cargo.lock" },
+    { "from": "crates/nm-render/Cargo.toml", "to": "engine/crates/nm-render/Cargo.toml" },
+    { "from": "crates/nm-render/src", "to": "engine/crates/nm-render/src" },
+    { "from": "crates/noisemaker-dsl/Cargo.toml", "to": "engine/crates/noisemaker-dsl/Cargo.toml" },
+    { "from": "crates/noisemaker-dsl/src", "to": "engine/crates/noisemaker-dsl/src" },
+    { "from": "crates/noisemaker-effects/Cargo.toml", "to": "engine/crates/noisemaker-effects/Cargo.toml" },
+    { "from": "crates/noisemaker-effects/build.rs", "to": "engine/crates/noisemaker-effects/build.rs" },
+    { "from": "crates/noisemaker-effects/src", "to": "engine/crates/noisemaker-effects/src" },
+    { "from": "crates/noisemaker-effects/catalog", "to": "engine/crates/noisemaker-effects/catalog" },
+    { "from": "crates/noisemaker-gpu/Cargo.toml", "to": "engine/crates/noisemaker-gpu/Cargo.toml" },
+    { "from": "crates/noisemaker-gpu/src", "to": "engine/crates/noisemaker-gpu/src" },
+    { "from": "crates/noisemaker-gpu/examples", "to": "engine/crates/noisemaker-gpu/examples" },
+    { "from": "crates/noisemaker-host/Cargo.toml", "to": "engine/crates/noisemaker-host/Cargo.toml" },
+    { "from": "crates/noisemaker-host/src", "to": "engine/crates/noisemaker-host/src" },
+    { "from": "crates/noisemaker-input/Cargo.toml", "to": "engine/crates/noisemaker-input/Cargo.toml" },
+    { "from": "crates/noisemaker-input/src", "to": "engine/crates/noisemaker-input/src" },
+    { "from": "crates/noisemaker-tint/Cargo.toml", "to": "engine/crates/noisemaker-tint/Cargo.toml" },
+    { "from": "crates/noisemaker-tint/build.rs", "to": "engine/crates/noisemaker-tint/build.rs" },
+    { "from": "crates/noisemaker-tint/dawn.json", "to": "engine/crates/noisemaker-tint/dawn.json" },
+    { "from": "crates/noisemaker-tint/cmake", "to": "engine/crates/noisemaker-tint/cmake" },
+    { "from": "crates/noisemaker-tint/shim", "to": "engine/crates/noisemaker-tint/shim" },
+    { "from": "crates/noisemaker-tint/src", "to": "engine/crates/noisemaker-tint/src" },
+    { "from": "crates/noisemaker-tint/LICENSE-dawn.txt", "to": "engine/crates/noisemaker-tint/LICENSE-dawn.txt" },
+    { "from": "crates/noisemaker-tint/LICENSE-abseil-cpp.txt", "to": "engine/crates/noisemaker-tint/LICENSE-abseil-cpp.txt" },
+    { "from": "crates/noisemaker-tint/LICENSE-spirv-headers.txt", "to": "engine/crates/noisemaker-tint/LICENSE-spirv-headers.txt" }
+  ],
+  "licenses": [
+    { "from": "LICENSE", "to": "LICENSES/noisemaker-for-rust-gpu-LICENSE.txt" },
+    { "from": "crates/noisemaker-tint/LICENSE-dawn.txt", "to": "LICENSES/Dawn-LICENSE.txt" },
+    { "from": "crates/noisemaker-tint/LICENSE-abseil-cpp.txt", "to": "LICENSES/abseil-cpp-Apache-2.0.txt" },
+    { "from": "crates/noisemaker-tint/LICENSE-spirv-headers.txt", "to": "LICENSES/SPIRV-Headers-LICENSE.txt" },
+    { "from": "crates/noisemaker-effects/catalog/share/fonts/Nunito/OFL.txt", "to": "LICENSES/Nunito-OFL.txt" }
+  ],
+  "requireFiles": [
+    "engine/Cargo.toml",
+    "engine/Cargo.lock",
+    "engine/crates/nm-render/src/main.rs",
+    "engine/crates/noisemaker-gpu/src/lib.rs",
+    "engine/crates/noisemaker-gpu/examples/viewer.rs",
+    "engine/crates/noisemaker-effects/build.rs",
+    "engine/crates/noisemaker-effects/catalog/manifest.json",
+    "engine/crates/noisemaker-effects/catalog/share/img/testcard.png",
+    "engine/crates/noisemaker-effects/catalog/share/fonts/Nunito/Nunito-VariableFont_wght.ttf",
+    "engine/crates/noisemaker-tint/build.rs",
+    "engine/crates/noisemaker-tint/dawn.json",
+    "engine/crates/noisemaker-tint/cmake/CMakeLists.txt",
+    "engine/crates/noisemaker-tint/shim/nm_tint.cc",
+    "LICENSES/noisemaker-for-rust-gpu-LICENSE.txt",
+    "LICENSES/Dawn-LICENSE.txt",
+    "LICENSES/abseil-cpp-Apache-2.0.txt",
+    "LICENSES/SPIRV-Headers-LICENSE.txt",
+    "LICENSES/Nunito-OFL.txt"
+  ],
+  "forbidDirs": ["shaders"],
+  "requiredTokens": {
+    "README.template.md": ["NM_PROGRAM_NAME", "NM_EFFECT_LIST", "NM_ENGINE_VERSION"]
+  },
+  "inject": {
+    "type": "dsl-file",
+    "target": "program.dsl"
+  },
+  "compat": {
+    "mode": "list",
+    "fromJsonList": "export-kit/compat-effects.json"
+  },
+  "engineBytesFrom": ["engine/"]
+}

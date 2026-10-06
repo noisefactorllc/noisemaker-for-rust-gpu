@@ -11,8 +11,8 @@
 //! A `--dsl` program runs through the demo host (`noisemaker_gpu::demo`):
 //! compiled, parameters applied as the demo page applies them, host inputs
 //! (media, text, overlays, meshes) produced natively. The demo's default
-//! media image comes from `--media`, or from
-//! `$NM_REFERENCE_ROOT/demo/shaders/img/testcard.png`. A program that does
+//! media image comes from `--media`, or is the demo's own test card, embedded
+//! in the catalog (`noisemaker_effects::test_card_png`). A program that does
 //! not compile is reported with `formatDslError` and a nonzero exit. A DSL
 //! with a Portable sidecar (`<name>.portable.json`, or `--portable FILE`)
 //! registers that user effect first, as `CanvasRenderer.registerPortableEffect`
@@ -123,8 +123,8 @@ enum Command {
         /// The OBJ loaded into mesh0 (default for --dsl: the .obj next to it)
         #[arg(long)]
         obj: Option<PathBuf>,
-        /// The demo's default media image (default:
-        /// $NM_REFERENCE_ROOT/demo/shaders/img/testcard.png)
+        /// The demo's default media image (default: the demo's test card,
+        /// embedded)
         #[arg(long)]
         media: Option<PathBuf>,
         /// Write the graph the fixture rendered as JSON
@@ -210,8 +210,8 @@ enum Command {
         /// (default: the .portable.json next to the DSL)
         #[arg(long)]
         portable: Option<PathBuf>,
-        /// The demo's default media image (default:
-        /// $NM_REFERENCE_ROOT/demo/shaders/img/testcard.png)
+        /// The demo's default media image (default: the demo's test card,
+        /// embedded)
         #[arg(long)]
         media: Option<PathBuf>,
         /// Also encode the frames to this mp4 with ffmpeg
@@ -273,8 +273,8 @@ enum Command {
     Batch {
         /// The manifest
         manifest: PathBuf,
-        /// The demo's default media image (default:
-        /// $NM_REFERENCE_ROOT/demo/shaders/img/testcard.png)
+        /// The demo's default media image (default: the demo's test card,
+        /// embedded)
         #[arg(long)]
         media: Option<PathBuf>,
     },
@@ -418,26 +418,10 @@ fn report_fixture(
     }
 }
 
-/// The demo's default media image: `--media`, else the reference checkout's.
-fn media_path(media: Option<PathBuf>) -> Option<PathBuf> {
-    if media.is_some() {
-        return media;
-    }
-    let root = std::env::var_os("NM_REFERENCE_ROOT")?;
-    let path = noisemaker_gpu::protocol::ProtocolContext::reference_media_path(Path::new(&root));
-    if path.exists() {
-        Some(path)
-    } else {
-        eprintln!(
-            "nm-render: warning: {} not found; media steps render without media",
-            path.display()
-        );
-        None
-    }
-}
-
+/// The shared context with the demo's default media image: `--media`, else
+/// the embedded test card.
 fn context(media: Option<PathBuf>) -> Result<noisemaker_gpu::protocol::ProtocolContext, String> {
-    noisemaker_gpu::protocol::ProtocolContext::new(media_path(media).as_deref())
+    noisemaker_gpu::protocol::ProtocolContext::new(media.as_deref())
 }
 
 fn parse_host_textures(args: Vec<String>) -> Result<Vec<(String, PathBuf)>, String> {

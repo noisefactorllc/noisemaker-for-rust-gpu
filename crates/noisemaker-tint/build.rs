@@ -23,6 +23,10 @@
 //! `NM_TINT_CACHE` overrides the cache directory (default: the user cache
 //! directory, `noisemaker-tint`). The native build itself lives in `OUT_DIR`
 //! and is incremental.
+//!
+//! Tint is built for Apple targets only (`target_vendor = "apple"`, the
+//! targets with a Metal backend). For any other target nothing is fetched or
+//! built, and the crate compiles without its compiler functions.
 
 use std::env;
 use std::fs;
@@ -70,6 +74,9 @@ fn main() {
         .map(|p| p.as_str().expect("dawn.paths entries").to_owned())
         .collect();
     println!("cargo:rustc-env=NM_TINT_DAWN_COMMIT={dawn_commit}");
+    if env::var("CARGO_CFG_TARGET_VENDOR").as_deref() != Ok("apple") {
+        return;
+    }
 
     let cache = cache_dir();
     fs::create_dir_all(&cache)

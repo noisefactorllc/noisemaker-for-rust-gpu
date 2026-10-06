@@ -9,6 +9,14 @@
 //! Evidence below was measured on an Apple M4 against goldens minted by the
 //! reference on Chromium's WebGPU (Dawn + Tint) on the same machine.
 //!
+//! On Metal the backend compiles with Tint itself by default
+//! ([`crate::backend::ShaderCompiler::Tint`]: Tint at Chromium's Dawn
+//! revision generates the MSL, compiled with Dawn's options), which removes
+//! every difference described here, including the ones below that no WGSL
+//! rewrite can reach. This module applies only to the naga path
+//! ([`crate::backend::ShaderCompiler::Naga`]: `NM_SHADER_COMPILER=naga`, the
+//! opt-out kept for A/B comparisons).
+//!
 //! # Rules
 //!
 //! In the order [`lower_for_tint_msl`] applies them:

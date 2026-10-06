@@ -1291,6 +1291,8 @@ dependencies = [
  "noisemaker-effects",
  "noisemaker-host",
  "noisemaker-input",
+ "noisemaker-tint",
+ "objc2-metal 0.3.2",
  "png",
  "pollster",
  "regex",
@@ -1325,6 +1327,13 @@ dependencies = [
  "midir",
  "noisemaker-dsl",
  "rustfft",
+ "serde_json",
+]
+
+[[package]]
+name = "noisemaker-tint"
+version = "0.1.0"
+dependencies = [
  "serde_json",
 ]
 

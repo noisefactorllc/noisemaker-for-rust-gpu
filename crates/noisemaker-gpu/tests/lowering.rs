@@ -1,10 +1,20 @@
-//! GPU tests of the Metal shader lowering (`noisemaker_gpu::lowering`): the
-//! rewritten loops keep their WGSL semantics on the device, and on Metal a
-//! constant-trip-count loop compiles to the arithmetic of its unrolled form,
-//! the shape Metal's compiler gives the loop Tint writes.
+//! GPU tests of the Metal shader lowering (`noisemaker_gpu::lowering`) of the
+//! naga compiler path: the rewritten loops keep their WGSL semantics on the
+//! device, and on Metal a constant-trip-count loop compiles to the arithmetic
+//! of its unrolled form, the shape Metal's compiler gives the loop Tint
+//! writes.
 
 use noisemaker_gpu::lowering::lower_for_tint_msl;
-use noisemaker_gpu::{GpuDevice, Graph, Renderer, RendererOptions};
+use noisemaker_gpu::{DeviceOptions, GpuDevice, Graph, Renderer, RendererOptions, ShaderCompiler};
+
+/// A device compiling with naga (the path the lowering applies to).
+fn naga_device() -> GpuDevice {
+    GpuDevice::create(&DeviceOptions {
+        shader_compiler: Some(ShaderCompiler::Naga),
+        ..Default::default()
+    })
+    .expect("a GPU adapter")
+}
 
 /// Render a one-pass graph running `src` (with its `scale` uniform at 1)
 /// and read the RGBA8 output.
@@ -100,7 +110,7 @@ fn rewritten_loops_keep_their_semantics() {
     assert!(lowered.self_bounded);
     assert!(lowered.source.contains("nm_loop_idx_"));
 
-    let device = GpuDevice::create(&Default::default()).expect("a GPU adapter");
+    let device = naga_device();
     let px = render_wgsl(&device, LOOPS, 4);
     for k in 0..4 {
         let expected = sums(k);
@@ -126,7 +136,7 @@ fn h(p: vec2<f32>) -> f32 {
 
 #[test]
 fn constant_trip_count_loops_compile_to_their_unrolled_arithmetic() {
-    let device = GpuDevice::create(&Default::default()).expect("a GPU adapter");
+    let device = naga_device();
     if !device.is_metal() {
         // The lowering mirrors Metal's compiler; other backends keep naga's shape.
         return;

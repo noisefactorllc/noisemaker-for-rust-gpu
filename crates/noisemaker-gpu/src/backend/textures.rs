@@ -762,41 +762,23 @@ impl WebGpuBackend {
             return p.clone();
         }
         if self.resample_module.is_none() {
-            self.resample_module = Some(self.device.create_shader_module(
-                wgpu::ShaderModuleDescriptor {
-                    label: Some("resample"),
-                    source: wgpu::ShaderSource::Wgsl(RESAMPLE_WGSL.into()),
-                },
-            ));
+            self.resample_module = Some(self.builtin_shader("resample", RESAMPLE_WGSL));
         }
-        let module = self.resample_module.as_ref().unwrap();
-        let pipeline = self
-            .device
-            .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some("resample"),
-                layout: None,
-                vertex: wgpu::VertexState {
-                    module,
-                    entry_point: Some("vs"),
-                    compilation_options: Default::default(),
-                    buffers: &[],
-                },
-                primitive: wgpu::PrimitiveState::default(),
-                depth_stencil: None,
-                multisample: Default::default(),
-                fragment: Some(wgpu::FragmentState {
-                    module,
-                    entry_point: Some(entry_point),
-                    compilation_options: Default::default(),
-                    targets: &[Some(wgpu::ColorTargetState {
-                        format: gpu_format,
-                        blend: None,
-                        write_mask: wgpu::ColorWrites::ALL,
-                    })],
-                }),
-                multiview_mask: None,
-                cache: None,
-            });
+        let module = self.resample_module.clone().unwrap();
+        // The resample shader reads no storage buffer and writes no depth: its
+        // pipelines have no immediates.
+        let pipeline = self.create_render_pipeline_from(
+            "resample",
+            (&module, "vs"),
+            Some((&module, entry_point)),
+            &[Some(wgpu::ColorTargetState {
+                format: gpu_format,
+                blend: None,
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+            wgpu::PrimitiveState::default(),
+            None,
+        );
         self.resample_pipelines.insert(key, pipeline.clone());
         pipeline
     }

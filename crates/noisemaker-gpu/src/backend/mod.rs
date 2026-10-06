@@ -15,7 +15,10 @@ mod bind;
 mod passes;
 mod probe;
 mod programs;
+mod shaders;
 mod textures;
+#[cfg(target_vendor = "apple")]
+mod tint;
 
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -30,6 +33,7 @@ use crate::uniforms::PackScratch;
 
 pub use probe::{FloatPixels, TextureSnapshot};
 pub use programs::{ComputeProgram, Program, ProgramKind, RenderProgram};
+pub use shaders::{DeviceShader, ShaderCompiler};
 pub use textures::{PixelData, TextureRecord};
 
 /// `DEFAULT_VERTEX_SHADER_WGSL` (`runtime/default-shaders.js`).
@@ -130,7 +134,7 @@ pub struct WebGpuBackend {
     samplers: HashMap<String, wgpu::Sampler>,
     storage_buffers: HashMap<String, wgpu::Buffer>,
     command_encoder: Option<wgpu::CommandEncoder>,
-    default_vertex_module: Option<wgpu::ShaderModule>,
+    default_vertex_module: Option<DeviceShader>,
     depth_texture: Option<wgpu::Texture>,
     depth_texture_size: (u32, u32),
     uniform_buffer_pool: Vec<wgpu::Buffer>,
@@ -141,7 +145,7 @@ pub struct WebGpuBackend {
     merged_uniform_keys: Vec<String>,
     pack_scratch: PackScratch,
     dummy_texture_view: Option<wgpu::TextureView>,
-    resample_module: Option<wgpu::ShaderModule>,
+    resample_module: Option<DeviceShader>,
     resample_pipelines: HashMap<String, wgpu::RenderPipeline>,
     buffer_to_texture_pipelines: HashMap<String, wgpu::RenderPipeline>,
     storage_textures: HashMap<String, (wgpu::Texture, wgpu::TextureView)>,
@@ -151,9 +155,8 @@ pub struct WebGpuBackend {
     pub device_error_log: Vec<String>,
     /// Bind-group entries dropped because the auto layout lacks their binding.
     pub dropped_binding_count: usize,
-    /// Apply [`crate::lowering`] (the device compiles WGSL to MSL, where the
-    /// reference's Tint emits arithmetic naga does not).
-    tint_msl_lowering: bool,
+    /// How WGSL becomes device code ([`shaders`]).
+    compiler: shaders::Compiler,
 }
 
 /// `GPUTextureUsage` flags (same values as wgpu's).
@@ -317,12 +320,17 @@ pub fn format_name(format: wgpu::TextureFormat) -> &'static str {
 pub struct DeviceOptions {
     /// Adapter power preference (the reference takes the browser's default adapter).
     pub power_preference: wgpu::PowerPreference,
+    /// The shader compiler. `None`: `NM_SHADER_COMPILER` when set, else
+    /// [`ShaderCompiler::Tint`] on Metal (the compiler of the reference's
+    /// Chromium) and [`ShaderCompiler::Naga`] on every other backend.
+    pub shader_compiler: Option<ShaderCompiler>,
 }
 
 impl Default for DeviceOptions {
     fn default() -> Self {
         DeviceOptions {
             power_preference: wgpu::PowerPreference::HighPerformance,
+            shader_compiler: None,
         }
     }
 }
@@ -336,6 +344,8 @@ pub struct GpuDevice {
     pub adapter: wgpu::Adapter,
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
+    /// The compiler of the device's shaders.
+    pub shader_compiler: ShaderCompiler,
 }
 
 impl GpuDevice {
@@ -345,16 +355,30 @@ impl GpuDevice {
         self.adapter.get_info().backend == wgpu::Backend::Metal
     }
 
-    /// A WebGPU backend on this device, with the shader lowering of its platform.
+    /// A WebGPU backend on this device, compiling shaders with the device's
+    /// [`ShaderCompiler`] (on the naga path, with the shader lowering of its
+    /// platform).
     pub fn backend(&self) -> WebGpuBackend {
         let mut backend = WebGpuBackend::new(self.device.clone(), self.queue.clone());
-        backend.set_tint_msl_lowering(self.is_metal());
+        backend.compiler = match self.shader_compiler {
+            ShaderCompiler::Naga => shaders::Compiler::Naga {
+                lowering: self.is_metal(),
+            },
+            #[cfg(target_vendor = "apple")]
+            ShaderCompiler::Tint => shaders::Compiler::Tint(Box::new(tint::TintState::new(
+                tint::metal_gpu(&self.adapter, &self.device),
+            ))),
+            #[cfg(not(target_vendor = "apple"))]
+            ShaderCompiler::Tint => unreachable!("GpuDevice::create selects Tint only on Metal"),
+        };
         backend
     }
 
     /// `createPipeline`'s WebGPU device: request an adapter, enable
     /// `float32-filterable` when the adapter has it, and raise
-    /// `maxColorAttachmentBytesPerSample` to `min(adapter limit, 128)`.
+    /// `maxColorAttachmentBytesPerSample` to `min(adapter limit, 128)`. The
+    /// Tint compiler also needs wgpu's passthrough shaders and immediates
+    /// (see [`ShaderCompiler`]); a Metal adapter without them is an error.
     pub fn create(options: &DeviceOptions) -> Result<GpuDevice, String> {
         Self::create_on(wgpu::Instance::default(), None, options)
     }
@@ -385,6 +409,18 @@ impl GpuDevice {
                 })
                 .await
                 .map_err(|e| format!("no WebGPU adapter: {e}"))?;
+            let metal = adapter.get_info().backend == wgpu::Backend::Metal;
+            let shader_compiler = match options.shader_compiler.or(ShaderCompiler::from_env()?) {
+                Some(ShaderCompiler::Tint) if !metal || cfg!(not(target_vendor = "apple")) => {
+                    return Err(format!(
+                        "the Tint shader compiler needs a Metal adapter; this one is {:?}",
+                        adapter.get_info().backend
+                    ));
+                }
+                Some(choice) => choice,
+                None if metal && cfg!(target_vendor = "apple") => ShaderCompiler::Tint,
+                None => ShaderCompiler::Naga,
+            };
             let mut required_features = wgpu::Features::empty();
             if adapter
                 .features()
@@ -392,13 +428,26 @@ impl GpuDevice {
             {
                 required_features |= wgpu::Features::FLOAT32_FILTERABLE;
             }
-            let required_limits = wgpu::Limits {
+            let mut required_limits = wgpu::Limits {
                 max_color_attachment_bytes_per_sample: adapter
                     .limits()
                     .max_color_attachment_bytes_per_sample
                     .min(128),
                 ..wgpu::Limits::default()
             };
+            if shader_compiler == ShaderCompiler::Tint {
+                let needed = wgpu::Features::PASSTHROUGH_SHADERS | wgpu::Features::IMMEDIATES;
+                let missing = needed - adapter.features();
+                if !missing.is_empty() {
+                    return Err(format!(
+                        "the Tint shader compiler needs wgpu's {missing:?} on this Metal adapter \
+                         ({}); set NM_SHADER_COMPILER=naga to compile with naga instead",
+                        adapter.get_info().name
+                    ));
+                }
+                required_features |= needed;
+                required_limits.max_immediate_size = adapter.limits().max_immediate_size;
+            }
             let (device, queue) = adapter
                 .request_device(&wgpu::DeviceDescriptor {
                     label: Some("noisemaker"),
@@ -413,6 +462,7 @@ impl GpuDevice {
                 adapter,
                 device,
                 queue,
+                shader_compiler,
             })
         })
     }
@@ -457,14 +507,33 @@ impl WebGpuBackend {
             device_error_count: 0,
             device_error_log: Vec::new(),
             dropped_binding_count: 0,
-            tint_msl_lowering: false,
+            compiler: shaders::Compiler::Naga { lowering: false },
         }
     }
 
-    /// Enable the shader lowering that mirrors the reference's Tint MSL output
-    /// (for devices on the Metal backend; see [`crate::lowering`]).
+    /// Compile with naga, with the shader lowering that mirrors the
+    /// reference's Tint MSL output when `enabled` (for devices on the Metal
+    /// backend; see [`crate::lowering`]).
     pub fn set_tint_msl_lowering(&mut self, enabled: bool) {
-        self.tint_msl_lowering = enabled;
+        self.compiler = shaders::Compiler::Naga { lowering: enabled };
+    }
+
+    /// The compiler of this backend's shaders.
+    pub fn shader_compiler(&self) -> ShaderCompiler {
+        match self.compiler {
+            shaders::Compiler::Naga { .. } => ShaderCompiler::Naga,
+            shaders::Compiler::Tint(_) => ShaderCompiler::Tint,
+        }
+    }
+
+    /// The pipelines the Tint compiler could not create, each created on the
+    /// naga path instead (where wgpu reports why it is invalid), with the
+    /// reason.
+    pub fn tint_fallback_log(&self) -> Vec<String> {
+        match &self.compiler {
+            shaders::Compiler::Tint(state) => state.fallbacks(),
+            shaders::Compiler::Naga { .. } => Vec::new(),
+        }
     }
 
     /// `getName()`.

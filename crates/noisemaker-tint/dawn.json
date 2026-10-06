@@ -1,0 +1,52 @@
+{
+  "dawn": {
+    "repository": "https://dawn.googlesource.com/dawn",
+    "commit": "50c9f7b4ee3fef0bdc9166056098271ea85ef9fc",
+    "provenance": "third_party/dawn of Chromium 153.0.8010.12 (DEPS), the Chromium of Playwright 1.63.0 (chromium revision 1243)",
+    "paths": [
+      "CMakeLists.txt",
+      "include",
+      "src/cmake",
+      "src/utils",
+      "src/tint",
+      "third_party/CMakeLists.txt",
+      "third_party/CopyWindowsSDKDLL.cmake"
+    ]
+  },
+  "dependencies": [
+    {
+      "path": "third_party/abseil-cpp",
+      "repository": "https://chromium.googlesource.com/chromium/src/third_party/abseil-cpp",
+      "commit": "dd67f5ca84f65ebb88ac0ea0fe2c1d58663e519f",
+      "cmake_variable": "DAWN_ABSEIL_DIR"
+    },
+    {
+      "path": "third_party/spirv-headers/src",
+      "repository": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers",
+      "commit": "0d25db97cb9b8f725e4c95e4553001710e7fc39d",
+      "cmake_variable": "DAWN_SPIRV_HEADERS_DIR"
+    }
+  ],
+  "cmake": {
+    "minimum": "3.22",
+    "version": "3.23.3",
+    "provenance": "the CMake version Dawn's DEPS pins (dawn_cmake_version) at the Dawn commit",
+    "downloads": {
+      "macos": {
+        "url": "https://github.com/Kitware/CMake/releases/download/v3.23.3/cmake-3.23.3-macos-universal.tar.gz",
+        "sha256": "45cda7b87cad41ac407fc150e4682b85c3eb45b1977d8e89319cb3a9a6f341f3",
+        "binary": "cmake-3.23.3-macos-universal/CMake.app/Contents/bin/cmake"
+      },
+      "linux-x86_64": {
+        "url": "https://github.com/Kitware/CMake/releases/download/v3.23.3/cmake-3.23.3-linux-x86_64.tar.gz",
+        "sha256": "39e1c2eccda989b0d000dc5f4ee2cb031bdda799163780d855acc0bd9eda9d92",
+        "binary": "cmake-3.23.3-linux-x86_64/bin/cmake"
+      },
+      "linux-aarch64": {
+        "url": "https://github.com/Kitware/CMake/releases/download/v3.23.3/cmake-3.23.3-linux-aarch64.tar.gz",
+        "sha256": "5214d483fbe7c48c7fbe67264422df41e1d490fc00c779c61f5ec85fbbf3e8bd",
+        "binary": "cmake-3.23.3-linux-aarch64/bin/cmake"
+      }
+    }
+  }
+}

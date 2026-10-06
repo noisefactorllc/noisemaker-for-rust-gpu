@@ -8,6 +8,7 @@ use std::rc::Rc;
 use indexmap::IndexMap;
 use noisemaker_dsl::Value;
 
+use super::shaders::{Compiler, DeviceShader};
 use super::{
     DEFAULT_FRAGMENT_ENTRY_POINT, DEFAULT_VERTEX_ENTRY_POINT, DEFAULT_VERTEX_SHADER_WGSL,
     WebGpuBackend, gpu_format_of, resolve_format,
@@ -45,8 +46,8 @@ pub enum ProgramKind {
 
 /// A render program: its modules, entry points and pipeline cache.
 pub struct RenderProgram {
-    pub vertex_module: wgpu::ShaderModule,
-    pub fragment_module: wgpu::ShaderModule,
+    pub vertex_module: DeviceShader,
+    pub fragment_module: DeviceShader,
     pub vertex_entry_point: String,
     pub fragment_entry_point: String,
     /// `outputFormat` (resolved WebGPU format name).
@@ -62,7 +63,7 @@ pub struct RenderProgram {
 
 /// A compute program: its module, entry points and per-entry-point pipelines.
 pub struct ComputeProgram {
-    pub module: wgpu::ShaderModule,
+    pub module: DeviceShader,
     pub reflection: Box<ShaderReflection>,
     /// `pipeline`: the default entry point's pipeline.
     pub pipeline: wgpu::ComputePipeline,
@@ -139,45 +140,37 @@ pub fn topology_of(name: &str) -> Result<wgpu::PrimitiveTopology, RenderError> {
 }
 
 impl WebGpuBackend {
-    /// Parse and validate `source`, apply the device's shader-compiler parity
-    /// lowering ([`crate::lowering`]), and create the wgpu module.
+    /// Parse and validate `source` and compile it for the device
+    /// ([`super::shaders`]: Tint on Metal, else naga after the device's
+    /// shader-compiler parity lowering, [`crate::lowering`]).
     fn device_module(
         &self,
         id: &str,
         source: &str,
-    ) -> Result<(wgpu::ShaderModule, ShaderReflection), RenderError> {
+    ) -> Result<(DeviceShader, ShaderReflection), RenderError> {
         let reflection = ShaderReflection::parse(source).map_err(|m| compile_error(id, m))?;
-        let lowered = self
-            .tint_msl_lowering
-            .then(|| crate::lowering::lower_for_tint_msl(source))
-            .flatten()
-            .and_then(|l| ShaderReflection::parse(&l.source).ok().map(|r| (l, r)));
-        let (device_source, self_bounded, reflection) = match lowered {
-            Some((l, r)) => (l.source, l.self_bounded, r),
-            None => (source.to_owned(), false, reflection),
-        };
-        let descriptor = wgpu::ShaderModuleDescriptor {
-            label: Some(id),
-            source: wgpu::ShaderSource::Wgsl(device_source.into()),
-        };
-        let module = if self_bounded {
-            // SAFETY: every loop of the lowered WGSL either passes Tint's
-            // finiteness analysis (a constant-bounded, unit-step integer
-            // index) or carries Tint's own loop counter, so none can run
-            // unbounded; every other runtime check stays on.
-            unsafe {
-                self.device.create_shader_module_trusted(
-                    descriptor,
-                    wgpu::ShaderRuntimeChecks {
-                        force_loop_bounding: false,
-                        ..wgpu::ShaderRuntimeChecks::checked()
-                    },
-                )
-            }
-        } else {
-            self.device.create_shader_module(descriptor)
-        };
-        Ok((module, reflection))
+        let shader = self.device_shader(id, source, &reflection);
+        Ok((shader, reflection))
+    }
+
+    /// A shader of the backend itself (the reference's default vertex,
+    /// resample and buffer-to-texture shaders): Tint-compiled like every
+    /// program on the Tint path, a plain wgpu module on the naga path. WGSL
+    /// that does not validate (the reference's resample shader, which Dawn
+    /// rejects too) stays a wgpu module, so wgpu reports its error as before.
+    pub(super) fn builtin_shader(&self, label: &str, source: &str) -> DeviceShader {
+        if let Compiler::Tint(_) = &self.compiler
+            && let Ok(reflection) = ShaderReflection::parse(source)
+        {
+            return self.device_shader(label, source, &reflection);
+        }
+        DeviceShader::Naga(
+            self.device
+                .create_shader_module(wgpu::ShaderModuleDescriptor {
+                    label: Some(label),
+                    source: wgpu::ShaderSource::Wgsl(source.into()),
+                }),
+        )
     }
 
     /// `resolveWGSLSource(spec)`: `wgsl`, else `source`, else a non-GLSL `fragment`.
@@ -200,14 +193,10 @@ impl WebGpuBackend {
     }
 
     /// `getDefaultVertexModule()`.
-    pub(super) fn get_default_vertex_module(&mut self) -> wgpu::ShaderModule {
+    pub(super) fn get_default_vertex_module(&mut self) -> DeviceShader {
         if self.default_vertex_module.is_none() {
-            self.default_vertex_module = Some(self.device.create_shader_module(
-                wgpu::ShaderModuleDescriptor {
-                    label: Some("default vertex"),
-                    source: wgpu::ShaderSource::Wgsl(DEFAULT_VERTEX_SHADER_WGSL.into()),
-                },
-            ));
+            self.default_vertex_module =
+                Some(self.builtin_shader("default vertex", DEFAULT_VERTEX_SHADER_WGSL));
         }
         self.default_vertex_module.clone().unwrap()
     }
@@ -290,16 +279,7 @@ impl WebGpuBackend {
             .clone()
             .or_else(|| entry_points.first().cloned())
             .unwrap_or_else(|| "main".to_owned());
-        let pipeline = self
-            .device
-            .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                label: Some(id),
-                layout: None,
-                module: &module,
-                entry_point: Some(&default_entry_point),
-                compilation_options: Default::default(),
-                cache: None,
-            });
+        let pipeline = self.create_compute_pipeline_from(id, &module, &default_entry_point);
         let mut pipelines = HashMap::new();
         pipelines.insert(default_entry_point.clone(), pipeline.clone());
         Ok(Program {
@@ -402,36 +382,21 @@ impl WebGpuBackend {
         )?;
         let blend = Self::resolve_blend_state(spec.get("blend"))?;
         let format = gpu_format_of(&output_format)?;
-        let pipeline = self
-            .device
-            .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some(id),
-                layout: None,
-                vertex: wgpu::VertexState {
-                    module: &vertex_module,
-                    entry_point: Some(&vertex_entry_point),
-                    compilation_options: Default::default(),
-                    buffers: &[],
-                },
-                primitive: wgpu::PrimitiveState {
-                    topology,
-                    ..Default::default()
-                },
-                depth_stencil: None,
-                multisample: Default::default(),
-                fragment: Some(wgpu::FragmentState {
-                    module: &main_module,
-                    entry_point: Some(&fragment_entry_point),
-                    compilation_options: Default::default(),
-                    targets: &[Some(wgpu::ColorTargetState {
-                        format,
-                        blend,
-                        write_mask: wgpu::ColorWrites::ALL,
-                    })],
-                }),
-                multiview_mask: None,
-                cache: None,
-            });
+        let pipeline = self.create_render_pipeline_from(
+            id,
+            (&vertex_module, &vertex_entry_point),
+            Some((&main_module, &fragment_entry_point)),
+            &[Some(wgpu::ColorTargetState {
+                format,
+                blend,
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+            wgpu::PrimitiveState {
+                topology,
+                ..Default::default()
+            },
+            None,
+        );
         let mut cache = HashMap::new();
         let initial_key = Self::get_pipeline_key(
             spec.get("blend"),

@@ -13,6 +13,7 @@ use std::collections::BTreeSet;
 use naga::valid::{Capabilities, ModuleInfo, ValidationFlags, Validator};
 
 /// A parsed and validated WGSL module.
+#[derive(Clone)]
 pub struct ShaderReflection {
     module: naga::Module,
     info: ModuleInfo,
@@ -66,6 +67,42 @@ impl ShaderReflection {
                 }]
             })?;
         Ok(ShaderReflection { module, info })
+    }
+
+    /// The naga module.
+    pub fn module(&self) -> &naga::Module {
+        &self.module
+    }
+
+    /// The module's validation info.
+    pub fn info(&self) -> &ModuleInfo {
+        &self.info
+    }
+
+    /// `true` when the fragment entry point `name` writes
+    /// `@builtin(frag_depth)`.
+    pub fn writes_frag_depth(&self, name: &str) -> bool {
+        let Some(ep) = self
+            .module
+            .entry_points
+            .iter()
+            .find(|ep| ep.stage == naga::ShaderStage::Fragment && ep.name == name)
+        else {
+            return false;
+        };
+        let Some(result) = &ep.function.result else {
+            return false;
+        };
+        let is_depth = |b: &Option<naga::Binding>| {
+            matches!(b, Some(naga::Binding::BuiltIn(naga::BuiltIn::FragDepth)))
+        };
+        if is_depth(&result.binding) {
+            return true;
+        }
+        match &self.module.types[result.ty].inner {
+            naga::TypeInner::Struct { members, .. } => members.iter().any(|m| is_depth(&m.binding)),
+            _ => false,
+        }
     }
 
     /// `true` when the module has an entry point `name` for `stage`.

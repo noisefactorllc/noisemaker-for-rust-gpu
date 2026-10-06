@@ -80,7 +80,9 @@ pub mod uniforms;
 pub mod wgsl;
 
 pub use automation::{ExternalState, SharedAudioState, SharedMidiState};
-pub use backend::{Capabilities, DeviceOptions, GpuDevice, PixelData, WebGpuBackend};
+pub use backend::{
+    Capabilities, DeviceOptions, GpuDevice, PixelData, ShaderCompiler, WebGpuBackend,
+};
 pub use error::RenderError;
 pub use frame_export::{FrameExportQueue, WebGpuFrameExportAdapter};
 pub use graph::Graph;

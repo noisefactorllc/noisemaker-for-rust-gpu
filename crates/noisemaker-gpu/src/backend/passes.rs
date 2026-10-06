@@ -134,32 +134,47 @@ impl WebGpuBackend {
         depth_stencil: Option<wgpu::DepthStencilState>,
     ) -> wgpu::RenderPipeline {
         let render = program.render().expect("render program");
-        self.device
-            .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some(label),
-                layout: None,
-                vertex: wgpu::VertexState {
-                    module: &render.vertex_module,
-                    entry_point: Some(&render.vertex_entry_point),
-                    compilation_options: Default::default(),
-                    buffers: &[],
+        self.create_render_pipeline_from(
+            label,
+            (&render.vertex_module, &render.vertex_entry_point),
+            Some((
+                &render.fragment_module,
+                if render.fragment_entry_point.is_empty() {
+                    DEFAULT_FRAGMENT_ENTRY_POINT
+                } else {
+                    &render.fragment_entry_point
                 },
-                primitive,
-                depth_stencil,
-                multisample: Default::default(),
-                fragment: Some(wgpu::FragmentState {
-                    module: &render.fragment_module,
-                    entry_point: Some(if render.fragment_entry_point.is_empty() {
-                        DEFAULT_FRAGMENT_ENTRY_POINT
-                    } else {
-                        &render.fragment_entry_point
-                    }),
-                    compilation_options: Default::default(),
-                    targets,
-                }),
-                multiview_mask: None,
-                cache: None,
+            )),
+            targets,
+            primitive,
+            depth_stencil,
+        )
+    }
+
+    /// The byte size of the storage buffer `program` binds at
+    /// `(group, binding)` (0 when none is bound).
+    fn program_storage_size(&self, program: &Program, group: u32, binding: u32) -> u64 {
+        program
+            .bindings
+            .iter()
+            .find(|b| {
+                b.group == group
+                    && b.binding == binding
+                    && b.kind == crate::wgsl::BindingKind::Storage
             })
+            .and_then(|b| self.storage_buffers.get(&b.name))
+            .map_or(0, wgpu::Buffer::size)
+    }
+
+    /// The immediate data a Tint-path render pipeline of `program` reads
+    /// ([`super::shaders`]), if any.
+    fn render_immediates_for(
+        &self,
+        pipeline: &wgpu::RenderPipeline,
+        program: &Program,
+    ) -> Option<Vec<u8>> {
+        self.render_immediate_block(pipeline)
+            .map(|block| block.data(|g, b| self.program_storage_size(program, g, b)))
     }
 
     /// `resolveRenderPipeline(program, {blend, topology, format})`.
@@ -461,6 +476,7 @@ impl WebGpuBackend {
 
         let bind_group =
             self.create_bind_group(pass, program, state, Some(BindTarget::Render(&pipeline)))?;
+        let immediates = self.render_immediates_for(&pipeline, program);
 
         let vertex_count = match draw_mode {
             Some("points") => gpu_size32(
@@ -510,6 +526,9 @@ impl WebGpuBackend {
             multiview_mask: None,
         });
         render_pass.set_pipeline(&pipeline);
+        if let Some(data) = &immediates {
+            render_pass.set_immediates(0, data);
+        }
         render_pass.set_bind_group(0, &bind_group, &[]);
         if let Some(vp) = viewport {
             render_pass.set_viewport(vp.x as f32, vp.y as f32, vp.w as f32, vp.h as f32, 0.0, 1.0);
@@ -564,6 +583,7 @@ impl WebGpuBackend {
 
         let bind_group =
             self.create_bind_group(pass, program, state, Some(BindTarget::Render(&pipeline)))?;
+        let immediates = self.render_immediates_for(&pipeline, program);
         let vertex_count = match draw_mode {
             Some("points") => gpu_size32(
                 &self.resolve_point_count(pass, state, &Value::Null, Some(&viewport_tex)),
@@ -616,6 +636,9 @@ impl WebGpuBackend {
             1.0,
         );
         render_pass.set_pipeline(&pipeline);
+        if let Some(data) = &immediates {
+            render_pass.set_immediates(0, data);
+        }
         render_pass.set_bind_group(0, &bind_group, &[]);
         render_pass.draw(0..vertex_count, 0..1);
         Ok(())
@@ -774,16 +797,7 @@ impl WebGpuBackend {
         if let Some(p) = compute.pipelines.borrow().get(&target) {
             return p.clone();
         }
-        let pipeline = self
-            .device
-            .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                label: Some(&program.id),
-                layout: None,
-                module: &compute.module,
-                entry_point: Some(&target),
-                compilation_options: Default::default(),
-                cache: None,
-            });
+        let pipeline = self.create_compute_pipeline_from(&program.id, &compute.module, &target);
         compute
             .pipelines
             .borrow_mut()
@@ -821,6 +835,9 @@ impl WebGpuBackend {
                 Self::compute_entry_point(program, entry_point),
             )),
         )?;
+        let immediates = self
+            .compute_immediate_block(&pipeline)
+            .map(|block| block.data(|g, b| self.program_storage_size(program, g, b)));
         let workgroups = self.resolve_workgroups(pass, state)?;
         let x = gpu_size32(workgroups.get("0"), "dispatchWorkgroups")?;
         let optional = |v: &Value| -> Result<u32, RenderError> {
@@ -843,6 +860,9 @@ impl WebGpuBackend {
                 timestamp_writes: None,
             });
             compute_pass.set_pipeline(&pipeline);
+            if let Some(data) = &immediates {
+                compute_pass.set_immediates(0, data);
+            }
             compute_pass.set_bind_group(0, &bind_group, &[]);
             compute_pass.dispatch_workgroups(x, y, z);
         }
@@ -956,39 +976,19 @@ impl WebGpuBackend {
         if let Some(p) = self.buffer_to_texture_pipelines.get(&key) {
             return Ok(p.clone());
         }
-        let module = self
-            .device
-            .create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: Some("bufferToTexture"),
-                source: wgpu::ShaderSource::Wgsl(BUFFER_TO_TEXTURE_WGSL.into()),
-            });
-        let pipeline = self
-            .device
-            .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some("bufferToTexture"),
-                layout: None,
-                vertex: wgpu::VertexState {
-                    module: &module,
-                    entry_point: Some("vs_main"),
-                    compilation_options: Default::default(),
-                    buffers: &[],
-                },
-                primitive: wgpu::PrimitiveState::default(),
-                depth_stencil: None,
-                multisample: Default::default(),
-                fragment: Some(wgpu::FragmentState {
-                    module: &module,
-                    entry_point: Some("fs_main"),
-                    compilation_options: Default::default(),
-                    targets: &[Some(wgpu::ColorTargetState {
-                        format: gpu_format_of(format)?,
-                        blend: None,
-                        write_mask: wgpu::ColorWrites::ALL,
-                    })],
-                }),
-                multiview_mask: None,
-                cache: None,
-            });
+        let module = self.builtin_shader("bufferToTexture", BUFFER_TO_TEXTURE_WGSL);
+        let pipeline = self.create_render_pipeline_from(
+            "bufferToTexture",
+            (&module, "vs_main"),
+            Some((&module, "fs_main")),
+            &[Some(wgpu::ColorTargetState {
+                format: gpu_format_of(format)?,
+                blend: None,
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+            wgpu::PrimitiveState::default(),
+            None,
+        );
         self.buffer_to_texture_pipelines
             .insert(key, pipeline.clone());
         Ok(pipeline)
@@ -1067,6 +1067,10 @@ impl WebGpuBackend {
                 },
             ],
         });
+        let output_buffer_size = output_buffer.size();
+        let immediates = self.render_immediate_block(&pipeline).map(|block| {
+            block.data(|_, binding| if binding == 0 { output_buffer_size } else { 0 })
+        });
         {
             let encoder = self.command_encoder.as_mut().ok_or_else(|| {
                 RenderError::type_error(
@@ -1095,6 +1099,9 @@ impl WebGpuBackend {
                 multiview_mask: None,
             });
             render_pass.set_pipeline(&pipeline);
+            if let Some(data) = &immediates {
+                render_pass.set_immediates(0, data);
+            }
             render_pass.set_bind_group(0, &bind_group, &[]);
             render_pass.draw(0..3, 0..1);
         }

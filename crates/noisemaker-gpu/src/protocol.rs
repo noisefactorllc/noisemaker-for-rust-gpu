@@ -269,6 +269,9 @@ pub struct FixtureReport {
     pub device_errors: Vec<String>,
     /// Bind-group entries dropped because the auto layout lacks their binding.
     pub dropped_bindings: usize,
+    /// Pipelines the Tint shader compiler could not create (each created
+    /// with naga instead), with the reason.
+    pub tint_fallbacks: Vec<String>,
     /// Pipeline and backend diagnostics.
     pub diagnostics: Vec<Value>,
     /// The host textures kept through the fresh-state reset.
@@ -771,6 +774,7 @@ fn collect_report(pipeline: &mut Pipeline, report: &mut FixtureReport) {
     pipeline.backend.collect_device_errors();
     report.device_errors = pipeline.backend.device_error_log.clone();
     report.dropped_bindings = pipeline.backend.dropped_binding_count;
+    report.tint_fallbacks = pipeline.backend.tint_fallback_log();
     report.diagnostics = pipeline
         .diagnostics
         .records

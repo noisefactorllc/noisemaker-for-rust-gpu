@@ -162,119 +162,26 @@ def schedule_args(schedule):
         args += ["--sample-frames", ",".join(str(f) for f in schedule["sampleFrames"])]
     return args
 
-# Per-case tolerances beyond the strict bar. Every entry must name the observed
-# mechanism; entries are added only with evidence from this backend. NEAR is
-# outside the published contract: scripts/parity-summary still fails on it.
-#
-# Evidence for every entry below (Apple M4, Metal): substituting the Metal code
-# Chromium's Tint generates for the failing pass, compiled with Dawn's
-# MTLCompileOptions, renders each case byte-identical to its golden. wgpu-hal
-# compiles every Metal library with preserveInvariance on and fast math; Dawn
-# compiles with relaxed math and enables invariance only for @invariant
-# shaders. Without invariance Metal orders fused multiply-adds and sum
-# groupings by program order, with it by expression depth, so the two engines
-# round the same WGSL differently. Neither option is reachable through wgpu's
-# public API.
-#
-# Visual inspection (2026-10-06, golden | candidate | diff for all 19 cases):
-# indistinguishable. The differences are scattered single pixels: 3-4 levels
-# along craquelure cell edges, 2 pixels on the landscapes, and isolated root
-# flips on Newton basin boundaries and in wormhole's noise field; no
-# structural, color or shape difference. Tolerated for now by operator
-# decision, pending a Metal compile-option fix (wgpu-hal); still reported as
-# NEAR, outside the published contract.
-_INVARIANCE_FMA = ("Metal FMA grouping differs under wgpu-hal's preserveInvariance "
-                   "(Dawn compiles without it); exact once the pass compiles without invariance")
-_LANDSCAPE_FMA = ("ray-origin z fused as fma(fma(up.z, ty, right.z * tx), span, a) under "
-                  "preserveInvariance vs fma(fma(right.z, tx, up.z * ty), span, a) in Dawn")
-_VERTEX_INVARIANCE = ("vertex-stage preserveInvariance changes the warped coordinate's rounding; "
-                      "exact once only the vertex stage compiles without invariance")
-_NEWTON_BASINS = ("Newton-iteration basin boundaries amplify single-ulp differences between "
-                  "naga's and Tint's Metal code under different math modes into root flips on "
-                  "isolated pixels; needs both Tint's code and Dawn's compile options to match")
+# Per-case tolerances beyond the strict bar, {case id: {"tolerance", "ssim_min",
+# "mechanism"}}. Every entry must name the observed mechanism; entries are
+# added only with evidence from this backend. NEAR is outside the published
+# contract: scripts/parity-summary still fails on it. No case needs one: on
+# Metal the port compiles every shader as the reference's Chromium does (Tint
+# at Chromium's Dawn revision generating the MSL, Metal compiling it with
+# Dawn's options; crates/noisemaker-tint, crates/noisemaker-gpu/src/backend/
+# shaders.rs), which made every earlier compile-option case byte-exact.
+NEAR_POLICIES = {}
 
-# The timed tier's compile-option cases (evidence: frame- and pass-granular
-# state dumps, batch-golden.mjs/nm-render --dump-texture --dump-passes, and the
-# Tint-MSL substitution of the diverging pass, compiled with Dawn's options):
-_BUDDHABROT_TINT = ("orbit-sampling agent pass (frame 2 on): exact over 300 frames only with Tint's MSL "
-                    "compiled with Dawn's options (relaxed math, no invariance); naga's MSL keeps a "
-                    "1e-6 residue in ~4000 particle positions that reaches at most 6 levels in the trail")
-NEAR_POLICIES_TIMED = {
-    "timed_points_buddhabrot": {"tolerance": 6.001, "ssim_min": 0.9999, "mechanism": _BUDDHABROT_TINT},
-    "timed_babylonjs_buddhabrot": {"tolerance": 3.001, "ssim_min": 0.9999, "mechanism": _BUDDHABROT_TINT},
-    "timed_threejs_agent_buddhabrot": {"tolerance": 5.001, "ssim_min": 0.9999, "mechanism": _BUDDHABROT_TINT},
-    "timed_touchdesigner_buddhabrot": {"tolerance": 4.001, "ssim_min": 0.9999, "mechanism": _BUDDHABROT_TINT},
-    "timed_synth_newton": {"tolerance": 246.001, "ssim_min": 0.998, "mechanism": None},
-}
-
-# Amplified divergence: a 1-ulp compile-option difference in one pass of a
-# simulation that its own dynamics amplify until the trajectories decorrelate.
-# Such a case passes as NEAR (outside the published contract) only when the
-# samples of `exact` are byte-identical (the early trajectory) and every later
-# sample matches the golden statistically: per-channel mean within `mean_tol`
-# 8-bit levels and 32-bin luminance-histogram total variation within
-# `hist_tv`. Bounds are the measured values plus margin; both sides are
-# deterministic (two independent mints of every timed golden are identical).
-_EARLY = ["f1", "f2", "f4", "f10"]
-_FLOCK_RELAXED = ("flock agent pass, frame 1, identical inputs: the steering sum over the separation, "
-                  "alignment and cohesion blocks rounds 1 ulp apart in ~6300 of 16384 boid velocities "
-                  "because Metal associates/fuses it differently under wgpu-hal's fast math than under "
-                  "Dawn's math_mode(relaxed); exact over the run with naga's own MSL of that pass compiled "
-                  "in relaxed mode, or with Tint's MSL; flocking amplifies it")
-_LIFE_INVARIANCE = ("life agent pass, frame 1, identical inputs: the per-neighbour force sum totalForce += "
-                    "forceDir * radialForce(...) fuses differently under wgpu-hal's preserveInvariance "
-                    "(7138 of 65536 velocities 1 ulp apart); exact over the run with naga's own MSL once "
-                    "that pass compiles without invariance, as Dawn compiles it; particle life amplifies it")
-_RD3D_DAWN = ("reactionDiffusion3d simulate pass, frame 2, identical state: 5 half-float texels differ; exact "
-              "over the run with naga's or Tint's MSL of that pass compiled with Dawn's options (relaxed "
-              "math, no invariance); the reaction-diffusion growth amplifies it")
-
-
-def _amplified(mechanism, mean_tol, hist_tv):
-    return {"exact": _EARLY, "mean_tol": mean_tol, "hist_tv": hist_tv, "mechanism": mechanism}
-
-
-AMPLIFIED_POLICIES = {
-    "timed_points_flock": _amplified(_FLOCK_RELAXED, 4.5, 0.07),
-    "timed_babylonjs_flock": _amplified(_FLOCK_RELAXED, 4.5, 0.07),
-    "timed_blender_flock_smoke": _amplified(_FLOCK_RELAXED, 2.0, 0.02),
-    "timed_points_life": _amplified(_LIFE_INVARIANCE, 1.5, 0.02),
-    "timed_babylonjs_life": _amplified(_LIFE_INVARIANCE, 1.5, 0.02),
-    "timed_synth3d_reactionDiffusion3d": _amplified(_RD3D_DAWN, 0.2, 0.005),
-    "timed_synth3dReactionDiffusion3d": _amplified(_RD3D_DAWN, 0.2, 0.005),
-    "timed_babylonjs_rd3d_r": _amplified(_RD3D_DAWN, 0.2, 0.005),
-}
-
-NEAR_POLICIES = {
-    "craquelure": {"tolerance": 3.001, "ssim_min": 0.99998, "mechanism": _INVARIANCE_FMA},
-    "craquelureBig": {"tolerance": 4.001, "ssim_min": 0.99998, "mechanism": _INVARIANCE_FMA},
-    "filter_craquelure": {"tolerance": 3.001, "ssim_min": 0.99998, "mechanism": _INVARIANCE_FMA},
-    "heightmap3d_landscape": {"tolerance": 3.001, "ssim_min": 0.99999, "mechanism": _LANDSCAPE_FMA},
-    "render_renderLandscape3d": {"tolerance": 3.001, "ssim_min": 0.99999, "mechanism": _LANDSCAPE_FMA},
-    "synth3d_heightmap3d": {"tolerance": 3.001, "ssim_min": 0.99999, "mechanism": _LANDSCAPE_FMA},
-    "synth3d_heightmap3d__volumeSize_x128": {"tolerance": 3.001, "ssim_min": 0.99999, "mechanism": _LANDSCAPE_FMA},
-    "classicNoisedeck_fractal__type_newton": {"tolerance": 65.001, "ssim_min": 0.99994, "mechanism": _INVARIANCE_FMA},
-    "filter_wormhole": {"tolerance": 189.001, "ssim_min": 0.9998, "mechanism": _VERTEX_INVARIANCE},
-    "filter_wormhole__wrap_mirror": {"tolerance": 173.001, "ssim_min": 0.99985, "mechanism": _VERTEX_INVARIANCE},
-    "newton": {"tolerance": 246.001, "ssim_min": 0.998, "mechanism": _NEWTON_BASINS},
-    "synth_newton": {"tolerance": 246.001, "ssim_min": 0.998, "mechanism": _NEWTON_BASINS},
-    "synth_newton__invert_true": {"tolerance": 247.001, "ssim_min": 0.998, "mechanism": _NEWTON_BASINS},
-    "synth_newton__outputMode_iteration": {"tolerance": 204.001, "ssim_min": 0.9978, "mechanism": _NEWTON_BASINS},
-    "synth_newton__outputMode_rootIndex": {"tolerance": 212.001, "ssim_min": 0.998, "mechanism": _NEWTON_BASINS},
-    "synth_newton__poi_octoFlower8": {"tolerance": 252.001, "ssim_min": 0.9968, "mechanism": _NEWTON_BASINS},
-    "synth_newton__poi_pentaSpiral5": {"tolerance": 213.001, "ssim_min": 0.9985, "mechanism": _NEWTON_BASINS},
-    "synth_newton__poi_spiralJunction3": {"tolerance": 89.001, "ssim_min": 0.99996, "mechanism": _NEWTON_BASINS},
-    "synth_newton__poi_starCenter5": {"tolerance": 207.001, "ssim_min": 0.9988, "mechanism": _NEWTON_BASINS},
-}
-# The curated sibling programs over the same effects (each verified the same
-# way: exact once the named stage compiles without invariance).
-NEAR_POLICIES.update({
-    "babylonjs_wormhole": {"tolerance": 166.001, "ssim_min": 0.9999, "mechanism": _VERTEX_INVARIANCE},
-    "threejs_wormhole": {"tolerance": 205.001, "ssim_min": 0.9998, "mechanism": _VERTEX_INVARIANCE},
-    "unity_v104_craquelure": {"tolerance": 3.001, "ssim_min": 0.99998, "mechanism": _INVARIANCE_FMA},
-})
-NEAR_POLICIES_TIMED["timed_synth_newton"]["mechanism"] = _NEWTON_BASINS
-NEAR_POLICIES.update(NEAR_POLICIES_TIMED)
+# Amplified divergence, {case id: {"exact", "mean_tol", "hist_tv",
+# "mechanism"}}: a 1-ulp difference in one pass of a simulation that its own
+# dynamics amplify until the trajectories decorrelate. Such a case passes as
+# NEAR (outside the published contract) only when the samples of `exact` are
+# byte-identical (the early trajectory) and every later sample matches the
+# golden statistically: per-channel mean within `mean_tol` 8-bit levels and
+# 32-bin luminance-histogram total variation within `hist_tv`. No case needs
+# one (the flock, life and reaction-diffusion simulations are byte-exact over
+# their timed runs).
+AMPLIFIED_POLICIES = {}
 
 
 def discover(ids):

@@ -6,6 +6,7 @@ members = [
     "crates/noisemaker-gpu",
     "crates/noisemaker-host",
     "crates/noisemaker-input",
+    "crates/noisemaker-tint",
     "crates/nm-render",
 ]
 

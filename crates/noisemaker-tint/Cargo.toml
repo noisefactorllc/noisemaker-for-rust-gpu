@@ -1,0 +1,18 @@
+[package]
+name = "noisemaker-tint"
+description = "Tint, the WGSL compiler of Dawn and Chromium, at a pinned Dawn revision: WGSL to MSL exactly as Dawn's Metal backend generates it"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["tint", "dawn", "wgsl", "msl", "metal"]
+categories = ["graphics", "rendering"]
+links = "nm_tint"
+build = "build.rs"
+include = ["Cargo.toml", "build.rs", "dawn.json", "cmake/**", "shim/**", "src/**", "tests/**"]
+
+[dependencies]
+
+[build-dependencies]
+serde_json.workspace = true

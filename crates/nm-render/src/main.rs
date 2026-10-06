@@ -393,6 +393,9 @@ fn report_fixture(
                     report.dropped_bindings
                 );
             }
+            for reason in &report.tint_fallbacks {
+                eprintln!("nm-render: {name}: warning: compiled with naga, not Tint: {reason}");
+            }
             if !report.device_errors.is_empty() {
                 for e in &report.device_errors {
                     eprintln!("nm-render: {name}: device error: {e}");

@@ -38,6 +38,10 @@
 //! renderer.render(0.25).unwrap();
 //! ```
 //!
+//! User-defined effects register at runtime
+//! ([`host::CanvasRenderer::register_portable_effect`]: a Portable definition
+//! with its own WGSL, callable as `user.<func>` by later programs).
+//!
 //! [`present::Presenter`] shows frames in a window (or on any wgpu target) the
 //! way the reference's `present()` shows them on its canvas, and
 //! [`present::Orientation`] gives read-back pixels that orientation. A
@@ -81,8 +85,9 @@ pub use error::RenderError;
 pub use frame_export::{FrameExportQueue, WebGpuFrameExportAdapter};
 pub use graph::Graph;
 pub use hooks::{EffectHooks, EffectRegistry};
-pub use host::CanvasRenderer;
+pub use host::{CanvasRenderer, RuntimeOptions, create_runtime, recompile};
 pub use noisemaker_dsl::{Object, Value};
+pub use noisemaker_dsl::{PHASE, VERSION};
 pub use pipeline::{Pipeline, PipelineOptions};
 pub use present::{Orientation, Presenter};
 

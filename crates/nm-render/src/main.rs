@@ -13,7 +13,10 @@
 //! (media, text, overlays, meshes) produced natively. The demo's default
 //! media image comes from `--media`, or from
 //! `$NM_REFERENCE_ROOT/demo/shaders/img/testcard.png`. A program that does
-//! not compile is reported with `formatDslError` and a nonzero exit.
+//! not compile is reported with `formatDslError` and a nonzero exit. A DSL
+//! with a Portable sidecar (`<name>.portable.json`, or `--portable FILE`)
+//! registers that user effect first, as `CanvasRenderer.registerPortableEffect`
+//! does.
 
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
@@ -126,6 +129,11 @@ enum Command {
         /// Write the graph the fixture rendered as JSON
         #[arg(long)]
         graph_out: Option<PathBuf>,
+        /// A Portable effect definition registered before the program loads
+        /// (default for --dsl: the .portable.json next to it, its WGSL in
+        /// <name>.<program>.wgsl files beside it)
+        #[arg(long, requires = "dsl")]
+        portable: Option<PathBuf>,
         /// Timed mode: seconds to run, stepping render(((frame + 1) / 600) % 1)
         #[arg(long, requires = "sample_every")]
         run_seconds: Option<f64>,
@@ -177,6 +185,10 @@ enum Command {
         /// The OBJ loaded into mesh0 (default: the .obj next to the DSL)
         #[arg(long)]
         obj: Option<PathBuf>,
+        /// A Portable effect definition registered before the program loads
+        /// (default: the .portable.json next to the DSL)
+        #[arg(long)]
+        portable: Option<PathBuf>,
         /// The demo's default media image (default:
         /// $NM_REFERENCE_ROOT/demo/shaders/img/testcard.png)
         #[arg(long)]
@@ -231,8 +243,8 @@ enum Command {
     /// Render every fixture of a JSON manifest in one process
     ///
     /// The manifest is an array of {"graph"|"dsl", "out", "size", "time",
-    /// "frames", "hostTextures": {id: png}, "obj", "graphOut", "runSeconds",
-    /// "sampleEvery"}. Failures are reported per fixture; the exit status is
+    /// "frames", "hostTextures": {id: png}, "obj", "portable", "graphOut",
+    /// "runSeconds", "sampleEvery"}. Failures are reported per fixture; the exit status is
     /// nonzero if any fixture failed.
     Batch {
         /// The manifest
@@ -421,9 +433,14 @@ fn parse_params(args: &[String]) -> Result<Vec<ParamOverride>, String> {
 /// Compile the DSL program at `path` with the frontend; a program that does
 /// not compile is reported with `formatDslError` (syntax errors with their
 /// source context) or the demo's compilation-error text.
-fn check_dsl(path: &Path, registry: &Registry) -> Result<(), Failure> {
+fn check_dsl(
+    path: &Path,
+    portable: Option<&Path>,
+    registry: &std::rc::Rc<Registry>,
+) -> Result<(), Failure> {
     let source = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
-    match noisemaker_dsl::compiler::compile_graph(&source, registry, &Default::default()) {
+    let registry = noisemaker_gpu::protocol::registry_for_dsl(registry, path, portable)?;
+    match noisemaker_dsl::compiler::compile_graph(&source, &registry, &Default::default()) {
         Ok(_) => Ok(()),
         Err(error) => {
             eprintln!(
@@ -451,6 +468,7 @@ struct RenderArgs {
     obj: Option<PathBuf>,
     media: Option<PathBuf>,
     graph_out: Option<PathBuf>,
+    portable: Option<PathBuf>,
     run_seconds: Option<f64>,
     sample_every: Option<f64>,
 }
@@ -465,7 +483,7 @@ fn render(args: RenderArgs) -> Result<(), Failure> {
     let source = match (args.graph, args.dsl) {
         (Some(g), _) => noisemaker_gpu::protocol::GraphSource::GraphFile(g),
         (None, Some(d)) => {
-            check_dsl(&d, &context.registry)?;
+            check_dsl(&d, args.portable.as_deref(), &context.registry)?;
             noisemaker_gpu::protocol::GraphSource::DslFile(d)
         }
         (None, None) => return Err(Failure::Usage("one of --graph or --dsl is required".into())),
@@ -484,6 +502,7 @@ fn render(args: RenderArgs) -> Result<(), Failure> {
         graph_out: args.graph_out,
         params,
         orientation: args.orientation.into(),
+        portable: args.portable,
     };
     let device = device()?;
     let result = noisemaker_gpu::protocol::run_fixture(&device, &spec, &context);
@@ -513,6 +532,7 @@ struct AnimateArgs {
     orientation: OrientationArg,
     host_textures: Vec<String>,
     obj: Option<PathBuf>,
+    portable: Option<PathBuf>,
     media: Option<PathBuf>,
     mp4: Option<PathBuf>,
     ffmpeg: PathBuf,
@@ -539,7 +559,7 @@ fn animate(args: AnimateArgs) -> Result<(), Failure> {
     let params = parse_params(&args.params)?;
     let host_textures = parse_host_textures(args.host_textures)?;
     let context = context(args.media)?;
-    check_dsl(&args.dsl, &context.registry)?;
+    check_dsl(&args.dsl, args.portable.as_deref(), &context.registry)?;
     let spec = AnimationSpec {
         dsl: args.dsl.clone(),
         out_dir: args.out_dir.clone(),
@@ -552,6 +572,7 @@ fn animate(args: AnimateArgs) -> Result<(), Failure> {
         host_textures,
         obj: args.obj,
         orientation: args.orientation.into(),
+        portable: args.portable,
     };
     let device = device()?;
     let started = std::time::Instant::now();
@@ -963,6 +984,7 @@ fn manifest_spec(entry: &Value) -> Result<(String, noisemaker_gpu::protocol::Fix
             run_seconds: num("runSeconds", 0.0),
             sample_every: num("sampleEvery", 5.0),
             obj: path("obj"),
+            portable: path("portable"),
             graph_out: path("graphOut"),
             ..FixtureSpec::default()
         },
@@ -1038,6 +1060,7 @@ fn main() -> ExitCode {
             obj,
             media,
             graph_out,
+            portable,
             run_seconds,
             sample_every,
         } => render(RenderArgs {
@@ -1055,6 +1078,7 @@ fn main() -> ExitCode {
             obj,
             media,
             graph_out,
+            portable,
             run_seconds,
             sample_every,
         }),
@@ -1071,6 +1095,7 @@ fn main() -> ExitCode {
             orientation,
             host_textures,
             obj,
+            portable,
             media,
             mp4,
             ffmpeg,
@@ -1087,6 +1112,7 @@ fn main() -> ExitCode {
             orientation,
             host_textures,
             obj,
+            portable,
             media,
             mp4,
             ffmpeg,

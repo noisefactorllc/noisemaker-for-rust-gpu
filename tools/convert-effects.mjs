@@ -14,6 +14,9 @@
 //                                          definitions reference (builtinMeshes)
 //   share/palettes.json                    byte copy of the reference palette table
 //                                          (share/palettes.json; the palette enum)
+//   share/strings/strings.<locale>.json    byte copies of the effect-string catalogs
+//                                          (shaders/effects/strings.<locale>.json:
+//                                          CanvasRenderer.setLocale / localize)
 //   share/fonts/<family>/*                 byte copies of the fonts the reference demo
 //                                          host serves for canvas text (demo/font:
 //                                          Nunito, filter/text's default family) and
@@ -152,6 +155,9 @@ async function main () {
   copyFileSync(join(EFFECTS_DIR, 'manifest.json'), join(opts.out, 'manifest.json'))
   mkdirSync(join(opts.out, 'share'), { recursive: true })
   copyFileSync(join(REFERENCE_ROOT, 'share', 'palettes.json'), join(opts.out, 'share', 'palettes.json'))
+  mkdirSync(join(opts.out, 'share', 'strings'), { recursive: true })
+  const stringCatalogs = readdirSync(EFFECTS_DIR).filter(f => /^strings\.[A-Za-z_-]+\.json$/.test(f)).sort()
+  for (const file of stringCatalogs) copyFileSync(join(EFFECTS_DIR, file), join(opts.out, 'share', 'strings', file))
   for (const meshPath of [...meshes].sort()) {
     const dest = join(opts.out, meshPath)
     mkdirSync(dirname(dest), { recursive: true })
@@ -168,7 +174,7 @@ async function main () {
     }
   }
 
-  console.error(`[convert-effects] ${effects} definitions, ${programs} WGSL programs, ${meshes.size} meshes, ${fonts} font files -> ${opts.out}`)
+  console.error(`[convert-effects] ${effects} definitions, ${programs} WGSL programs, ${meshes.size} meshes, ${fonts} font files, ${stringCatalogs.length} string catalogs -> ${opts.out}`)
 }
 
 main().catch(err => {

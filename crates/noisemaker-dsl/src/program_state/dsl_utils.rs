@@ -9,12 +9,8 @@ use crate::registry::Registry;
 use crate::unparser::jsv::{cannot_read, entries, get, member, not_a_function, spread_into};
 use crate::value::{Object, Value};
 
-/// `compile(src)` of `lang/index.js`: `validate(parse(lex(src)))`.
-pub fn compile(src: &str, registry: &Registry) -> Result<Value, JsError> {
-    let tokens = crate::lexer::lex(src)?;
-    let ast = crate::parser::parse_with_registry(&tokens, registry)?;
-    crate::validator::validate(&ast, registry)
-}
+/// `compile(src)` of `lang/index.js` (the crate's [`crate::compile`]).
+pub use crate::compile;
 
 /// One effect step of a program (`EffectInfo` of the reference).
 #[derive(Debug, Clone, PartialEq)]

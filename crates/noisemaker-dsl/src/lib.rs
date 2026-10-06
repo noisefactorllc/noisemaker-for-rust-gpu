@@ -8,20 +8,39 @@
 //! Every stage produces the same data the reference produces (see [`value::Value`]),
 //! so each one is checked against the reference's own output over the parity corpus
 //! (`parity/check_frontend.mjs`).
+//!
+//! The rest of the reference's public entry point (`shaders/src/index.js`) that
+//! needs no GPU is here too: the registries ([`Registry`]: effects, ops,
+//! starter ops, enums, namespaces with [`tags`]' registration rules, and
+//! user-defined Portable effects, [`portable`]), the `Effect` constructor and
+//! parameter categories ([`effect`]), the `renderer/canvas.js` helpers
+//! ([`canvas`]), the cosine palettes ([`palettes`]), the block categories
+//! ([`constants`]), effect strings and manifest queries ([`strings`]),
+//! [`compile`], [`VERSION`] and [`PHASE`] (`parity/check_api.mjs` and
+//! `parity/check_portable.mjs` gate them against the reference).
 
+pub mod canvas;
 pub mod compiler;
+pub mod constants;
 pub mod diagnostics;
+pub mod effect;
 pub mod effect_validator;
 pub mod error;
 pub mod error_formatter;
 pub mod expander;
 pub mod js;
+pub mod jsmath;
 pub mod lexer;
 pub mod palette;
+pub mod palettes;
 pub mod parser;
+pub mod portable;
 pub mod program_state;
 pub mod registry;
 pub mod resources;
+pub mod strings;
+pub mod tagged;
+pub mod tags;
 pub mod transform;
 pub mod unparser;
 pub mod validator;
@@ -30,6 +49,32 @@ pub mod value;
 pub use error::JsError;
 pub use registry::Registry;
 pub use value::{Object, Value};
+
+/// `VERSION` of the reference engine's public entry point
+/// (`shaders/src/index.js`).
+pub const VERSION: &str = "0.1.0";
+
+/// `PHASE` of the reference engine's public entry point.
+pub const PHASE: u32 = 4;
+
+/// `compile(src)` of `lang/index.js`: `validate(parse(lex(src)))`, the
+/// validated program (`{plans, diagnostics, render, ...}`), with `search`
+/// directives checked against `registry`'s namespaces.
+pub fn compile(src: &str, registry: &Registry) -> Result<Value, JsError> {
+    compile_with_options(src, &parser::ParseOptions::default(), registry)
+}
+
+/// `compile(src, options)`: [`compile`] with the parser options the
+/// reference passes through to `parse(tokens, options)`.
+pub fn compile_with_options(
+    src: &str,
+    options: &parser::ParseOptions,
+    registry: &Registry,
+) -> Result<Value, JsError> {
+    let tokens = lexer::lex(src)?;
+    let ast = parser::parse_with_options(&tokens, registry, options).map_err(JsError::from)?;
+    validator::validate(&ast, registry)
+}
 
 /// The frontend stages that `nm-render dump` and the parity gate compare.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

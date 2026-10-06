@@ -1,0 +1,29 @@
+{
+  "name": "Rings",
+  "namespace": "user",
+  "func": "rings",
+  "description": "Concentric bands in a choice of shapes, tinted and drifting with time",
+  "tags": ["geometric", "pattern"],
+  "globals": {
+    "freq": {
+      "type": "float", "default": 8, "min": 1, "max": 32, "uniform": "freq",
+      "ui": { "label": "frequency", "control": "slider" }
+    },
+    "shape": {
+      "type": "int", "default": 0, "uniform": "shape",
+      "choices": { "Shapes:": null, "rings": 0, "squareRings": 1, "diamonds": 2 },
+      "ui": { "label": "shape", "control": "dropdown" }
+    },
+    "tint": {
+      "type": "color", "default": [1.0, 0.6, 0.2], "uniform": "tint",
+      "ui": { "label": "tint", "control": "color" }
+    },
+    "speed": {
+      "type": "float", "default": 1, "min": -4, "max": 4, "uniform": "speed",
+      "ui": { "label": "speed", "control": "slider", "category": "motion" }
+    }
+  },
+  "passes": [
+    { "name": "main", "program": "rings", "inputs": {}, "outputs": { "fragColor": "outputTex" } }
+  ]
+}

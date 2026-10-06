@@ -354,6 +354,20 @@ impl DemoHost {
             .expect("the page has its renderer")
     }
 
+    /// `renderer.registerPortableEffect(definition)` on the page's renderer
+    /// ([`CanvasRenderer::register_portable_effect`]), with the page's
+    /// ProgramState resolving effects in the renderer's updated registry, as
+    /// the page's shared registries do in the reference.
+    pub fn register_portable_effect(
+        &mut self,
+        definition: &Value,
+    ) -> Result<Rc<EffectEntry>, RenderError> {
+        let effect = self.renderer_mut().register_portable_effect(definition)?;
+        let registry = self.renderer().registry().clone();
+        self.state.set_registry(registry);
+        Ok(effect)
+    }
+
     /// The page's ProgramState.
     pub fn program_state(&self) -> &ProgramState<CanvasRenderer> {
         &self.state

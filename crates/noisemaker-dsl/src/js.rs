@@ -13,9 +13,9 @@
 //! `noisemaker_host::js` re-exports this module) without reimplementing them.
 //!
 //! Transcendental functions are deliberately not here, because JavaScript
-//! hosts differ on them: `noisemaker_input::jsmath` ports V8's fdlibm
+//! hosts differ on them: [`crate::jsmath`] ports V8's fdlibm
 //! `Math.sin`/`Math.cos` (what Node computes, where the reference's
-//! automation is checked), while `noisemaker_host::js` evaluates
+//! automation and palettes are checked), while `noisemaker_host::js` evaluates
 //! `Math.sin`/`Math.cos`/`Math.log` correctly rounded, as Chromium returns
 //! them to the reference's host code in the browser.
 

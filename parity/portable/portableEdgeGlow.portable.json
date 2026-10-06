@@ -1,0 +1,37 @@
+{
+  "name": "Edge Glow",
+  "namespace": "user",
+  "func": "edgeGlow",
+  "description": "Posterize the input and light its Sobel edges in a glow color",
+  "tags": ["edges", "color"],
+  "globals": {
+    "strength": {
+      "type": "float", "default": 1.5, "min": 0, "max": 8, "uniform": "strength",
+      "ui": { "label": "strength", "control": "slider" }
+    },
+    "levels": {
+      "type": "int", "default": 4, "min": 2, "max": 16, "uniform": "levels",
+      "ui": { "label": "levels", "control": "slider" }
+    },
+    "glow": {
+      "type": "color", "default": [0.2, 1.0, 0.6], "uniform": "glow",
+      "ui": { "label": "glow", "control": "color" }
+    }
+  },
+  "paramAliases": { "amount": "strength" },
+  "textures": {
+    "_edgeTex": { "width": "input", "height": "input", "format": "rgba16float" }
+  },
+  "passes": [
+    {
+      "name": "edges", "program": "edges",
+      "inputs": { "inputTex": "inputTex" },
+      "outputs": { "fragColor": "_edgeTex" }
+    },
+    {
+      "name": "combine", "program": "combine",
+      "inputs": { "inputTex": "inputTex", "edgeTex": "_edgeTex" },
+      "outputs": { "fragColor": "outputTex" }
+    }
+  ]
+}

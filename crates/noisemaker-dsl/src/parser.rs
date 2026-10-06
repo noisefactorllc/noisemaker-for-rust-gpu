@@ -98,8 +98,8 @@ pub fn parse(tokens: &[Token]) -> Result<Value, JsError> {
     parse_with_registry(tokens, &Registry::new())
 }
 
-/// `parse(tokens)` with `search` validated against `registry.namespaces` (the
-/// live `VALID_NAMESPACES`).
+/// `parse(tokens)` with `search` validated against the registry's namespaces
+/// (the live `VALID_NAMESPACES`, [`Registry::valid_namespaces`]).
 pub fn parse_with_registry(tokens: &[Token], registry: &Registry) -> Result<Value, JsError> {
     parse_with_options(tokens, registry, &ParseOptions::default()).map_err(JsError::from)
 }
@@ -911,12 +911,7 @@ impl<'a> Parser<'a> {
     fn validate_namespace(&self, token: &Token) -> PResult<()> {
         let ns = &token.lexeme;
         if !self.registry.is_valid_namespace(ns) {
-            let valid: Vec<&str> = self
-                .registry
-                .namespaces
-                .keys()
-                .map(String::as_str)
-                .collect();
+            let valid = self.registry.valid_namespaces();
             return Err(self.parser_error(
                 "P004",
                 format!(

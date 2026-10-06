@@ -189,36 +189,7 @@ const PIPELINE_OUTPUTS: &[&str] = &[
 ];
 
 /// `VALID_TAGS` (`runtime/tags.js`, `TAG_DEFINITIONS` key order).
-pub const VALID_TAGS: &[&str] = &[
-    "color",
-    "distort",
-    "edges",
-    "geometric",
-    "lens",
-    "noise",
-    "transform",
-    "util",
-    "sim",
-    "3d",
-    "audio",
-    "agents",
-    "antialiasing",
-    "artist",
-    "blend",
-    "blur",
-    "fractal",
-    "geometry",
-    "glitch",
-    "image",
-    "mesh",
-    "midi",
-    "palette",
-    "pattern",
-    "pixel",
-    "text",
-    "tiling",
-    "video",
-];
+pub use crate::tags::VALID_TAGS;
 
 /// The lifecycle hooks `Effect.prototype` defines.
 const EFFECT_PROTOTYPE_METHODS: &[&str] = &[

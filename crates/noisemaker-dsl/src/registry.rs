@@ -4,7 +4,8 @@
 //! The reference keeps these as module-level singletons (`runtime/registry.js`,
 //! `lang/ops.js`, `lang/enums.js`, the starter-op set in `lang/validator.js`,
 //! `lang/paramAliases.js`, `lang/effectAliases.js`, `runtime/tags.js`) that its
-//! host, `CanvasRenderer`, fills while it loads effects. [`Registry`] holds the same
+//! host, `CanvasRenderer`, fills while it loads effects (and registers
+//! Portable effects: [`Registry::register_portable_effect`], `crate::portable`). [`Registry`] holds the same
 //! state as one value, and [`Registry::with_catalog`] performs the host's loading
 //! sequence for every effect of the embedded catalog:
 //!
@@ -47,31 +48,7 @@ impl EffectEntry {
     }
 }
 
-/// The built-in namespaces of `runtime/tags.js`, in registration order.
-pub const BUILTIN_NAMESPACES: &[(&str, &str)] = &[
-    (
-        "io",
-        "Pipeline I/O functions (built-in, no search required)",
-    ),
-    (
-        "classicNoisedeck",
-        "Complex shaders ported from the original noisedeck.app pipeline",
-    ),
-    ("synth", "Generator effects"),
-    ("mixer", "Blend two sources from A to B"),
-    ("filter", "Apply special effects to 2D input"),
-    ("render", "Rendering utilities and feedback loops"),
-    ("points", "Particle and agent-based simulations"),
-    ("synth3d", "3D volumetric generators"),
-    ("filter3d", "3D volumetric processors"),
-    ("user", "User-defined effects"),
-];
-
-/// Pipeline I/O functions of the built-in `io` namespace (`IO_FUNCTIONS`).
-pub const IO_FUNCTIONS: &[&str] = &["read", "write", "read3d", "write3d", "render", "render3d"];
-
-/// Names reserved for functions or literals (`_RESERVED_FUNCTION_NAMES`).
-pub const RESERVED_FUNCTION_NAMES: &[&str] = &["from", "osc", "midi", "audio", "null", "undefined"];
+pub use crate::tags::{BUILTIN_NAMESPACES, IO_FUNCTIONS, RESERVED_FUNCTION_NAMES};
 
 /// The engine registries.
 #[derive(Debug, Clone, Default)]
@@ -91,50 +68,19 @@ pub struct Registry {
     pub param_aliases: IndexMap<String, IndexMap<String, String>>,
     /// `registerEffectAlias`: old op name -> replacement name.
     pub effect_aliases: IndexMap<String, String>,
-    /// `VALID_NAMESPACES` with descriptions, in registration order.
-    pub namespaces: IndexMap<String, String>,
+    /// `VALID_NAMESPACES` with descriptions, in registration order. Read it
+    /// through [`Registry::valid_namespaces`] and
+    /// [`Registry::namespace_descriptions`]; it changes only through
+    /// [`Registry::register_namespace`] and [`Registry::unregister_namespace`]
+    /// (`crate::tags`).
+    pub(crate) namespaces: IndexMap<String, String>,
     /// The palette table (`share/palettes.json`), in file order.
     pub palettes: Object,
     /// The effect manifest (`shaders/effects/manifest.json`).
     pub manifest: Object,
 }
 
-/// `isValidIdentifier`.
-pub fn is_valid_identifier(name: &str) -> bool {
-    let mut chars = name.chars();
-    matches!(chars.next(), Some(c) if c.is_ascii_alphabetic() || c == '_')
-        && chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
-}
-
-/// `sanitizeEnumName` (renderer/canvas.js).
-pub fn sanitize_enum_name(name: &str) -> Option<String> {
-    // name.replace(/\s+(.)/g, (_, c) => c.toUpperCase()).replace(/\s+/g, '')
-    let chars: Vec<char> = name.chars().collect();
-    let mut result = String::new();
-    let mut i = 0;
-    while i < chars.len() {
-        if chars[i].is_whitespace() {
-            let mut j = i;
-            while j < chars.len() && chars[j].is_whitespace() {
-                j += 1;
-            }
-            if j < chars.len() {
-                result.extend(chars[j].to_uppercase());
-                i = j + 1;
-            } else {
-                i = j;
-            }
-        } else {
-            result.push(chars[i]);
-            i += 1;
-        }
-    }
-    let result: String = result
-        .chars()
-        .filter(|c| c.is_ascii_alphanumeric() || *c == '_')
-        .collect();
-    is_valid_identifier(&result).then_some(result)
-}
+pub use crate::canvas::{is_starter_effect, is_valid_identifier, sanitize_enum_name};
 
 /// `deepMerge` of `lang/enums.js`.
 pub fn deep_merge_enums(target: &mut Object, source: &Object) {
@@ -155,35 +101,6 @@ pub fn deep_merge_enums(target: &mut Object, source: &Object) {
             target.insert(key.clone(), source_val.clone());
         }
     }
-}
-
-/// `isStarterEffect` (renderer/canvas.js).
-pub fn is_starter_effect(def: &Value) -> bool {
-    let passes = match def.get("passes") {
-        Value::Array(p) => p.as_slice(),
-        _ => &[],
-    };
-    if passes.is_empty() {
-        return true;
-    }
-    const PIPELINE_INPUTS: &[&str] = &[
-        "inputTex",
-        "inputTex3d",
-        "o0",
-        "o1",
-        "o2",
-        "o3",
-        "o4",
-        "o5",
-        "o6",
-        "o7",
-    ];
-    !passes.iter().any(|pass| match pass.get("inputs") {
-        Value::Object(inputs) => inputs
-            .values()
-            .any(|v| v.as_str().is_some_and(|s| PIPELINE_INPUTS.contains(&s))),
-        _ => false,
-    })
 }
 
 impl Registry {
@@ -370,6 +287,18 @@ impl Registry {
         self.effects.get(key)
     }
 
+    /// `unregisterEffect(name)`: `true` when `name` was registered. The other
+    /// lookup keys keep their order.
+    pub fn unregister_effect(&mut self, key: &str) -> bool {
+        self.effects.shift_remove(key).is_some()
+    }
+
+    /// `getAllEffects()`: every lookup key and its effect, in registration
+    /// order (a key registered again keeps its first position).
+    pub fn all_effects(&self) -> &IndexMap<String, Rc<EffectEntry>> {
+        &self.effects
+    }
+
     /// `registerOp(name, spec)`.
     pub fn register_op(&mut self, name: impl Into<String>, spec: Value) {
         self.ops.insert(name, spec);
@@ -389,11 +318,6 @@ impl Registry {
     pub fn register_effect_alias(&mut self, old_op_name: &str, new_name: &str) {
         self.effect_aliases
             .insert(old_op_name.to_owned(), new_name.to_owned());
-    }
-
-    /// `isValidNamespace(id)`.
-    pub fn is_valid_namespace(&self, id: &str) -> bool {
-        self.namespaces.contains_key(id)
     }
 
     /// The host's per-effect loading sequence (`loadEffect`): attach shaders,
@@ -448,7 +372,7 @@ impl Registry {
 
     /// `registerEffectWithRuntime(effect)` followed by the host's
     /// `mergeIntoEnums(choicesToRegister)`.
-    fn register_effect_with_runtime(&mut self, entry: &Rc<EffectEntry>) {
+    pub(crate) fn register_effect_with_runtime(&mut self, entry: &Rc<EffectEntry>) {
         let namespace = entry.namespace.as_str();
         let effect_name = entry.name.as_str();
         let def = &entry.def;
@@ -526,10 +450,12 @@ impl Registry {
         if let Value::Object(aliases) = def.get("paramAliases") {
             self.register_param_aliases(&op_name, aliases);
         }
-        if def.get("hidden").is_truthy()
-            && let Value::String(replacement) = def.get("deprecatedBy")
-        {
-            self.register_effect_alias(&op_name, replacement);
+        // registerEffectAlias stores the value; checkEffectAlias prints it
+        // through a template literal.
+        let deprecated_by = def.get("deprecatedBy");
+        if def.get("hidden").is_truthy() && deprecated_by.is_truthy() {
+            let replacement = crate::js::value_to_property_key(deprecated_by);
+            self.register_effect_alias(&op_name, &replacement);
         }
         if !choices_to_register.is_empty() {
             self.merge_into_enums(&choices_to_register);

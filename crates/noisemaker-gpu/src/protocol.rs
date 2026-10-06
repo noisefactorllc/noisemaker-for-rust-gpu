@@ -21,6 +21,11 @@
 //! textures with PNGs (texture contents, uploaded with `flipY: false`) — the
 //! minter's captures, to grade with exactly the reference's host inputs.
 //!
+//! A DSL fixture with a Portable sidecar (`<name>.portable.json`, its WGSL in
+//! `<name>.<program>.wgsl` files beside it; [`load_portable_definition`])
+//! registers that user effect on the page's renderer before the program
+//! loads, as the minter registers it in the reference page.
+//!
 //! Outside the parity protocol, a DSL fixture can also take parameter
 //! overrides ([`ParamOverride`], set as the demo's controls set them) and be
 //! written in the orientation a canvas shows ([`Orientation::Presented`]);
@@ -131,6 +136,10 @@ pub struct FixtureSpec {
     /// The row order of the written PNGs (the protocol's is
     /// [`Orientation::Texture`]).
     pub orientation: Orientation,
+    /// The Portable definition registered before the program loads (DSL
+    /// fixtures only); `None` means `<dsl without .dsl>.portable.json` when
+    /// it exists.
+    pub portable: Option<PathBuf>,
 }
 
 impl Default for FixtureSpec {
@@ -149,6 +158,7 @@ impl Default for FixtureSpec {
             graph_out: None,
             params: Vec::new(),
             orientation: Orientation::Texture,
+            portable: None,
         }
     }
 }
@@ -533,6 +543,92 @@ fn dsl_sidecar(dsl: &Path, obj: Option<&Path>) -> Option<PathBuf> {
     Some(obj.map_or_else(|| dsl.with_extension("obj"), Path::to_path_buf))
 }
 
+/// The Portable sidecar of a DSL program: `<dsl without .dsl>.portable.json`.
+pub fn portable_sidecar(dsl: &Path) -> PathBuf {
+    dsl.with_extension("portable.json")
+}
+
+/// The Portable definition a DSL program registers: `portable`, else its
+/// sidecar when that exists.
+pub fn portable_definition_path(dsl: &Path, portable: Option<&Path>) -> Option<PathBuf> {
+    match portable {
+        Some(path) => Some(path.to_path_buf()),
+        None => Some(portable_sidecar(dsl)).filter(|p| p.exists()),
+    }
+}
+
+/// Read a Portable definition (`<name>.portable.json`) and attach its shader
+/// sources: each pass program `P` whose `shaders[P]` has no `wgsl` source
+/// takes the file `<name>.P.wgsl` beside the definition, when it exists.
+/// The result is what `registerPortableEffect` takes.
+pub fn load_portable_definition(path: &Path) -> Result<Value, String> {
+    let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let mut def = Value::from_json(&text).map_err(|e| format!("{}: {e}", path.display()))?;
+    let name = path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .map(|n| n.strip_suffix(".portable.json").unwrap_or(n).to_owned())
+        .unwrap_or_default();
+    let programs: Vec<String> = match def.get("passes") {
+        Value::Array(passes) => passes
+            .iter()
+            .filter_map(|p| p.get("program").as_str().map(str::to_owned))
+            .collect(),
+        _ => Vec::new(),
+    };
+    let Value::Object(fields) = &mut def else {
+        return Ok(def);
+    };
+    for program in programs {
+        let wgsl = path.with_file_name(format!("{name}.{program}.wgsl"));
+        if !wgsl.exists() {
+            continue;
+        }
+        let shaders = fields.object_entry("shaders");
+        let bucket = shaders.object_entry(&program);
+        if bucket.get("wgsl").is_none_or(Value::is_undefined) {
+            let source =
+                std::fs::read_to_string(&wgsl).map_err(|e| format!("{}: {e}", wgsl.display()))?;
+            bucket.insert("wgsl", Value::from(source));
+        }
+    }
+    Ok(def)
+}
+
+/// Register the Portable definition of a DSL program on `host`, if it has
+/// one.
+fn register_portable(
+    host: &mut DemoHost,
+    dsl: &Path,
+    portable: Option<&Path>,
+) -> Result<(), String> {
+    let Some(path) = portable_definition_path(dsl, portable) else {
+        return Ok(());
+    };
+    let def = load_portable_definition(&path)?;
+    host.register_portable_effect(&def)
+        .map(|_| ())
+        .map_err(|e| format!("{}: {e}", path.display()))
+}
+
+/// The registry a DSL program compiles against: `base`, with the program's
+/// Portable definition registered when it has one.
+pub fn registry_for_dsl(
+    base: &Rc<Registry>,
+    dsl: &Path,
+    portable: Option<&Path>,
+) -> Result<Rc<Registry>, String> {
+    let Some(path) = portable_definition_path(dsl, portable) else {
+        return Ok(base.clone());
+    };
+    let def = load_portable_definition(&path)?;
+    let mut registry = (**base).clone();
+    registry
+        .register_portable_effect(&def)
+        .map_err(|e| format!("{}: {e}", path.display()))?;
+    Ok(Rc::new(registry))
+}
+
 /// A demo host on `device` with the context's registries, fonts and media.
 fn demo_host(device: &GpuDevice, width: u32, height: u32, context: &ProtocolContext) -> DemoHost {
     let renderer = CanvasRenderer::new(
@@ -686,6 +782,7 @@ fn run_dsl_fixture(
     let mut host = demo_host(device, spec.width, spec.height, context);
     let mut report = FixtureReport::default();
     let result = (|| -> Result<(), String> {
+        register_portable(&mut host, path, spec.portable.as_deref())?;
         load_dsl(
             &mut host,
             &text,
@@ -804,6 +901,9 @@ pub struct AnimationSpec {
     pub obj: Option<PathBuf>,
     /// The row order of the frames (a canvas's by default).
     pub orientation: Orientation,
+    /// The Portable definition registered before the program loads (`None`:
+    /// the `.portable.json` next to the DSL when it exists).
+    pub portable: Option<PathBuf>,
 }
 
 impl Default for AnimationSpec {
@@ -820,6 +920,7 @@ impl Default for AnimationSpec {
             host_textures: Vec::new(),
             obj: None,
             orientation: Orientation::Presented,
+            portable: None,
         }
     }
 }
@@ -867,6 +968,7 @@ pub fn run_animation(
     let mut host = demo_host(device, spec.width, spec.height, context);
     let mut report = AnimationReport::default();
     let result = (|| -> Result<(), String> {
+        register_portable(&mut host, &spec.dsl, spec.portable.as_deref())?;
         load_dsl(
             &mut host,
             &text,

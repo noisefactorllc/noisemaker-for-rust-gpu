@@ -17,6 +17,17 @@
 //   - the ProgramState gate (parity/check_program_state.mjs): the host state
 //     layer's results, events, console output and pipeline effects equal to the
 //     reference's over every fixture and the reference's own scenarios;
+//   - the public-API gate (parity/check_api.mjs): tags and namespaces (with the
+//     parser and validator against registered namespaces), the cosine
+//     palettes bit for bit, block categories, the Effect constructor and
+//     parameter categories, the canvas.js helpers over every catalog effect,
+//     the effect/op/starter/enum registries and the resource allocator equal
+//     to the reference's;
+//   - the Portable gate (parity/check_portable.mjs): registerPortableEffect's
+//     thrown messages and resulting registry state (effect lookups, ops, enums,
+//     starter ops, aliases) equal to the reference's over its own tests, every
+//     catalog effect as a Portable definition, the effect validator's
+//     definitions, edge cases and the Portable parity fixtures' programs;
 //   - the external-input gates: MIDI state, audio state and automation
 //     evaluation (parity/check_midi_state.mjs, check_audio_state.mjs,
 //     check_automation.mjs) bit-identical to the reference's.
@@ -90,6 +101,11 @@ run('node', ['parity/check_dsl_tools.mjs', '--rust-frontend'], {
 run('node', ['parity/check_program_state.mjs'], {
   env: { ...env, NM_PROGRAM_STATE: join(ROOT, 'target', 'release', 'nm-program-state') }
 })
+for (const gate of ['check_api', 'check_portable']) {
+  run('node', [`parity/${gate}.mjs`], {
+    env: { ...env, NM_API: join(ROOT, 'target', 'release', 'nm-api') }
+  })
+}
 for (const gate of ['check_midi_state', 'check_audio_state', 'check_automation']) {
   run('node', [`parity/${gate}.mjs`], {
     env: { ...env, NM_INPUT_DUMP: join(ROOT, 'target', 'release', 'nm-input-dump') }

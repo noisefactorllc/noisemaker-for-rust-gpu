@@ -132,7 +132,7 @@ pub(crate) fn resolve_param_aliases(
 
 /// `checkEffectAlias(opName)`: the deprecation warning for a hidden effect that
 /// a newer effect replaces, or `None`.
-pub(crate) fn check_effect_alias(registry: &Registry, op_name: &str) -> Option<String> {
+pub fn check_effect_alias(registry: &Registry, op_name: &str) -> Option<String> {
     let new_name = registry
         .effect_aliases
         .get(op_name)

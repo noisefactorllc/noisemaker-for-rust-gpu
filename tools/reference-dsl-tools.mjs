@@ -64,6 +64,12 @@ function defineOwn (obj, key, value) {
 
 let EffectClass = null
 
+// The reference's Effect class, for tools that import this encoding without
+// loadReference() (tools/reference-api.mjs).
+export function useEffectClass (cls) {
+  EffectClass = cls
+}
+
 function prototypeMethodNames (instance) {
   const names = []
   let proto = Object.getPrototypeOf(instance)

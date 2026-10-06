@@ -18,7 +18,8 @@
 //!   `midiClockCount` globals of `updateGlobalUniforms`.
 //! - [`midi_input`] and [`audio_input`]: `MidiInputManager` and
 //!   `AudioInputManager` over pluggable backends; [`host`] has the `midir` and
-//!   `cpal` backends behind features of the same names (off by default).
+//!   `cpal` backends behind features of the same names (off by default);
+//!   [`external_input`]: `ExternalInputManager`, the two side by side.
 //!
 //! `Date.now()` is an injectable [`clock::Clock`]. JavaScript number semantics
 //! are the workspace's ([`noisemaker_dsl::js`](mod@noisemaker_dsl::js)), except V8's `Math.sin` and
@@ -29,6 +30,7 @@ pub mod audio;
 pub mod audio_input;
 pub mod automation;
 pub mod clock;
+pub mod external_input;
 pub mod globals;
 pub mod host;
 pub mod js;
@@ -44,6 +46,7 @@ pub use automation::{
     resolve_uniform_value,
 };
 pub use clock::{Clock, ManualClock, SystemClock};
+pub use external_input::ExternalInputManager;
 pub use globals::{InputGlobals, NoteGridUpload};
 pub use js::JsValue;
 pub use midi::{MidiChannelState, MidiState};

@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Corpus-wide pixel parity sweep: mint goldens, render candidates, grade, ledger.
 
-Cases are parity/programs/*.dsl (the shared fixture pool) and parity/coverage/*.dsl
-(the generated effect x mode corpus); a case id is the file stem. One run:
+Cases are parity/programs/*.dsl (the shared fixture pool), parity/coverage/*.dsl
+(the generated effect x mode corpus) and parity/portable/*.dsl (user-defined
+Portable effects: each registers its <id>.portable.json sidecar, WGSL in
+<id>.<program>.wgsl, before its program runs, in the golden page and in the
+candidate); a case id is the file stem. One run:
 
   1. MINT    goldens with the reference engine's WebGPU backend
              (parity/batch-golden.mjs), fresh, in this run -- a sweep never grades a
@@ -121,7 +124,7 @@ NEAR_POLICIES = {
 
 def discover(ids):
     cases = {}
-    for sub in ("programs", "coverage"):
+    for sub in ("programs", "coverage", "portable"):
         for path in sorted((ROOT / "parity" / sub).glob("*.dsl")):
             cases[path.stem] = path
     if ids:
@@ -207,6 +210,9 @@ def render(cases, nm_render, mode, golden_dir):
         sidecar = path.with_suffix(".obj")
         if sidecar.exists():
             entry["obj"] = str(sidecar)
+        portable = path.with_suffix(".portable.json")
+        if portable.exists() and mode != "graph":
+            entry["portable"] = str(portable)
         if mode == "graph":
             entry["graph"] = str(golden_dir / (case_id + ".graph.json"))
             entry["hostTextures"] = host_textures(case_id, golden_dir)

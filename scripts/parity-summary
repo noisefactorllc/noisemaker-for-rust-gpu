@@ -7,7 +7,8 @@
 #   PARITY-SUMMARY {"expected":N,"executed":N,"exact":N,"strict":N,"near":N,"defer":N,"skip":N,"fail":N,"missing":N}
 #
 # Cases: with case-id arguments, only those cases are expected; without, every
-# parity/programs/*.dsl and parity/coverage/*.dsl case is expected.
+# parity/programs/*.dsl, parity/coverage/*.dsl and parity/portable/*.dsl (user
+# Portable effects with their .portable.json sidecars) case is expected.
 #
 # The work is the canonical sweep, parity/sweep.py, run fresh (goldens minted in
 # this run, candidates rendered by nm-render from the DSL with the port's own
@@ -37,7 +38,7 @@ CASE_ARGS=("$@")
 
 count_cases() {
   if [ ${#CASE_ARGS[@]} -gt 0 ]; then echo ${#CASE_ARGS[@]}; return; fi
-  find "$ROOT/parity/programs" "$ROOT/parity/coverage" -name '*.dsl' 2>/dev/null | wc -l | tr -d ' '
+  find "$ROOT/parity/programs" "$ROOT/parity/coverage" "$ROOT/parity/portable" -name '*.dsl' 2>/dev/null | wc -l | tr -d ' '
 }
 fail_infra() {
   echo "parity-summary: $1" >&2

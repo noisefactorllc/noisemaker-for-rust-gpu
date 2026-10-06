@@ -7,6 +7,10 @@
 // a chunk of fixtures; each fixture runs this protocol:
 //
 //   1. pause the demo's render loop, pin the canvas and pipeline to SIZE x SIZE;
+//   1b. a fixture with a Portable sidecar (<name>.portable.json, its WGSL in
+//      <name>.<program>.wgsl; tools/portable.mjs) registers that user effect
+//      with the page's CanvasRenderer.registerPortableEffect (and in the Node
+//      realm that predicts the pass count) before its DSL loads;
 //   2. load the DSL through the demo's editor and run button, wait until the
 //      pipeline runs exactly that source (graph.source, pass count from the
 //      reference compileGraph, compilation finished, WebGPU backend);
@@ -45,6 +49,8 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFile
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { deflateSync } from 'node:zlib'
+
+import { loadPortableDefinition, portableSidecar } from '../tools/portable.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 if (!process.env.NM_REFERENCE_ROOT) {
@@ -359,10 +365,29 @@ async function runDsl (page, src, expectedPassCount) {
   }, { src, expectedPassCount }, { timeout: STATUS_TIMEOUT })
 }
 
-async function mintOne (page, opts, dslPath, dsl, expectedPassCount, programName) {
+// Register a fixture's Portable effect with the page's renderer (once per
+// session: the page's registries keep it).
+async function registerPortable (page, definition) {
+  const result = await page.evaluate(async (def) => {
+    const r = window.__noisemakerCanvasRenderer
+    if (!r || typeof r.registerPortableEffect !== 'function') return { error: 'the page renderer has no registerPortableEffect' }
+    const func = def.func ?? def.name
+    if (r.loadedEffects?.has(`user/${func}`)) return { ok: true }
+    try {
+      await r.registerPortableEffect(def)
+      return { ok: true }
+    } catch (err) {
+      return { error: err?.message || String(err) }
+    }
+  }, definition)
+  if (result.error) throw new Error(`registerPortableEffect failed: ${result.error}`)
+}
+
+async function mintOne (page, opts, dslPath, dsl, expectedPassCount, programName, portable) {
   await sizePage(page, opts.size)
   await installAsyncInitTracker(page)
   await page.evaluate(() => { window.__nmAsyncInitNodes = new Set() })
+  if (portable) await registerPortable(page, portable)
   await runDsl(page, dsl, expectedPassCount)
 
   const graph = await pageGraph(page)
@@ -532,6 +557,19 @@ async function main () {
   const { bootstrapReference } = await import(pathToFileURL(join(ROOT, 'tools', 'reference-oracle.mjs')).href)
   const ref = await bootstrapReference()
 
+  // Portable sidecars, registered in the Node realm once (it predicts the
+  // pass counts) and in each page session before their fixture.
+  const portables = new Map()
+  const portableFor = async (dslPath) => {
+    if (!portables.has(dslPath)) {
+      const sidecar = portableSidecar(dslPath)
+      const def = sidecar ? loadPortableDefinition(sidecar) : null
+      if (def) await new ref.CanvasRenderer().registerPortableEffect(structuredClone(def))
+      portables.set(dslPath, def)
+    }
+    return portables.get(dslPath)
+  }
+
   const minted = new Set()
   const failed = new Map()
   const total = dslPaths.length
@@ -557,11 +595,12 @@ async function main () {
               const t0 = Date.now()
               try {
                 const dsl = readFileSync(dslPath, 'utf8')
+                const portable = await portableFor(dslPath)
                 const expectedPassCount = ref.compileGraph(dsl).passes.length
                 for (const file of readdirSync(opts.outDir)) {
                   if (file.startsWith(`${programName}.`) && file.endsWith('.png')) unlinkSync(join(opts.outDir, file))
                 }
-                const info = await mintOne(page, opts, dslPath, dsl, expectedPassCount, programName)
+                const info = await mintOne(page, opts, dslPath, dsl, expectedPassCount, programName, portable)
                 const notes = session.getConsoleMessages().map(m => m.text)
                 session.clearConsoleMessages()
                 process.stderr.write(`[batch-golden] (${minted.size + 1}/${total}) ${programName}: ok ${Date.now() - t0}ms` +

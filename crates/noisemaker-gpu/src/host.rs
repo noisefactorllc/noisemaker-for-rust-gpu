@@ -22,11 +22,13 @@ use std::time::{Duration, Instant};
 
 use indexmap::IndexMap;
 use noisemaker_dsl::compiler::{CompileOptions as DslCompileOptions, compile_graph};
+use noisemaker_dsl::js::math_round;
 use noisemaker_dsl::palette::expand_palette_value;
 use noisemaker_dsl::program_state::{
     ProgramHost, convert_parameter_for_uniform, resolve_enum_value, write_uniform_aliases,
 };
 use noisemaker_dsl::registry::EffectEntry;
+use noisemaker_dsl::strings::EffectStrings;
 use noisemaker_dsl::{JsError, Object, Registry, Value};
 use noisemaker_host::obj::{PackedMesh, decode_obj_text, pack_mesh, parse_obj};
 
@@ -187,6 +189,190 @@ fn write_pass_uniform_aliases(
     result.map_err(js_error)
 }
 
+/// Options of [`create_runtime`].
+#[derive(Clone)]
+pub struct RuntimeOptions {
+    /// The pipeline's width (`options.width`).
+    pub width: u32,
+    /// The pipeline's height (`options.height`).
+    pub height: u32,
+    /// `options.shaderOverrides`: per-step shader overrides keyed by step index.
+    pub shader_overrides: Object,
+    /// The pipeline's `texturePooling` option.
+    pub texture_pooling: bool,
+    /// The native effect hooks the pipeline runs.
+    pub effects: EffectRegistry,
+}
+
+impl Default for RuntimeOptions {
+    fn default() -> Self {
+        RuntimeOptions {
+            width: 800,
+            height: 600,
+            shader_overrides: Object::new(),
+            texture_pooling: false,
+            effects: EffectRegistry::default(),
+        }
+    }
+}
+
+/// `compileGraph(source, {shaderOverrides})` as a pipeline graph.
+fn compile_runtime_graph(
+    registry: &Registry,
+    source: &str,
+    shader_overrides: &Object,
+) -> Result<Graph, RenderError> {
+    let value = compile_graph(
+        source,
+        registry,
+        &DslCompileOptions {
+            shader_overrides: shader_overrides.clone(),
+        },
+    )
+    .map_err(RenderError::Dsl)?;
+    Graph::from_value(&value).map_err(RenderError::Js)
+}
+
+/// `createRuntime(source, options)` (`runtime/compiler.js`): compile `source`
+/// with `registry` and create an initialized pipeline of `width x height` on
+/// `device` (`compileGraph` + `createPipeline`). The reference's
+/// `createNoisemakerPipeline(canvas, source)` is this with the canvas's size
+/// (800 x 600 by default).
+pub fn create_runtime(
+    device: &GpuDevice,
+    registry: &Registry,
+    source: &str,
+    options: &RuntimeOptions,
+) -> Result<Pipeline, RenderError> {
+    let graph = compile_runtime_graph(registry, source, &options.shader_overrides)?;
+    let mut pipeline = Pipeline::new(
+        graph,
+        device.backend(),
+        PipelineOptions {
+            texture_pooling: options.texture_pooling,
+            effects: options.effects.clone(),
+        },
+    );
+    pipeline.init(options.width as f64, options.height as f64)?;
+    Ok(pipeline)
+}
+
+/// `recompile(pipeline, newSource, {shaderOverrides})` (`runtime/compiler.js`):
+/// swap the program's graph into `pipeline`, recreate its surfaces and
+/// textures, restart its asyncInit and lifecycle effects. Returns the new
+/// graph, or `None` when any step fails (the reference logs the error and
+/// returns `null`).
+pub fn recompile<'p>(
+    pipeline: &'p mut Pipeline,
+    registry: &Registry,
+    source: &str,
+    shader_overrides: &Object,
+) -> Option<&'p Graph> {
+    let result = (|| -> Result<(), RenderError> {
+        let graph = compile_runtime_graph(registry, source, shader_overrides)?;
+        pipeline.poll_async_effects()?;
+        pipeline.swap_graph(graph);
+        pipeline.create_surfaces()?;
+        let defaults = pipeline.collect_default_uniforms();
+        pipeline.recreate_textures(&defaults)?;
+        pipeline.init_async_effects()?;
+        pipeline.init_lifecycle_effects();
+        Ok(())
+    })();
+    match result {
+        Ok(()) => Some(&pipeline.graph),
+        Err(e) => {
+            eprintln!("Recompilation failed: {e}");
+            None
+        }
+    }
+}
+
+/// Frames the render loop's frame-time buffer keeps (`_frameTimeBufferSize`,
+/// about two seconds at 60 frames per second).
+pub const FRAME_TIME_BUFFER_SIZE: usize = 120;
+
+/// `getFrameTimeStats()`: render times (milliseconds) of the frames in the
+/// frame-time buffer, with their standard deviation (jitter).
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct FrameTimeStats {
+    pub mean: f64,
+    pub std: f64,
+    pub min: f64,
+    pub max: f64,
+    pub count: usize,
+}
+
+/// The render loop's frame-time ring buffer (`_frameTimeBuffer`, a
+/// `Float32Array`: times are kept at single precision).
+#[derive(Debug, Clone)]
+pub struct FrameTimes {
+    buffer: [f32; FRAME_TIME_BUFFER_SIZE],
+    index: usize,
+    count: usize,
+}
+
+impl Default for FrameTimes {
+    fn default() -> Self {
+        FrameTimes {
+            buffer: [0.0; FRAME_TIME_BUFFER_SIZE],
+            index: 0,
+            count: 0,
+        }
+    }
+}
+
+impl FrameTimes {
+    /// Record one frame's render time in milliseconds.
+    pub fn record(&mut self, ms: f64) {
+        self.buffer[self.index] = ms as f32;
+        self.index = (self.index + 1) % FRAME_TIME_BUFFER_SIZE;
+        if self.count < FRAME_TIME_BUFFER_SIZE {
+            self.count += 1;
+        }
+    }
+
+    /// `resetFrameTimeStats()` (the buffer part).
+    pub fn reset(&mut self) {
+        self.index = 0;
+        self.count = 0;
+    }
+
+    /// `getFrameTimeStats()`: all zeros before the first frame.
+    pub fn stats(&self) -> FrameTimeStats {
+        let count = self.count;
+        if count == 0 {
+            return FrameTimeStats::default();
+        }
+        let times = || self.buffer[..count].iter().map(|t| f64::from(*t));
+        let mut sum = 0.0;
+        let mut min = f64::INFINITY;
+        let mut max = f64::NEG_INFINITY;
+        for t in times() {
+            sum += t;
+            if t < min {
+                min = t;
+            }
+            if t > max {
+                max = t;
+            }
+        }
+        let mean = sum / count as f64;
+        let mut sum_sq = 0.0;
+        for t in times() {
+            let diff = t - mean;
+            sum_sq += diff * diff;
+        }
+        FrameTimeStats {
+            mean,
+            std: (sum_sq / count as f64).sqrt(),
+            min,
+            max,
+            count,
+        }
+    }
+}
+
 /// The reference CanvasRenderer, without its DOM duties.
 pub struct CanvasRenderer {
     device: GpuDevice,
@@ -214,6 +400,14 @@ pub struct CanvasRenderer {
     /// moved out of the graph while a ProgramState operation runs and moved
     /// back before the pipeline is used.
     program_passes: Option<Vec<Value>>,
+    /// `_frameTimeBuffer`.
+    frame_times: FrameTimes,
+    /// `_fpsFrameCount`, `_fpsLastUpdateTime`, `_currentFPS`.
+    fps_frame_count: u64,
+    fps_last_update: Instant,
+    current_fps: f64,
+    /// `_locale`, `_strings`.
+    strings: EffectStrings,
 }
 
 impl CanvasRenderer {
@@ -248,6 +442,11 @@ impl CanvasRenderer {
             audio_state: None,
             mesh_cache: IndexMap::new(),
             program_passes: None,
+            frame_times: FrameTimes::default(),
+            fps_frame_count: 0,
+            fps_last_update: Instant::now(),
+            current_fps: 0.0,
+            strings: EffectStrings::default(),
         }
     }
 
@@ -288,6 +487,30 @@ impl CanvasRenderer {
     /// The DSL registries.
     pub fn registry(&self) -> &Rc<Registry> {
         &self.registry
+    }
+
+    /// `registerPortableEffect(definition)`: register a user-defined
+    /// Portable effect (definition JSON with its shader sources loaded under
+    /// `shaders[program].wgsl`) as `user.<func>`, with the reference's
+    /// validation ([`Registry::register_portable_effect`]). Programs compiled
+    /// afterwards can call it (`search user` then `<func>()`, or
+    /// `user.<func>()`), with its parameters, choice enums and aliases.
+    ///
+    /// A registry shared with other owners is copied first: the registration
+    /// is visible to this renderer and to whatever it hands its registry to
+    /// afterwards ([`crate::demo::DemoHost::register_portable_effect`] keeps
+    /// the page's ProgramState in step).
+    pub fn register_portable_effect(
+        &mut self,
+        definition: &Value,
+    ) -> Result<Rc<EffectEntry>, RenderError> {
+        let registry = Rc::make_mut(&mut self.registry);
+        let effect = registry
+            .register_portable_effect(definition)
+            .map_err(RenderError::Dsl)?;
+        // this._enums = await mergeIntoEnums(choices)
+        self.enums = Rc::new(Value::Object(registry.enums.clone()));
+        Ok(effect)
     }
 
     /// The native effect hooks.
@@ -343,6 +566,88 @@ impl CanvasRenderer {
     /// `lastRenderTime` of the last loop frame.
     pub fn last_render_time(&self) -> Duration {
         self.last_render_time
+    }
+
+    /// `currentFPS`: loop iterations per second, measured over the last
+    /// second of [`CanvasRenderer::tick`] calls.
+    pub fn current_fps(&self) -> f64 {
+        self.current_fps
+    }
+
+    /// `getFrameTimeStats()`: render times of the last
+    /// [`FRAME_TIME_BUFFER_SIZE`] loop frames.
+    pub fn get_frame_time_stats(&self) -> FrameTimeStats {
+        self.frame_times.stats()
+    }
+
+    /// `resetFrameTimeStats()`.
+    pub fn reset_frame_time_stats(&mut self) {
+        self.frame_times.reset();
+        self.last_render_time = Duration::ZERO;
+    }
+
+    // ------------------------------------------------------------ effects
+
+    /// `manifest`: the effect manifest (`effects/manifest.json`).
+    pub fn manifest(&self) -> &Object {
+        &self.registry.manifest
+    }
+
+    /// `loadedEffects`: the effects loaded into the registry, in load order.
+    /// The port loads the whole catalog up front (the reference loads effects
+    /// lazily), followed by the registered Portable effects.
+    pub fn loaded_effects(&self) -> &[Rc<EffectEntry>] {
+        &self.registry.loaded
+    }
+
+    /// `hasEffect(effectId)`: a loaded effect (`namespace/name`).
+    pub fn has_effect(&self, effect_id: &str) -> bool {
+        self.registry.loaded.iter().any(|e| e.id() == effect_id)
+    }
+
+    /// `getLoadedEffectIds()`.
+    pub fn get_loaded_effect_ids(&self) -> Vec<String> {
+        self.registry.loaded.iter().map(|e| e.id()).collect()
+    }
+
+    /// `getLoadedEffectIdsByNamespace(namespace)`.
+    pub fn get_loaded_effect_ids_by_namespace(&self, namespace: &str) -> Vec<String> {
+        let prefix = format!("{namespace}/");
+        self.get_loaded_effect_ids()
+            .into_iter()
+            .filter(|id| id.starts_with(&prefix))
+            .collect()
+    }
+
+    /// `getEffectsFromManifest(namespace, {includeHidden})`: the effect names
+    /// of a namespace, sorted.
+    pub fn get_effects_from_manifest(&self, namespace: &str, include_hidden: bool) -> Vec<String> {
+        self.registry
+            .effects_from_manifest(namespace, include_hidden)
+    }
+
+    /// `getEffectDescription(effectId)`: localized when a locale is set, else
+    /// the manifest's description, else `null`.
+    pub fn get_effect_description(&self, effect_id: &str) -> Value {
+        self.registry.effect_description(effect_id, &self.strings)
+    }
+
+    /// `setLocale(locale)`: the locale of effect-facing strings (`None`
+    /// returns to English). Returns the active locale.
+    pub fn set_locale(&mut self, locale: Option<&str>) -> Option<&str> {
+        self.strings.set_locale(locale)
+    }
+
+    /// `getLocale()`.
+    pub fn get_locale(&self) -> Option<&str> {
+        self.strings.locale()
+    }
+
+    /// `localize(id, fallback)`: an effect string (`filter/adjust`,
+    /// `filter/adjust#desc`, `filter/adjust.rotation`, `@ns/filter`) in the
+    /// active locale, else English, else `fallback`.
+    pub fn localize(&self, id: &str, fallback: Value) -> Value {
+        self.strings.localize(id, fallback)
     }
 
     /// `loopDuration` in seconds.
@@ -533,9 +838,28 @@ impl CanvasRenderer {
 
     /// One iteration of the render loop (`_renderLoop`) at `now`: skipped
     /// (counted as deferred) while a sink defers, otherwise a frame at the
-    /// loop time.
+    /// loop time whose render time joins the frame-time statistics; every
+    /// iteration counts toward [`CanvasRenderer::current_fps`].
     pub fn tick(&mut self, now: Instant) -> Result<(), RenderError> {
         self.flush_program_passes();
+        let result = self.tick_frame(now);
+        // FPS measurement: every loop iteration counts.
+        self.fps_frame_count += 1;
+        let elapsed_ms = now
+            .saturating_duration_since(self.fps_last_update)
+            .as_secs_f64()
+            * 1000.0;
+        if elapsed_ms >= 1000.0 {
+            self.current_fps = math_round(self.fps_frame_count as f64 * 1000.0 / elapsed_ms);
+            self.fps_frame_count = 0;
+            self.fps_last_update = now;
+        }
+        result
+    }
+
+    /// One loop frame: deferred while a sink is behind, else rendered and
+    /// timed.
+    fn tick_frame(&mut self, now: Instant) -> Result<(), RenderError> {
         let Some(p) = self.pipeline.as_mut() else {
             return Ok(());
         };
@@ -548,6 +872,8 @@ impl CanvasRenderer {
         let p = self.pipeline.as_mut().expect("checked above");
         p.render(t)?;
         self.last_render_time = start.elapsed();
+        self.frame_times
+            .record(self.last_render_time.as_secs_f64() * 1000.0);
         self.last_pass_count = p.last_pass_count;
         self.frame_count += 1;
         Ok(())
@@ -567,60 +893,28 @@ impl CanvasRenderer {
 
     /// `createRuntime(dsl, options)`: compile and create a pipeline.
     fn create_runtime(&self, dsl: &str, options: &CompileOptions) -> Result<Pipeline, RenderError> {
-        let graph = self.compile_graph(dsl, options)?;
-        let mut pipeline = Pipeline::new(
-            graph,
-            self.device.backend(),
-            PipelineOptions {
+        create_runtime(
+            &self.device,
+            &self.registry,
+            dsl,
+            &RuntimeOptions {
+                width: self.width,
+                height: self.height,
+                shader_overrides: options.shader_overrides.clone(),
                 texture_pooling: self.texture_pooling,
                 effects: self.effects.clone(),
             },
-        );
-        pipeline.init(self.width as f64, self.height as f64)?;
-        Ok(pipeline)
-    }
-
-    /// `compileGraph(dsl, {shaderOverrides})`.
-    fn compile_graph(&self, dsl: &str, options: &CompileOptions) -> Result<Graph, RenderError> {
-        let value = compile_graph(
-            dsl,
-            &self.registry,
-            &DslCompileOptions {
-                shader_overrides: options.shader_overrides.clone(),
-            },
         )
-        .map_err(RenderError::Dsl)?;
-        Graph::from_value(&value).map_err(RenderError::Js)
     }
 
-    /// `recompile(pipeline, newSource, options)` (runtime/compiler.js): swap
-    /// the new graph into the pipeline, recreate its surfaces and textures,
-    /// restart its asyncInit and lifecycle effects. `None` when any step
-    /// fails (the reference logs and returns null).
+    /// `recompile(pipeline, newSource, options)`; `None` when it fails.
     fn recompile(
         &self,
         pipeline: &mut Pipeline,
         dsl: &str,
         options: &CompileOptions,
     ) -> Option<()> {
-        let result = (|| -> Result<(), RenderError> {
-            let graph = self.compile_graph(dsl, options)?;
-            pipeline.poll_async_effects()?;
-            pipeline.swap_graph(graph);
-            pipeline.create_surfaces()?;
-            let defaults = pipeline.collect_default_uniforms();
-            pipeline.recreate_textures(&defaults)?;
-            pipeline.init_async_effects()?;
-            pipeline.init_lifecycle_effects();
-            Ok(())
-        })();
-        match result {
-            Ok(()) => Some(()),
-            Err(e) => {
-                eprintln!("Recompilation failed: {e}");
-                None
-            }
-        }
+        recompile(pipeline, &self.registry, dsl, &options.shader_overrides).map(|_| ())
     }
 
     /// `compile(dsl, {shaderOverrides})`: the first program creates the
@@ -1303,5 +1597,45 @@ pub mod cube_export {
             height: h as u32,
             data,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // getFrameTimeStats() of the reference (Node) over the same frame times.
+    #[test]
+    fn frame_time_stats_match_the_reference() {
+        let mut times = FrameTimes::default();
+        assert_eq!(times.stats(), FrameTimeStats::default());
+        for ms in [16.6, 17.25, 15.9, 33.3, 16.0] {
+            times.record(ms);
+        }
+        assert_eq!(
+            times.stats(),
+            FrameTimeStats {
+                mean: 19.809999847412108,
+                std: 6.7622774262810585,
+                min: 15.899999618530273,
+                max: 33.29999923706055,
+                count: 5,
+            }
+        );
+        for i in 0..130 {
+            times.record(0.37 * f64::from(i) + 0.1);
+        }
+        assert_eq!(
+            times.stats(),
+            FrameTimeStats {
+                mean: 25.815000007549923,
+                std: 12.81673094559243,
+                min: 3.799999952316284,
+                max: 47.83000183105469,
+                count: 120,
+            }
+        );
+        times.reset();
+        assert_eq!(times.stats().count, 0);
     }
 }

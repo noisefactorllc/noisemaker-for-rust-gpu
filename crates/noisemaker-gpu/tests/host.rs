@@ -661,3 +661,77 @@ fn demo_host_control_changes_follow_the_page() {
     r.render(0.25).unwrap();
     assert!(output(r).chunks(4).any(|p| p[0] > 128), "the text is drawn");
 }
+
+/// A Portable generator: a solid color from its own WGSL, with a choice
+/// parameter and a parameter alias.
+fn portable_solid() -> Value {
+    Value::from_json(
+        r#"{
+            "namespace": "user", "func": "portableSolid", "name": "Portable Solid",
+            "globals": {
+                "level": {"type": "float", "default": 1, "uniform": "level"},
+                "channel": {"type": "int", "default": 0, "uniform": "channel",
+                            "choices": {"red": 0, "green": 1, "blue": 2}}
+            },
+            "paramAliases": {"amount": "level"},
+            "passes": [{"name": "main", "program": "main", "inputs": {}, "outputs": {"fragColor": "outputTex"}}],
+            "shaders": {"main": {"wgsl": "@group(0) @binding(0) var<uniform> level: f32;\n@group(0) @binding(1) var<uniform> channel: i32;\n@fragment fn main(@builtin(position) p: vec4<f32>) -> @location(0) vec4<f32> {\n  var c = vec3<f32>(0.0);\n  c[channel] = level;\n  return vec4<f32>(c, 1.0);\n}\n"}}
+        }"#,
+    )
+    .unwrap()
+}
+
+#[test]
+fn portable_effects_register_compile_and_render() {
+    let device = device();
+    let mut r = renderer(&device, 8);
+    let effect = r.register_portable_effect(&portable_solid()).unwrap();
+    assert_eq!(effect.id(), "user/portableSolid");
+    assert_eq!(
+        r.enums()
+            .get("user")
+            .get("portableSolid")
+            .get("channel")
+            .get("blue")
+            .get("value"),
+        &Value::Number(2.0)
+    );
+    // The shared catalog registry is untouched (copy on write).
+    assert!(REGISTRY.with(|reg| reg.get_effect("user.portableSolid").is_none()));
+    compile(
+        &mut r,
+        "search user\nportableSolid(amount: 0.5, channel: blue).write(o0)\nrender(o0)",
+    );
+    r.render(0.25).unwrap();
+    assert_eq!(&output(&mut r)[..4], &[0, 0, 128, 255]);
+    // A second registration of the name is rejected and changes nothing.
+    let err = r.register_portable_effect(&portable_solid()).unwrap_err();
+    assert!(
+        err.to_string()
+            .contains("user.portableSolid is already registered")
+    );
+}
+
+#[test]
+fn demo_host_resolves_registered_portable_effects() {
+    let device = device();
+    let mut host = DemoHost::new(renderer(&device, 8), DemoHostOptions::default());
+    host.register_portable_effect(&portable_solid()).unwrap();
+    host.rebuild_pipeline_from_dsl(
+        "search user\nportableSolid(level: 1, channel: green).write(o0)\nrender(o0)",
+        true,
+    )
+    .unwrap();
+    host.settle().unwrap();
+    let step = host.effect_parameter_values();
+    assert_eq!(
+        step.get_or_undefined("step_0").get("channel"),
+        &Value::Number(1.0)
+    );
+    host.set_control_value("step_0", "level", Value::Number(0.25))
+        .unwrap();
+    host.settle().unwrap();
+    let r = host.renderer_mut();
+    r.render(0.25).unwrap();
+    assert_eq!(&output(r)[..4], &[0, 64, 0, 255]);
+}

@@ -78,6 +78,14 @@ TIMED = {
 # groupings by program order, with it by expression depth, so the two engines
 # round the same WGSL differently. Neither option is reachable through wgpu's
 # public API.
+#
+# Visual inspection (2026-10-06, golden | candidate | diff for all 19 cases):
+# indistinguishable. The differences are scattered single pixels: 3-4 levels
+# along craquelure cell edges, 2 pixels on the landscapes, and isolated root
+# flips on Newton basin boundaries and in wormhole's noise field; no
+# structural, color or shape difference. Tolerated for now by operator
+# decision, pending a Metal compile-option fix (wgpu-hal); still reported as
+# NEAR, outside the published contract.
 _INVARIANCE_FMA = ("Metal FMA grouping differs under wgpu-hal's preserveInvariance "
                    "(Dawn compiles without it); exact once the pass compiles without invariance")
 _LANDSCAPE_FMA = ("ray-origin z fused as fma(fma(up.z, ty, right.z * tx), span, a) under "

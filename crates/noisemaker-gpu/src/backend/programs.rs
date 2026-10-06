@@ -147,23 +147,36 @@ impl WebGpuBackend {
         source: &str,
     ) -> Result<(wgpu::ShaderModule, ShaderReflection), RenderError> {
         let reflection = ShaderReflection::parse(source).map_err(|m| compile_error(id, m))?;
-        let (device_source, reflection) = match self
+        let lowered = self
             .tint_msl_lowering
-            .then(|| crate::lowering::lower_pow_to_powr(source, &reflection))
+            .then(|| crate::lowering::lower_for_tint_msl(source))
             .flatten()
-        {
-            Some(lowered) => match ShaderReflection::parse(&lowered) {
-                Ok(lowered_reflection) => (lowered, lowered_reflection),
-                Err(_) => (source.to_owned(), reflection),
-            },
-            None => (source.to_owned(), reflection),
+            .and_then(|l| ShaderReflection::parse(&l.source).ok().map(|r| (l, r)));
+        let (device_source, self_bounded, reflection) = match lowered {
+            Some((l, r)) => (l.source, l.self_bounded, r),
+            None => (source.to_owned(), false, reflection),
         };
-        let module = self
-            .device
-            .create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: Some(id),
-                source: wgpu::ShaderSource::Wgsl(device_source.into()),
-            });
+        let descriptor = wgpu::ShaderModuleDescriptor {
+            label: Some(id),
+            source: wgpu::ShaderSource::Wgsl(device_source.into()),
+        };
+        let module = if self_bounded {
+            // SAFETY: every loop of the lowered WGSL either passes Tint's
+            // finiteness analysis (a constant-bounded, unit-step integer
+            // index) or carries Tint's own loop counter, so none can run
+            // unbounded; every other runtime check stays on.
+            unsafe {
+                self.device.create_shader_module_trusted(
+                    descriptor,
+                    wgpu::ShaderRuntimeChecks {
+                        force_loop_bounding: false,
+                        ..wgpu::ShaderRuntimeChecks::checked()
+                    },
+                )
+            }
+        } else {
+            self.device.create_shader_module(descriptor)
+        };
         Ok((module, reflection))
     }
 

@@ -7,9 +7,8 @@
 //! `NM_HOST_GOLDENS` lists the minter output directories to check
 //! (separated by `:`); without it the test explains why and passes. Reports
 //! per fixture the pixels that differ, max-abs-diff and SSIM as
-//! `parity/compare.py` computes them, and asserts the measured bound of the
-//! canvas model (see the residual note in `src/canvas.rs`): the same drawn
-//! footprint, at most 0.1 % of drawn pixels different, SSIM >= 0.999.
+//! `parity/compare.py` computes them, and requires every overlay to be
+//! byte-identical to the reference's.
 
 use noisemaker_host::overlay::{JsValue, OverlayEffect, OverlayParams, render_async_overlay};
 use std::path::{Path, PathBuf};
@@ -103,10 +102,11 @@ fn overlays_match_the_reference_uploads() {
         names.sort();
         for name in names {
             let stem = name.trim_end_matches(".png");
-            let Some((program, texture)) = stem.split_once('.') else {
+            // `<program>.<nodeId>_overlayTex`; a program name may hold dots.
+            let Some((program, node)) = stem.rsplit_once(".node_") else {
                 continue;
             };
-            let node_id = texture.trim_end_matches("_overlayTex").to_owned();
+            let node_id = format!("node_{}", node.trim_end_matches("_overlayTex"));
             fixtures.push((
                 dir.join(&name),
                 dir.join(format!("{program}.graph.json")),
@@ -165,7 +165,7 @@ fn overlays_match_the_reference_uploads() {
             "overlay_raster: {label}: {differing} of {} px differ ({drawn} drawn), max-abs-diff {max_abs}, SSIM {ssim:.6}",
             w * h
         );
-        if footprint_mismatch > 0 || differing * 1000 > drawn.max(1) || ssim < 0.999 {
+        if footprint_mismatch > 0 || differing > 0 {
             failures.push(format!(
                 "{label}: footprint mismatch {footprint_mismatch}, {differing} differing of {drawn} drawn, SSIM {ssim}"
             ));

@@ -18,8 +18,8 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use noisemaker_dsl::{Object, Value};
-use noisemaker_host::canvas::StrokeCanvas;
 use noisemaker_host::overlay::{OverlayEffect, OverlayParams, run_async_init};
+use noisemaker_host::raster::RasterCanvas;
 use noisemaker_host::worm::TraceOutcome;
 
 use crate::hooks::{
@@ -149,7 +149,7 @@ fn overlay_param(value: &Value) -> noisemaker_host::js::JsValue {
 /// The asyncInit of filter/fibers, filter/scratches or filter/strayHair: a
 /// canvas of `context.width x context.height`, cleared and uploaded, then
 /// traced and uploaded as the reference uploads it (`flipY: true` of the
-/// canvas, i.e. [`StrokeCanvas::upload_image`]'s texture rows).
+/// canvas, i.e. [`RasterCanvas::upload_image`]'s texture rows).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct OverlayAsyncInit {
     pub effect: OverlayEffect,
@@ -165,13 +165,13 @@ impl AsyncInitEffect for OverlayAsyncInit {
             density: overlay_param(context.params().get_or_undefined("density")),
         };
         let context = RefCell::new(context);
-        let mut canvas = StrokeCanvas::new(width, height);
+        let mut canvas = RasterCanvas::new(width, height);
         let outcome = run_async_init(
             self.effect,
             &mut canvas,
             &params,
             &mut || context.borrow().is_cancelled(),
-            &mut |name, c: &mut StrokeCanvas| {
+            &mut |name, c: &mut RasterCanvas| {
                 let image = c.upload_image();
                 context.borrow_mut().update_texture(
                     name,

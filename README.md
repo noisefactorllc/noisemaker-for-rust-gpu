@@ -122,14 +122,12 @@ The 2729 cases are the shared fixture programs (`parity/programs`, 360), the gen
 Fresh sweep on 2026-10-07 (Apple M4, macOS 26.6.2):
 
 ```text
-PARITY-SUMMARY {"expected":2729,"executed":2729,"exact":2692,"strict":5,"near":0,"defer":0,"skip":0,"fail":15,"missing":0,"uninformative":17,"effects":210,"effects_evidenced":207}
+PARITY-SUMMARY {"expected":2729,"executed":2729,"exact":2707,"strict":5,"near":0,"defer":0,"skip":0,"fail":0,"missing":0,"uninformative":17,"effects":210,"effects_evidenced":210}
 ```
 
-2692 cases are exact. The 5 strict cases are the `text()` canvases, which the port rasterizes on the CPU where the reference draws on Chromium's canvas. Each differs from its golden by at most 1 level (SSIM 1.0 to five decimals), and each is exact when the port renders with the host textures the reference page produced (`parity/sweep.py --captured-host-inputs`). No case is near.
+2707 cases are exact. The 5 strict cases are the `text()` canvases, which the port rasterizes on the CPU where the reference draws on Chromium's GPU canvas. Each differs from its golden by at most 1 level (SSIM 1.0 to five decimals), and each is exact when the port renders with the host textures the reference page produced (`parity/sweep.py --captured-host-inputs`). No case is near or failing. The 17 uninformative cases (goldens without structure) are exact but excluded from the evidence. All 210 catalog effects have informative exact or strict evidence of their own.
 
-The 15 failing cases are every case of the three traced overlays, `fibers`, `scratches` and `strayHair`. The reference draws them on a canvas that requests `willReadFrequently`, which pins it to Chromium's software rasterizer, so every host draws the same overlay. The port's stroke model (`crates/noisemaker-host/src/canvas.rs`) reproduces the GPU rasterizer the reference used before that change (Skia Graphite on Metal). With the overlays the reference page produced, all 15 cases are exact, so the difference lies in the overlay rasterization alone. Until the port models the software rasterizer, these three effects have no informative exact or strict evidence; the other 207 catalog effects have their own.
-
-The 17 uninformative cases (goldens without structure) are exact but excluded from the evidence.
+The traced overlays of `fibers`, `scratches` and `strayHair` are drawn on a canvas that the reference pins to Chromium's software rasterizer. `crates/noisemaker-host/src/raster.rs` ports that rasterizer from Skia. Against overlays the reference uploaded, at 256, 512 and 1024 px, it is byte-exact on all 51 measured (`crates/noisemaker-host/tests/overlay_raster.rs`, with `NM_HOST_GOLDENS` naming minter output directories).
 
 ### The other gates
 
@@ -146,7 +144,7 @@ node scripts/test
 scripts/parity-summary
 ```
 
-Both clone the reference at the pinned commit when `NM_REFERENCE_ROOT` is unset; a checkout it names must be at the pinned commit. `scripts/parity-summary` installs Playwright 1.63.0 and its Chromium into that checkout, builds `target/release/nm-render` when it is missing (`NM_RENDER` names another binary), takes case ids to run a subset, and prints one `PARITY-SUMMARY` line. It exits 0 only when no case is near, failing, skipped or missing and every catalog effect has informative exact or strict evidence. The run above took 16 minutes on the Apple M4.
+Both clone the reference at the pinned commit when `NM_REFERENCE_ROOT` is unset; a checkout it names must be at the pinned commit. `scripts/parity-summary` installs Playwright 1.63.0 and its Chromium into that checkout, builds `target/release/nm-render` when it is missing (`NM_RENDER` names another binary), takes case ids to run a subset, and prints one `PARITY-SUMMARY` line. It exits 0 only when no case is near, failing, skipped or missing and every catalog effect has informative exact or strict evidence. The run above took 14 minutes on the Apple M4.
 
 ## Repository layout
 
@@ -178,6 +176,8 @@ These files are not covered by the MIT license:
 
 - `crates/noisemaker-effects/catalog/share/fonts/Nunito/Nunito-VariableFont_wght.ttf` is the Nunito font, Copyright 2014 The Nunito Project Authors, licensed under the SIL Open Font License 1.1 ([OFL.txt](crates/noisemaker-effects/catalog/share/fonts/Nunito/OFL.txt)). It is a copy of the reference demo's `demo/font/Nunito/`.
 - `crates/noisemaker-effects/catalog/share/img/testcard.png`, the default media image, is the Philips PM5544 test card, by Ebnz, modified by Tucvbif (Wikimedia Commons, File:Philips_PM5544.svg), CC BY 2.5; rasterized to 768×576 for the Noisemaker demo. It is a copy of the reference demo's `demo/shaders/img/testcard.png`.
+
+`crates/noisemaker-host/src/raster.rs` and `raster/fill.rs` port parts of Skia's CPU rasterizer (BSD 3-Clause; Google Inc., Google LLC and The Android Open Source Project). Skia's license text is at the top of `raster.rs`.
 
 On Apple targets the build compiles these into the binaries it links (`crates/noisemaker-tint/`):
 

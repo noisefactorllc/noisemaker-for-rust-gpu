@@ -18,9 +18,9 @@
 //! values, which [`render_async_overlay`] returns.
 
 use crate::Rgba8Image;
-use crate::canvas::StrokeCanvas;
 use crate::js;
 pub use crate::js::JsValue;
+use crate::raster::RasterCanvas;
 use crate::worm::{
     Canvas2d, SeededRng, TraceOutcome, WormBehavior, WormColor, WormTraceOptions, trace_worms,
 };
@@ -278,7 +278,7 @@ pub fn render_async_overlay(
 /// [`render_async_overlay`] with the reference's cancellation and
 /// progressive uploads: `is_cancelled` is polled before each layer and
 /// worm, and `on_update(name, canvas)` receives the canvas wherever the
-/// reference uploads it (convert with [`StrokeCanvas::upload_image`]).
+/// reference uploads it (convert with [`RasterCanvas::upload_image`]).
 /// Returns how the trace ended and the canvas as the texture receives it
 /// when the trace completes. A cancelled trace returns the canvas where it
 /// stopped; the reference no longer uploads it (its texture keeps the last
@@ -290,9 +290,9 @@ pub fn render_async_overlay_with(
     height: u32,
     params: &OverlayParams,
     is_cancelled: &mut dyn FnMut() -> bool,
-    on_update: &mut dyn FnMut(&str, &StrokeCanvas),
+    on_update: &mut dyn FnMut(&str, &RasterCanvas),
 ) -> (TraceOutcome, Rgba8Image) {
-    let mut canvas = StrokeCanvas::new(width, height);
+    let mut canvas = RasterCanvas::new(width, height);
     let outcome = run_async_init(effect, &mut canvas, params, is_cancelled, &mut |name, c| {
         on_update(name, c)
     });

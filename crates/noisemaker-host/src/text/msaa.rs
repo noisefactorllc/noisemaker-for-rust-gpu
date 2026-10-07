@@ -30,8 +30,28 @@
 //! coverage levels 0, 64, 128, 191 and 255 of white text, and coloured
 //! edges round as the resolve above.
 
-use crate::canvas::{snap_x, snap_y};
 use rustybuzz::ttf_parser;
+
+/// Rasterizer fixed point: 8 bits of subpixel precision.
+const SUBPIXEL: f64 = 256.0;
+
+/// Device coordinate -> NDC (Graphite's fused rtAdjust) -> viewport -> the
+/// 1/256 pixel grid, rounding half up.
+fn snap_x(x: f32, dimension: f32) -> i64 {
+    let scale = 2.0f32 / dimension;
+    let half = dimension * 0.5;
+    let ndc = x.mul_add(scale, -1.0);
+    let back = ndc.mul_add(half, half);
+    (back as f64 * SUBPIXEL + 0.5).floor() as i64
+}
+
+fn snap_y(y: f32, dimension: f32) -> i64 {
+    let scale = 2.0f32 / dimension;
+    let half = dimension * 0.5;
+    let ndc = y.mul_add(-scale, 1.0);
+    let back = (-ndc).mul_add(half, half);
+    (back as f64 * SUBPIXEL + 0.5).floor() as i64
+}
 
 /// `SkFont::kCanonicalTextSizeForPaths`: glyph paths are taken at this size.
 pub const PATH_STRIKE_SIZE: f32 = 64.0;

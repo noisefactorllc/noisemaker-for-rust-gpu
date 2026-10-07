@@ -6,12 +6,12 @@
 //!   256x256 RGBA32F textures `global_<meshId>_{positions,normals,uvs}`
 //!   (`obj::parse_obj`, `obj::pack_mesh`, `obj::builtin_mesh`). The f32
 //!   arrays are bit-identical to the reference's Float32Arrays.
-//! - [`worm`], [`overlay`] and [`canvas`]: the CPU worm tracer and the
-//!   asyncInit overlays of filter/fibers, filter/scratches and
+//! - [`worm`], [`overlay`], [`canvas`] and [`raster`]: the CPU worm tracer
+//!   and the asyncInit overlays of filter/fibers, filter/scratches and
 //!   filter/strayHair (`<nodeId>_overlayTex`, rgba8unorm, the render size;
 //!   `overlay::render_async_overlay`). The traced canvas operations are
-//!   identical to the reference's; the stroke rasterizer reproduces
-//!   Chromium's GPU canvas to within the residual documented in [`canvas`].
+//!   identical to the reference's, and [`raster`] rasterizes them as
+//!   Chromium's software canvas does.
 //! - [`text`]: the 2D-canvas text of filter/text (`textTex_step_<N>`,
 //!   rgba8unorm, `text::demo_canvas_size`; `text::render_text_canvas`),
 //!   with the fonts and glyph rasterization documented there.
@@ -28,6 +28,7 @@ pub mod canvas;
 pub mod js;
 pub mod obj;
 pub mod overlay;
+pub mod raster;
 pub mod text;
 pub mod worm;
 

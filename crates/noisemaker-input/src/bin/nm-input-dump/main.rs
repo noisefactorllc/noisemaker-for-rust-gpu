@@ -56,7 +56,6 @@ fn main() -> ExitCode {
             return ExitCode::from(2);
         }
     };
-    drop(emit);
     if let Err(error) = out.flush() {
         eprintln!("nm-input-dump: {error}");
         return ExitCode::FAILURE;

@@ -288,6 +288,34 @@ fn demo_host_loads_media_and_sets_its_size() {
 }
 
 #[test]
+fn rerunning_the_same_program_keeps_a_still_images_size() {
+    // Upstream 76308ab6: fromDsl resets imageSize to its default, and a still
+    // image is not uploaded again, so the demo puts the uploaded size back.
+    let device = device();
+    let r = renderer(&device, 8);
+    let mut host = DemoHost::new(
+        r,
+        DemoHostOptions {
+            default_media: Some(Rc::new(image(4, 2, [0, 255, 0, 255]))),
+            ..Default::default()
+        },
+    );
+    let dsl = "search synth\nmedia().write(o0)\nrender(o0)";
+    host.rebuild_pipeline_from_dsl(dsl, true).unwrap();
+    host.settle().unwrap();
+    host.rebuild_pipeline_from_dsl(dsl, true).unwrap();
+    host.settle().unwrap();
+    assert_eq!(
+        host.program_state().get_value("step_0", "imageSize"),
+        Value::from_json("[4, 2]").unwrap()
+    );
+    assert_eq!(
+        uniform(host.renderer_mut(), 0, "imageSize"),
+        Value::from_json("[4, 2]").unwrap()
+    );
+}
+
+#[test]
 fn demo_host_draws_text_canvases() {
     let device = device();
     let r = renderer(&device, 32);

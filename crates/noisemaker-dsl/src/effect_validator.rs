@@ -85,7 +85,13 @@ const PASS_KEYS: &[&str] = &[
     "uniforms",
     "inputs",
     "outputs",
+    "clear",
+    "samplerTypes",
 ];
+
+/// Sampler names the WebGPU backend creates; `pass.samplerTypes` picks one per
+/// sampled input. WebGL2 ignores the field.
+const SAMPLER_TYPES: &[&str] = &["default", "nearest", "repeat", "mipmap"];
 
 const TEXTURE_SPEC_KEYS: &[&str] = &[
     "width",
@@ -105,6 +111,7 @@ const CONDITION_CONTAINER_KEYS: &[&str] = &["runIf", "skipIf"];
 
 const DIM_KEYWORDS: &[&str] = &["screen", "auto", "input", "resolution"];
 
+/// Formats both backends resolve, in their two spellings.
 const FORMATS: &[&str] = &[
     "rgba16f",
     "rgba16float",
@@ -112,6 +119,12 @@ const FORMATS: &[&str] = &[
     "rgba8unorm",
     "rgba32f",
     "rgba32float",
+    "r8",
+    "r8unorm",
+    "r16f",
+    "r16float",
+    "r32f",
+    "r32float",
 ];
 
 const DRAW_MODES: &[&str] = &["points", "triangles", "billboards"];
@@ -696,7 +709,8 @@ fn check_layout_conflicts(
 }
 
 /// `validateEnabledBy(cond, errors, label, context)`: a global name, a
-/// `{param, op}` condition, or `{and: [...]}` / `{or: [...]}` groups.
+/// `{param, op}` condition, `{and: [...]}` / `{or: [...]}` groups, or
+/// `{not: condition}`.
 fn validate_enabled_by(cond: &Value, errors: &mut Errors, label: &str, context: &Context) {
     if let Value::String(name) = cond {
         if !context.has_global(cond) {
@@ -710,6 +724,16 @@ fn validate_enabled_by(cond: &Value, errors: &mut Errors, label: &str, context: 
         errors.push(format!(
             "{label}: \"enabledBy\" must be a global name or condition object"
         ));
+        return;
+    }
+    let not = at(cond, "not");
+    if !not.is_undefined() {
+        for key in keys(cond) {
+            if key != "not" {
+                errors.push(format!("{label}: unknown enabledBy field '{key}'"));
+            }
+        }
+        validate_enabled_by(&not, errors, label, context);
         return;
     }
     if !at(cond, "and").is_undefined() || !at(cond, "or").is_undefined() {
@@ -1334,6 +1358,27 @@ fn validate_pass(
             errors.push(format!(
                 "{label}: \"blend\" must be a boolean or [src, dst] factor strings"
             ));
+        }
+    }
+    let clear = at(pass, "clear");
+    if !clear.is_undefined() && !matches!(clear, Value::Bool(_)) {
+        errors.push(format!("{label}: \"clear\" must be a boolean"));
+    }
+    let sampler_types = at(pass, "samplerTypes");
+    if !sampler_types.is_undefined() {
+        if !is_obj(&sampler_types) {
+            errors.push(format!(
+                "{label}: \"samplerTypes\" must be an object mapping sampler names to sampler types"
+            ));
+        } else {
+            for (name, sampler_type) in entries(&sampler_types) {
+                if !includes(SAMPLER_TYPES, &sampler_type) {
+                    errors.push(format!(
+                        "{label}: samplerTypes '{name}' must be one of {}",
+                        SAMPLER_TYPES.join(", ")
+                    ));
+                }
+            }
         }
     }
     let workgroups = at(pass, "workgroups");

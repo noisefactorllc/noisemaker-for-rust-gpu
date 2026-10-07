@@ -6,10 +6,14 @@
 //! # The browser canvas
 //!
 //! The reference draws on an `HTMLCanvasElement` 2D context in Chromium.
-//! The canvas is GPU accelerated: Skia Graphite on Metal draws each stroked
-//! line segment of the tracer (one `moveTo`/`lineTo` with round caps per
-//! `stroke()`) as an `AnalyticRRectRenderStep` instance. [`StrokeCanvas`]
-//! models that pipeline exactly:
+//! Until reference 1.0.233 the canvas was GPU accelerated: Skia Graphite on
+//! Metal draws each stroked line segment of the tracer (one
+//! `moveTo`/`lineTo` with round caps per `stroke()`) as an
+//! `AnalyticRRectRenderStep` instance. Since 1.0.233 the overlays request
+//! `willReadFrequently`, which pins the canvas to Skia's software
+//! rasterizer; [`StrokeCanvas`] does not model that rasterizer yet, so its
+//! overlays no longer match the reference's. [`StrokeCanvas`] models the
+//! Graphite pipeline exactly:
 //!
 //! - Blink culls a stroke whose bounding box, outset by lineWidth / 2 and
 //!   rounded out, does not intersect the canvas (BaseRenderingContext2D

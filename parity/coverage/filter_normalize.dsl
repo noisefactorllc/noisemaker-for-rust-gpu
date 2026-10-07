@@ -1,3 +1,5 @@
-search synth, filter
-noise(seed: 1, scaleX: 50, scaleY: 50).normalize().write(o0)
-render(o0)
+search filter, synth
+
+pattern(type: dots, smoothness: 0.2, fgColor: #c08060, bgColor: #304050)
+  .normalize()
+  .write(o0)

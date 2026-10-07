@@ -392,6 +392,12 @@ impl PackScratch {
 pub fn single_uniform_data(value: &Value, type_decl: &str) -> Option<Vec<u8>> {
     let f32s = |v: &[f32]| v.iter().flat_map(|f| f.to_le_bytes()).collect::<Vec<u8>>();
     match value {
+        // A boolean bound to an f32 uniform is written as 1.0 or 0.0: the int
+        // bits of 1 read as an f32 are a denormal the GPU flushes to zero, so
+        // `x != 0.0` never held (filter/pixelSort's darkest).
+        Value::Bool(b) if type_decl != "i32" && type_decl != "u32" => {
+            Some((if *b { 1f32 } else { 0f32 }).to_le_bytes().to_vec())
+        }
         Value::Bool(b) => Some((*b as i32).to_le_bytes().to_vec()),
         Value::Number(n) => {
             if type_decl == "i32" || type_decl == "u32" {
@@ -591,6 +597,27 @@ mod tests {
         assert_eq!(
             single_uniform_data(&Value::Number(2.6), "i32").unwrap(),
             3i32.to_le_bytes()
+        );
+        // A boolean is an int for an i32/u32 uniform and a float otherwise.
+        assert_eq!(
+            single_uniform_data(&Value::Bool(true), "i32").unwrap(),
+            1i32.to_le_bytes()
+        );
+        assert_eq!(
+            single_uniform_data(&Value::Bool(true), "u32").unwrap(),
+            1i32.to_le_bytes()
+        );
+        assert_eq!(
+            single_uniform_data(&Value::Bool(true), "f32").unwrap(),
+            1f32.to_le_bytes()
+        );
+        assert_eq!(
+            single_uniform_data(&Value::Bool(false), "f32").unwrap(),
+            0f32.to_le_bytes()
+        );
+        assert_eq!(
+            single_uniform_data(&Value::Bool(true), "").unwrap(),
+            1f32.to_le_bytes()
         );
         assert_eq!(
             single_uniform_data(&Value::from_json("[1,2,3]").unwrap(), "vec3<f32>")

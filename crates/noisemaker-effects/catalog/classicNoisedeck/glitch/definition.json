@@ -40,7 +40,11 @@
       "max": 100,
       "ui": {
         "label": "width",
-        "control": "slider"
+        "control": "slider",
+        "enabledBy": {
+          "param": "glitchiness",
+          "gt": 0
+        }
       }
     },
     "yChonk": {
@@ -51,7 +55,11 @@
       "max": 100,
       "ui": {
         "label": "height",
-        "control": "slider"
+        "control": "slider",
+        "enabledBy": {
+          "param": "glitchiness",
+          "gt": 0
+        }
       }
     },
     "seed": {

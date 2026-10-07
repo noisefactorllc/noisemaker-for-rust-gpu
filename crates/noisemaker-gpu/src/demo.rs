@@ -106,6 +106,9 @@ pub struct MediaInput {
     pub texture_id: String,
     /// The image shown (`media.source`).
     pub source: Option<Rc<Rgba8Image>>,
+    /// The size the image was uploaded at (`media.size`), restored into
+    /// `imageSize` after a re-run that keeps the program's structure.
+    pub size: Option<[f64; 2]>,
     /// Which media section this is (a rebuilt control set makes new ones;
     /// a load started for an old one sets the old one's source).
     generation: u64,
@@ -514,6 +517,10 @@ impl DemoHost {
             return Ok(false);
         }
         self.state.from_dsl(dsl).map_err(Self::js)?;
+        // fromDsl resets imageSize to its default (programs never carry it),
+        // and a still image is not uploaded again, so put back each media
+        // step's uploaded size or the image stretches across the frame.
+        self.restore_media_sizes()?;
         Ok(true)
     }
 
@@ -651,6 +658,7 @@ impl DemoHost {
                     MediaInput {
                         texture_id,
                         source: None,
+                        size: None,
                         generation,
                     },
                 );
@@ -926,15 +934,49 @@ impl DemoHost {
             TextureUpdateOptions { flip_y: false },
         )?;
         if w > 0 && h > 0 {
+            let size = [w as f64, h as f64];
+            if let Some(media) = self.media_inputs.get_mut(&step_index) {
+                media.size = Some(size);
+            }
             self.state
                 .set_value(
                     &format!("step_{step_index}"),
                     "imageSize",
-                    Value::Array(vec![Value::Number(w as f64), Value::Number(h as f64)]),
+                    Value::Array(vec![Value::Number(size[0]), Value::Number(size[1])]),
                 )
                 .map_err(Self::js)?;
         }
         Ok(())
+    }
+
+    /// `_restoreMediaSizes()`: put each loaded media source's uploaded size
+    /// back into its step's `imageSize`.
+    fn restore_media_sizes(&mut self) -> Result<(), RenderError> {
+        let sizes: Vec<(usize, [f64; 2])> = self
+            .media_inputs
+            .iter()
+            .filter(|(_, media)| media.source.is_some())
+            .filter_map(|(step, media)| media.size.map(|size| (*step, size)))
+            .collect();
+        self.state
+            .batch(|state| {
+                for (step_index, size) in &sizes {
+                    let effect_key = format!("step_{step_index}");
+                    let reads_size = state
+                        .get_effect_def(&effect_key)
+                        .is_some_and(|def| def.get("globals").get("imageSize").is_truthy());
+                    if !reads_size {
+                        continue;
+                    }
+                    state.set_value(
+                        &effect_key,
+                        "imageSize",
+                        Value::Array(vec![Value::Number(size[0]), Value::Number(size[1])]),
+                    )?;
+                }
+                Ok(())
+            })
+            .map_err(Self::js)
     }
 
     /// A parameter control's change: `programState.setValue(stepKey,

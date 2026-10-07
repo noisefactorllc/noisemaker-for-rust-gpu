@@ -581,6 +581,59 @@ impl Pipeline {
         Ok(())
     }
 
+    /// `_regenAsyncForUniform(uniformName)`: run `checkAsyncRegen` for every
+    /// asyncInit node whose effect reads this uniform, with the node's current
+    /// param values.
+    fn regen_async_for_uniform(&mut self, uniform_name: &str) {
+        let mut seen = HashSet::new();
+        let mut regens = Vec::new();
+        for p in &self.graph.passes {
+            let node = pass::get(p, "nodeId");
+            let key = pass::get(p, "effectKey");
+            if !node.is_truthy() || !key.is_truthy() {
+                continue;
+            }
+            let node = to_js_string(node);
+            if seen.contains(&node) {
+                continue;
+            }
+            let key = to_js_string(key);
+            let Some(effect) = self.effects.get(&key) else {
+                continue;
+            };
+            if effect.async_init.is_none() {
+                continue;
+            }
+            let uniforms = pass::uniforms(p);
+            let mut params = Object::new();
+            let mut reads = false;
+            for (param_name, spec) in effect.globals.iter() {
+                let uniform = match spec.get("uniform") {
+                    v if v.is_truthy() => to_js_string(v),
+                    _ => param_name.clone(),
+                };
+                if uniform == uniform_name {
+                    reads = true;
+                }
+                let value = match uniforms.map(|u| u.get_or_undefined(&uniform)) {
+                    Some(v) if !v.is_nullish() => v,
+                    _ => self.global_uniforms.get_or_undefined(&uniform),
+                };
+                if !matches!(value, Value::Undefined) {
+                    params.insert(param_name.clone(), value.clone());
+                }
+            }
+            if !reads {
+                continue;
+            }
+            seen.insert(node.clone());
+            regens.push((node, key, params));
+        }
+        for (node, key, params) in regens {
+            self.check_async_regen(&node, &key, &params);
+        }
+    }
+
     /// `checkAsyncRegen(nodeId, effectKey, stepValues)`: schedule a debounced
     /// regeneration when a scalar parameter of an asyncInit effect changed.
     pub fn check_async_regen(&mut self, node_id: &str, effect_key: &str, step_values: &Object) {
@@ -689,6 +742,34 @@ impl Pipeline {
         else {
             return;
         };
+        // An automated param (oscillator, MIDI, audio) is a config object, not
+        // a number; an overlay drawn once cannot follow it, so it is drawn at
+        // the param's default rather than from NaN.
+        let mut params = params;
+        let globals = self
+            .effects
+            .get(effect_key)
+            .map(|e| e.globals.clone())
+            .unwrap_or_default();
+        for (param_name, spec) in globals.iter() {
+            if is_automation_value(params.get_or_undefined(param_name)) {
+                params.insert(param_name.clone(), spec.get("default").clone());
+            }
+        }
+        // Remember the scalar values this overlay is drawn from: a later
+        // checkAsyncRegen with the same values leaves it alone, and one with
+        // other values (a step value, a stale host value) redraws it.
+        let mut drawn = Object::new();
+        for (param_name, spec) in globals.iter() {
+            let value = match params.get_or_undefined(param_name) {
+                v if !v.is_nullish() => v,
+                _ => params.get_or_undefined(&to_js_string(spec.get("uniform"))),
+            };
+            if !value.is_nullish() && !matches!(value, Value::Object(_) | Value::Array(_)) {
+                drawn.insert(param_name.clone(), value.clone());
+            }
+        }
+        self.async_param_cache.insert(node_id.to_owned(), drawn);
         let cancelled = Arc::new(Mutex::new(false));
         let (sender, messages) = mpsc::channel();
         let mut context = WorkerContext {
@@ -1522,6 +1603,9 @@ impl Pipeline {
         let old_value = self.global_uniforms.get_or_undefined(name).clone();
         self.global_uniforms.insert(name, value.clone());
 
+        // The palette uniform itself is written too, as the UI parameter paths
+        // write it: an effect whose `palette` is an ordinary choice
+        // (filter/dither) reads only that.
         if name == "palette"
             && let Value::Number(index) = value
             && let Some(expanded) = noisemaker_dsl::palette::expand_palette(index)
@@ -1530,18 +1614,33 @@ impl Pipeline {
             for (u_name, u_value) in expanded {
                 self.set_uniform(&u_name, u_value)?;
             }
-            return Ok(());
         }
 
         let is_scoped = JsRegex::new(r"_node_\d+$", "").test(name)
             || JsRegex::new(r"_chain_\d+$", "").test(name);
         for p in self.graph.passes.iter_mut() {
+            let aliases = match pass::get(p, "uniformAliases") {
+                Value::Object(aliases) => Some(aliases.clone()),
+                _ => None,
+            };
             let Some(uniforms) = pass::uniforms_mut(p) else {
                 continue;
             };
             if uniforms.contains_key(name) && !is_automation_value(uniforms.get_or_undefined(name))
             {
                 uniforms.insert(name, value.clone());
+            }
+            // Shader uniforms the pass feeds from this parameter under another
+            // name (uniforms: { mixAmt: "mix" }), as the UI parameter paths do.
+            if let Some(aliases) = aliases {
+                for (shader_name, global_name) in aliases.iter() {
+                    if global_name.as_str() != Some(name)
+                        || is_automation_value(uniforms.get_or_undefined(shader_name))
+                    {
+                        continue;
+                    }
+                    uniforms.insert(shader_name.clone(), value.clone());
+                }
             }
             if !is_scoped {
                 let node_prefix = format!("{name}_node_");
@@ -1557,6 +1656,11 @@ impl Pipeline {
                 }
             }
         }
+
+        // An asyncInit effect (the fibers, scratches and strayHair CPU
+        // overlays) draws its overlay from its params: re-run it when one of
+        // them changes, as the UI parameter paths do through checkAsyncRegen.
+        self.regen_async_for_uniform(name);
 
         if !strict_equals(&old_value, &value)
             && let Some(textures) = &self.graph.textures

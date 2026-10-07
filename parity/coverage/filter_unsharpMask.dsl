@@ -1,3 +1,5 @@
-search synth, filter
-noise(seed: 1, scaleX: 50, scaleY: 50).unsharpMask().write(o0)
-render(o0)
+search filter, synth
+
+noise(scaleX: 20, scaleY: 20, octaves: 4)
+  .unsharpMask()
+  .write(o0)

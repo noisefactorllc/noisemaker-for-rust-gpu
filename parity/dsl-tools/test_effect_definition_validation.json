@@ -23569,6 +23569,4160 @@
      "globals"
     ]
    }
+  },
+  {
+   "id": "definition/pass-clear-sampler-types",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "rgba16f"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": "amount"
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      },
+      "clear": true,
+      "samplerTypes": {
+       "srcTex": "nearest",
+       "scratchTex": "mipmap"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/pass-clear-sampler-types-invalid",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "rgba16f"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": "amount"
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      },
+      "clear": "yes",
+      "samplerTypes": {
+       "srcTex": "bilinear"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/pass-clear-false-every-sampler-type",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "rgba16f"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": "amount"
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      },
+      "clear": false,
+      "samplerTypes": {
+       "a": "default",
+       "b": "nearest",
+       "c": "repeat",
+       "d": "mipmap"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/pass-clear-null",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "rgba16f"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": "amount"
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      },
+      "clear": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/pass-sampler-types-array",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "rgba16f"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": "amount"
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      },
+      "samplerTypes": [
+       "nearest"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/pass-sampler-types-string",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "rgba16f"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": "amount"
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      },
+      "samplerTypes": "nearest"
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/pass-sampler-types-non-string",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "rgba16f"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": "amount"
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      },
+      "samplerTypes": {
+       "a": 1,
+       "b": null,
+       "c": "NEAREST"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/enabled-by-not",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "rgba16f"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": {
+        "not": {
+         "param": "amount",
+         "gt": 0.5
+        }
+       }
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/enabled-by-not-unknown-global",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "rgba16f"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": {
+        "not": {
+         "param": "nope",
+         "gt": 0.5
+        }
+       }
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/enabled-by-not-extra-field",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "rgba16f"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": {
+        "not": "amount",
+        "param": "amount"
+       }
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/enabled-by-not-nested",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "rgba16f"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": {
+        "not": {
+         "and": [
+          "amount",
+          {
+           "not": "flag"
+          }
+         ]
+        }
+       }
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/enabled-by-not-null",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "rgba16f"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": {
+        "not": null
+       }
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/texture-format-r8",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "r8"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": "amount"
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/texture-format-r8unorm",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "r8unorm"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": "amount"
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/texture-format-r16f",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "r16f"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": "amount"
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/texture-format-r16float",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "r16float"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": "amount"
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/texture-format-r32f",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "r32f"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": "amount"
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/texture-format-r32float",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "r32float"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": "amount"
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "definition/texture-format-rg8",
+   "op": "validateEffectDefinition",
+   "definition": {
+    "name": "Validator Probe",
+    "namespace": "synth",
+    "func": "validatorProbe",
+    "description": "Used by the definition-validator tests",
+    "tags": [
+     "noise",
+     "util"
+    ],
+    "openCategories": [
+     "general"
+    ],
+    "defaultProgram": "search synth\nvalidatorProbe().write(o0)",
+    "hidden": false,
+    "uniformLayout": {
+     "resolution": {
+      "slot": 0,
+      "components": "xy"
+     },
+     "time": {
+      "slot": 0,
+      "components": "z"
+     }
+    },
+    "uniformLayouts": {
+     "alt": {
+      "amount": {
+       "slot": 0,
+       "components": "x"
+      }
+     }
+    },
+    "paramAliases": {
+     "amt": "amount"
+    },
+    "textures": {
+     "scratch": {
+      "width": 64,
+      "height": "100%",
+      "format": "rg8"
+     },
+     "scaled": {
+      "width": {
+       "param": "volumeSize",
+       "power": 2,
+       "default": 1024
+      },
+      "height": {
+       "screenDivide": "zoom",
+       "default": 8
+      }
+     }
+    },
+    "globals": {
+     "amount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "amount",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "zero": 0,
+      "ui": {
+       "label": "amount",
+       "control": "slider",
+       "category": "effect"
+      }
+     },
+     "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "define": "PROBE_MODE",
+      "choices": {
+       "off": 0,
+       "on": 1,
+       "Group:": null
+      },
+      "ui": {
+       "label": "mode",
+       "control": "dropdown",
+       "enabledBy": "amount"
+      }
+     },
+     "flag": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "flag",
+      "ui": {
+       "label": "flag",
+       "control": "checkbox",
+       "enabledBy": {
+        "param": "mode",
+        "eq": 1
+       }
+      }
+     },
+     "tint": {
+      "type": "color",
+      "default": [
+       1,
+       0,
+       0
+      ],
+      "uniform": "tint",
+      "ui": {
+       "label": "tint",
+       "control": "color"
+      }
+     },
+     "point": {
+      "type": "vec3",
+      "default": [
+       0,
+       0,
+       0
+      ],
+      "uniform": "point",
+      "min": [
+       -1,
+       -1,
+       -1
+      ],
+      "max": [
+       1,
+       1,
+       1
+      ],
+      "ui": {
+       "label": "point",
+       "control": "vector3",
+       "format": "x/y/z"
+      }
+     },
+     "table": {
+      "type": "int",
+      "default": 7,
+      "choices": {
+       "a": 7,
+       "b": 9
+      },
+      "ui": {
+       "label": "table",
+       "control": "dropdown",
+       "hidden": true
+      }
+     },
+     "surfaceIn": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "surfaceActive",
+      "ui": {
+       "label": "surface",
+       "control": false
+      }
+     }
+    },
+    "passes": [
+     {
+      "name": "render",
+      "program": "probe",
+      "type": "compute",
+      "drawMode": "points",
+      "count": "input",
+      "countUniform": "mode",
+      "repeat": 2,
+      "blend": [
+       "ONE",
+       "ONE_MINUS_SRC_ALPHA"
+      ],
+      "drawBuffers": 2,
+      "workgroups": [
+       8,
+       8,
+       1
+      ],
+      "viewport": {
+       "width": {
+        "param": "volumeSize",
+        "paramDefault": 64
+       },
+       "height": 32
+      },
+      "conditions": {
+       "runIf": [
+        {
+         "uniform": "mode",
+         "equals": 1
+        }
+       ],
+       "skipIf": [
+        {
+         "uniform": "flag",
+         "equals": false
+        }
+       ]
+      },
+      "uniforms": {
+       "amount": "amount",
+       "literal": 3
+      },
+      "inputs": {
+       "srcTex": "inputTex",
+       "scratchTex": "scratch",
+       "paramTex": "surfaceIn"
+      },
+      "outputs": {
+       "fragColor": "outputTex"
+      }
+     }
+    ]
+   }
   }
  ]
 }

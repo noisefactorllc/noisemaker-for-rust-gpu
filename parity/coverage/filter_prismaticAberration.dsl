@@ -1,5 +1,5 @@
 search filter, synth
 
-noise(ridges: true, colorMode: mono)
+noise(ridges: true)
 .prismaticAberration(modulate: true)
 .write(o0)

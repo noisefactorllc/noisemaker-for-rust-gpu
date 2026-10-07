@@ -12,6 +12,9 @@ pub fn mrt_format_bytes(format: &Value) -> u32 {
     match format.as_str() {
         Some("rgba32f") | Some("rgba32float") => 16,
         Some("rgba8") | Some("rgba8unorm") => 4,
+        Some("r32f") | Some("r32float") => 4,
+        Some("r16f") | Some("r16float") => 2,
+        Some("r8") | Some("r8unorm") => 1,
         _ => 8,
     }
 }
@@ -20,33 +23,34 @@ fn is_glsl_source(text: &Value) -> bool {
     matches!(text, Value::String(s) if s.contains("#version"))
 }
 
+// Each predicate selects the source exactly as its backend's compileProgram
+// does, then asks whether that source is in the backend's language: a backend
+// that selects source in the other language fails to compile it.
+
 fn is_wgsl_bucket(bucket: &Value) -> bool {
     if !bucket.is_truthy() {
         return false;
     }
+    // WebGPU resolveWGSLSource(): wgsl, then source, then a non-GLSL fragment.
     if bucket.get("wgsl").is_truthy() {
         return true;
     }
-    if bucket.get("source").is_truthy() && !is_glsl_source(bucket.get("source")) {
-        return true;
+    if bucket.get("source").is_truthy() {
+        return !is_glsl_source(bucket.get("source"));
     }
-    if bucket.get("fragment").is_truthy() && !is_glsl_source(bucket.get("fragment")) {
-        return true;
-    }
-    false
+    bucket.get("fragment").is_truthy() && !is_glsl_source(bucket.get("fragment"))
 }
 
 fn is_glsl_bucket(bucket: &Value) -> bool {
     if !bucket.is_truthy() {
         return false;
     }
-    if bucket.get("glsl").is_truthy()
-        || bucket.get("fragment").is_truthy()
-        || bucket.get("vertex").is_truthy()
-    {
-        return true;
+    // WebGL2 compileProgram(): source, then glsl, then fragment. A vertex
+    // shader alone is not a program source.
+    if bucket.get("source").is_truthy() {
+        return is_glsl_source(bucket.get("source"));
     }
-    bucket.get("source").is_truthy() && !is_wgsl_bucket(bucket)
+    bucket.get("glsl").is_truthy() || bucket.get("fragment").is_truthy()
 }
 
 /// One backend's verdict.
@@ -211,5 +215,49 @@ pub fn preflight_effect(
         },
         format_changes,
         clamps,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn bucket(json: &str) -> Value {
+        Value::from_json(json).unwrap()
+    }
+
+    #[test]
+    fn single_channel_formats_cost_their_own_bytes() {
+        for (format, bytes) in [
+            ("rgba32float", 16),
+            ("rgba8unorm", 4),
+            ("r32f", 4),
+            ("r32float", 4),
+            ("r16f", 2),
+            ("r16float", 2),
+            ("r8", 1),
+            ("r8unorm", 1),
+            ("rgba16float", 8),
+        ] {
+            assert_eq!(mrt_format_bytes(&Value::from(format)), bytes, "{format}");
+        }
+    }
+
+    #[test]
+    fn sources_are_judged_by_the_language_each_backend_selects() {
+        let glsl = r##""#version 300 es\nvoid main(){}""##;
+        // A vertex shader alone is not a WebGL2 program source.
+        assert!(!is_glsl_bucket(&bucket(r#"{"vertex":"v"}"#)));
+        // Generic source is selected first by both backends, then judged.
+        let generic_glsl = bucket(&format!(r#"{{"source":{glsl},"fragment":"f"}}"#));
+        assert!(is_glsl_bucket(&generic_glsl));
+        assert!(!is_wgsl_bucket(&generic_glsl));
+        let generic_wgsl = bucket(r#"{"source":"@fragment fn main() {}","glsl":"g"}"#);
+        assert!(!is_glsl_bucket(&generic_wgsl));
+        assert!(is_wgsl_bucket(&generic_wgsl));
+        // A GLSL fragment does not make a WGSL bucket; any fragment is GLSL's.
+        let fragment = bucket(&format!(r#"{{"fragment":{glsl}}}"#));
+        assert!(is_glsl_bucket(&fragment));
+        assert!(!is_wgsl_bucket(&fragment));
     }
 }

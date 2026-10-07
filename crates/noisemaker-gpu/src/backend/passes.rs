@@ -551,6 +551,11 @@ impl WebGpuBackend {
         for key in output_keys {
             let output_id = Self::resolve_output_id(outputs.get(key), state);
             let Some(tex) = self.texture_or_surface(&output_id, state) else {
+                let pass_id = match pass::get(pass, "id") {
+                    Value::Undefined | Value::Null => Value::Null,
+                    id => id.clone(),
+                };
+                self.record_missing_render_target("mrt", output_id, pass_id);
                 continue;
             };
             formats.push(tex.resolved_gpu_format());
@@ -1022,6 +1027,7 @@ impl WebGpuBackend {
             output_tex = self.textures.get(&to_js_string(output_id)).cloned();
         }
         let Some(output_tex) = output_tex else {
+            self.record_missing_render_target("copy-output", output_id.clone(), Value::Null);
             return Ok(());
         };
         let width = if state.screen_width != 0.0 {

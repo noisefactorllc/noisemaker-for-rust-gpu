@@ -6,6 +6,7 @@ use indexmap::IndexMap;
 
 use crate::error::JsError;
 use crate::expander::{js_values, member, starts_with};
+use crate::js::same_value_zero;
 use crate::value::{Object, Value};
 
 /// The pass interval during which a virtual texture is live:
@@ -117,10 +118,19 @@ pub fn allocate_resources(passes: &[Value]) -> Result<Object, JsError> {
             }
         }
 
-        // 2. Release inputs (last uses).
+        // 2. Release inputs (last uses). A pass may read one texture under
+        // several names (lighting's inputTex and heightMap); release it once
+        // (`new Set(Object.values(pass.inputs))`), or its slot is handed to two
+        // textures that are live together.
         let inputs = member(pass, "inputs")?;
         if inputs.is_truthy() {
+            let mut unique: Vec<Value> = Vec::new();
             for tex_id in js_values(inputs) {
+                if !unique.iter().any(|seen| same_value_zero(seen, &tex_id)) {
+                    unique.push(tex_id);
+                }
+            }
+            for tex_id in unique {
                 if starts_with(&tex_id, "texId", "global_")? {
                     continue;
                 }
@@ -171,6 +181,27 @@ mod tests {
             Value::Object(alloc).to_json().unwrap(),
             r#"{"a":"phys_0","b":"phys_1","c":"phys_0"}"#
         );
+    }
+
+    #[test]
+    fn a_texture_read_under_two_names_in_one_pass_is_released_once() {
+        // Upstream 8e583593: lighting reads the same texture as inputTex and
+        // heightMap. Releasing it once per name put its slot on the free list
+        // twice, so C and D, live together until the last pass, shared it.
+        let passes = vec![
+            pass(js!({}), js!({"out": "A"})),
+            pass(js!({"inputTex": "A", "heightMap": "A"}), js!({"out": "B"})),
+            pass(js!({"inputTex": "B"}), js!({"out": "C"})),
+            pass(js!({"inputTex": "B"}), js!({"out": "D"})),
+            pass(js!({"a": "C", "b": "D"}), js!({"out": "E"})),
+        ];
+        let alloc = allocate_resources(&passes).unwrap();
+        assert_eq!(
+            alloc.get("C"),
+            alloc.get("A"),
+            "C reuses the slot A released"
+        );
+        assert_ne!(alloc.get("D"), alloc.get("C"), "C and D are live together");
     }
 
     #[test]

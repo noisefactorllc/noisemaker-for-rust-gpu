@@ -33,14 +33,13 @@
     "colorMode": {
       "type": "int",
       "default": 0,
-      "uniform": "colorMode",
       "choices": {
         "mono": 0,
         "rgb": 1
       },
       "ui": {
         "label": "color mode",
-        "control": "dropdown"
+        "control": false
       }
     },
     "loopAOffset": {

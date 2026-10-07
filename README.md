@@ -119,13 +119,17 @@ The reference is the noisemaker repository at the commit pinned in `parity/refer
 
 The 2729 cases are the shared fixture programs (`parity/programs`, 360), the generated coverage corpus, every effect with its defaults and with each value of its choice parameters and each flipped boolean (`parity/coverage`, 1815), user-defined Portable effects (`parity/portable`, 2), the timed tier of every effect that evolves across frames (`parity/timed`, 169) and the sibling ports' author-curated programs (`parity/curated`, 383). Every catalog effect needs at least one informative exact or strict case of its own.
 
-Fresh sweep on 2026-10-06 (Apple M4, macOS 26.6.2):
+Fresh sweep on 2026-10-07 (Apple M4, macOS 26.6.2):
 
 ```text
-PARITY-SUMMARY {"expected":2729,"executed":2729,"exact":2702,"strict":10,"near":0,"defer":0,"skip":0,"fail":0,"missing":0,"uninformative":17,"effects":210,"effects_evidenced":210}
+PARITY-SUMMARY {"expected":2729,"executed":2729,"exact":2692,"strict":5,"near":0,"defer":0,"skip":0,"fail":15,"missing":0,"uninformative":17,"effects":210,"effects_evidenced":207}
 ```
 
-2702 cases are exact. The 10 strict cases are host inputs the port rasterizes on the CPU, where the reference draws on Chromium's canvas: five `text()` canvases and five `fibers()` overlays. Each differs from its golden by at most 1 level (SSIM 1.0 to five decimals), and each is exact when the port renders with the host textures the reference page produced (`parity/sweep.py --captured-host-inputs`). No case is near or failing. The 17 uninformative cases (goldens without structure) are exact but excluded from the evidence. All 210 catalog effects have informative exact or strict evidence of their own.
+2692 cases are exact. The 5 strict cases are the `text()` canvases, which the port rasterizes on the CPU where the reference draws on Chromium's canvas. Each differs from its golden by at most 1 level (SSIM 1.0 to five decimals), and each is exact when the port renders with the host textures the reference page produced (`parity/sweep.py --captured-host-inputs`). No case is near.
+
+The 15 failing cases are every case of the three traced overlays, `fibers`, `scratches` and `strayHair`. The reference draws them on a canvas that requests `willReadFrequently`, which pins it to Chromium's software rasterizer, so every host draws the same overlay. The port's stroke model (`crates/noisemaker-host/src/canvas.rs`) reproduces the GPU rasterizer the reference used before that change (Skia Graphite on Metal). With the overlays the reference page produced, all 15 cases are exact, so the difference lies in the overlay rasterization alone. Until the port models the software rasterizer, these three effects have no informative exact or strict evidence; the other 207 catalog effects have their own.
+
+The 17 uninformative cases (goldens without structure) are exact but excluded from the evidence.
 
 ### The other gates
 
@@ -138,7 +142,7 @@ node scripts/test
 scripts/parity-summary
 ```
 
-Both clone the reference at the pinned commit when `NM_REFERENCE_ROOT` is unset; a checkout it names must be at the pinned commit. `scripts/parity-summary` installs Playwright 1.63.0 and its Chromium into that checkout, builds `target/release/nm-render` when it is missing (`NM_RENDER` names another binary), takes case ids to run a subset, and prints one `PARITY-SUMMARY` line. It exits 0 only when no case is near, failing, skipped or missing and every catalog effect has informative exact or strict evidence. The run above took 8 minutes 17 seconds on the Apple M4.
+Both clone the reference at the pinned commit when `NM_REFERENCE_ROOT` is unset; a checkout it names must be at the pinned commit. `scripts/parity-summary` installs Playwright 1.63.0 and its Chromium into that checkout, builds `target/release/nm-render` when it is missing (`NM_RENDER` names another binary), takes case ids to run a subset, and prints one `PARITY-SUMMARY` line. It exits 0 only when no case is near, failing, skipped or missing and every catalog effect has informative exact or strict evidence. The run above took 16 minutes on the Apple M4.
 
 ## Repository layout
 

@@ -65,7 +65,11 @@
       "ui": {
         "label": "degree",
         "control": "slider",
-        "category": "fractal"
+        "category": "fractal",
+        "enabledBy": {
+          "param": "poi",
+          "eq": 0
+        }
       }
     },
     "relaxation": {
@@ -148,7 +152,11 @@
       "ui": {
         "label": "zoom speed",
         "control": "slider",
-        "category": "animation"
+        "category": "animation",
+        "enabledBy": {
+          "param": "zoomDepth",
+          "gt": 0
+        }
       }
     },
     "zoomDepth": {
@@ -176,7 +184,11 @@
       "ui": {
         "label": "degree speed",
         "control": "slider",
-        "category": "animation"
+        "category": "animation",
+        "enabledBy": {
+          "param": "poi",
+          "eq": 0
+        }
       }
     },
     "degreeRange": {
@@ -190,7 +202,11 @@
       "ui": {
         "label": "degree range",
         "control": "slider",
-        "category": "animation"
+        "category": "animation",
+        "enabledBy": {
+          "param": "poi",
+          "eq": 0
+        }
       }
     },
     "relaxSpeed": {

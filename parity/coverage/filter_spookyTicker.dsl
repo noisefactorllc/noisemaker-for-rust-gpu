@@ -1,5 +1,5 @@
 search filter, synth
 
-perlin()
+solid(color: #101820)
   .spookyTicker()
   .write(o0)

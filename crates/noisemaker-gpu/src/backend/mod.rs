@@ -20,7 +20,7 @@ mod textures;
 #[cfg(target_vendor = "apple")]
 mod tint;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
@@ -129,8 +129,10 @@ pub struct WebGpuBackend {
     /// `this.programs`.
     pub programs: HashMap<String, Rc<Program>>,
     pub capabilities: Capabilities,
-    /// Structured diagnostics (device validation errors).
+    /// Structured diagnostics (device validation errors, missing render targets).
     pub diagnostics: DiagnosticCollector,
+    /// `_warnedMissingRenderTargets`: the `kind|output|pass` keys recorded.
+    warned_missing_render_targets: HashSet<String>,
     samplers: HashMap<String, wgpu::Sampler>,
     storage_buffers: HashMap<String, wgpu::Buffer>,
     command_encoder: Option<wgpu::CommandEncoder>,
@@ -487,6 +489,7 @@ impl WebGpuBackend {
             programs: HashMap::new(),
             capabilities: Capabilities::default(),
             diagnostics: DiagnosticCollector::default(),
+            warned_missing_render_targets: HashSet::new(),
             samplers: HashMap::new(),
             storage_buffers: HashMap::new(),
             command_encoder: None,
@@ -637,6 +640,33 @@ impl WebGpuBackend {
         );
         self.dummy_texture_view = Some(dummy.create_view(&Default::default()));
         self.collect_device_errors();
+    }
+
+    /// `_recordMissingRenderTarget(kind, outputId, passId)`: record a missing
+    /// render target as a structured diagnostic, matching the WebGL2 backend,
+    /// once per `kind|output|pass` so per-frame rendering cannot grow it.
+    pub(crate) fn record_missing_render_target(
+        &mut self,
+        kind: &str,
+        output_id: Value,
+        pass_id: Value,
+    ) {
+        let key = format!(
+            "{kind}|{}|{}",
+            crate::jsv::to_js_string(&output_id),
+            crate::jsv::to_js_string(&pass_id)
+        );
+        if !self.warned_missing_render_targets.insert(key) {
+            return;
+        }
+        let mut record = Object::new();
+        record.insert("code", Value::from(codes::MISSING_RENDER_TARGET));
+        record.insert("backend", Value::from("webgpu"));
+        record.insert("stage", Value::from("render"));
+        record.insert("kind", Value::from(kind));
+        record.insert("pass", pass_id);
+        record.insert("output", output_id);
+        self.diagnostics.add(Value::Object(record));
     }
 
     /// Move device errors reported since the last call into the diagnostics

@@ -502,6 +502,11 @@ impl WebGpuBackend {
         {
             return texture.render_or_view().clone();
         }
+        let render_surface = match &state.render_surface {
+            Value::Undefined | Value::Null => Value::Null,
+            name => name.clone(),
+        };
+        self.record_missing_render_target("storage-surface", render_surface, Value::Null);
         let width = if state.screen_width != 0.0 {
             state.screen_width
         } else {

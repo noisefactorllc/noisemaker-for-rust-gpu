@@ -1,3 +1,5 @@
-search synth, filter
-noise(seed: 1, scaleX: 50, scaleY: 50).fxaa().write(o0)
-render(o0)
+search filter, synth
+
+pattern(type: stripes, scale: 10, rotation: 30, smoothness: 0.001, bgColor: #666666)
+  .fxaa()
+  .write(o0)

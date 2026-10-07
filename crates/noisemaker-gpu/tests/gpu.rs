@@ -227,6 +227,43 @@ fn shaders_without_bindings_take_the_legacy_bind_group() {
 }
 
 #[test]
+fn a_missing_mrt_target_is_recorded_once() {
+    // color1 names a texture the graph never declares: the pass draws the
+    // targets it has and records ERR_MISSING_RENDER_TARGET once, not per frame.
+    let src = r#"
+        @group(0) @binding(0) var<uniform> level: f32;
+        struct Out { @location(0) a: vec4<f32>, @location(1) b: vec4<f32>, }
+        @fragment fn main() -> Out {
+            var o: Out;
+            o.a = vec4<f32>(level, 0.0, 0.0, 1.0);
+            o.b = vec4<f32>(0.0, 1.0, 0.0, 1.0);
+            return o;
+        }"#;
+    let g = graph(
+        r#"[{"id":"p","program":"mrt","inputs":{},"outputs":{"color":"global_o0","color1":"absent"},"uniforms":{"level":1.0}}]"#,
+        &format!(r#"{{"mrt":{{"wgsl":{}}}}}"#, wgsl(src)),
+        "{}",
+    );
+    let (renderer, px) = render(g, 4, 3);
+    assert_eq!(&px[..4], &[255, 0, 0, 255]);
+    let missing: Vec<String> = renderer
+        .pipeline()
+        .backend
+        .diagnostics
+        .records
+        .iter()
+        .filter(|r| r.get("code").as_str() == Some("ERR_MISSING_RENDER_TARGET"))
+        .map(|r| r.to_json().unwrap())
+        .collect();
+    assert_eq!(
+        missing,
+        [
+            r#"{"code":"ERR_MISSING_RENDER_TARGET","backend":"webgpu","stage":"render","kind":"mrt","pass":"p","output":"absent"}"#
+        ]
+    );
+}
+
+#[test]
 fn compute_output_buffer_is_copied_to_the_output() {
     let src = r#"
         struct Params { width: f32, value: f32, _a: f32, _b: f32, }

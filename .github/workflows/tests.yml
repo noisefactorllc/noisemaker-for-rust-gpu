@@ -1,0 +1,58 @@
+name: Tests
+
+# The push gate: scripts/test on every push to main. It runs every check that
+# needs no GPU against the reference revision pinned in parity/reference.json:
+# the catalog, coverage-corpus and kit-list freshness gates, the Rust tests of
+# the GPU-free crates, and the frontend, DSL tooling, ProgramState, public API,
+# Portable, MIDI, audio and automation gates. The pixel parity sweep renders,
+# so it runs weekly in parity.yml. GitHub-hosted runners only: this public
+# repository never targets self-hosted runners.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "26"
+
+      # rust-toolchain.toml selects the stable channel with rustfmt and clippy;
+      # rustup installs it on the first cargo call.
+      - name: Rust toolchain
+        run: |
+          rustup show active-toolchain
+          rustc --version
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: tests-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml', 'Cargo.lock') }}
+          restore-keys: tests-${{ runner.os }}-
+
+      - name: rustfmt
+        run: cargo fmt --all --check
+
+      - name: scripts/test
+        run: node scripts/test

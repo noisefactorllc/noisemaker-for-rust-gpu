@@ -135,6 +135,10 @@ The 17 uninformative cases (goldens without structure) are exact but excluded fr
 
 `scripts/test` runs every check that needs no GPU, against the pinned reference: the catalog freshness gate, the freshness of the generated coverage corpus and of the export kit's effect list, the Rust tests of the GPU-free crates, and the parity gates of the frontend (tokens, AST, validated plans, expanded passes and render graph of every fixture), the DSL tooling, `ProgramState`, the public API, Portable effect registration, and the MIDI, audio and automation state.
 
+### Continuous integration
+
+`.github/workflows/tests.yml` runs `cargo fmt --all --check` and `scripts/test` on every push to `main`, on a GitHub-hosted Linux runner. `.github/workflows/parity.yml` runs `scripts/parity-summary` every Monday and on demand, never on push, on a GitHub-hosted Apple-silicon macOS runner, and keeps its log as an artifact.
+
 ### Reproducing
 
 ```sh

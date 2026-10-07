@@ -1,0 +1,68 @@
+name: Parity
+
+# The pixel parity sweep, weekly and on demand, never on push. scripts/parity-summary
+# mints every golden fresh with the reference engine's WebGPU backend in
+# Chromium, renders every case with nm-render on the same runner, grades them
+# (parity/sweep.py) and prints one PARITY-SUMMARY line; it exits nonzero when a
+# case is near, failing, skipped or missing. Both engines need a Metal GPU, so
+# the sweep runs on a GitHub-hosted Apple-silicon macOS runner: this public
+# repository never targets self-hosted runners. Its own concurrency group keeps
+# it apart from the push gate (tests.yml).
+
+on:
+  schedule:
+    - cron: "17 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: parity-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: macos-15
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "26"
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+
+      - name: Rust toolchain and GPU
+        run: |
+          rustup show active-toolchain
+          rustc --version
+          system_profiler SPDisplaysDataType
+
+      # The Tint build fetches the Dawn, Abseil and SPIRV-Headers sources that
+      # crates/noisemaker-tint/dawn.json pins into its cache.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/Library/Caches/noisemaker-tint
+          key: parity-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml', 'Cargo.lock', 'crates/noisemaker-tint/dawn.json') }}
+          restore-keys: parity-${{ runner.os }}-
+
+      - name: scripts/parity-summary
+        run: |
+          set -o pipefail
+          scripts/parity-summary 2>&1 | tee parity-summary.log
+
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: parity-summary
+          path: parity-summary.log
+          if-no-files-found: ignore

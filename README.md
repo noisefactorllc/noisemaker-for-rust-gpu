@@ -127,7 +127,9 @@ PARITY-SUMMARY {"expected":2729,"executed":2729,"exact":2707,"strict":5,"near":0
 
 2707 cases are exact. The 5 strict cases are the `text()` canvases, which the port rasterizes on the CPU where the reference draws on Chromium's GPU canvas. Each differs from its golden by at most 1 level (SSIM 1.0 to five decimals), and each is exact when the port renders with the host textures the reference page produced (`parity/sweep.py --captured-host-inputs`). No case is near or failing. The 17 uninformative cases (goldens without structure) are exact but excluded from the evidence. All 210 catalog effects have informative exact or strict evidence of their own.
 
-The traced overlays of `fibers`, `scratches` and `strayHair` are drawn on a canvas that the reference pins to Chromium's software rasterizer. `crates/noisemaker-host/src/raster.rs` ports that rasterizer from Skia. Against overlays the reference uploaded, at 256, 512 and 1024 px, it is byte-exact on all 51 measured (`crates/noisemaker-host/tests/overlay_raster.rs`, with `NM_HOST_GOLDENS` naming minter output directories).
+The traced overlays of `fibers`, `scratches` and `strayHair` are drawn on a canvas that the reference pins to Chromium's software rasterizer. `crates/noisemaker-host/src/raster.rs` ports that rasterizer from Skia. The reference reads those canvases back with `getImageData` before it uploads them, and the port converts them as Chromium does (`upload_read_back_rgba8`). Against overlays the reference uploaded, at 256, 512 and 1024 px, it is byte-exact on all 45 measured (`crates/noisemaker-host/tests/overlay_raster.rs`, with `NM_HOST_GOLDENS` naming minter output directories).
+
+WebGPU gates; WebGL2 is reported. The reference's WebGL2 backend is the upstream authority, and the reference requires its WebGPU backend to match it, but on some cases the two still differ. `NM_GOLDEN_BACKEND=webgl2 scripts/parity-summary` grades the same cases against goldens minted on the reference's WebGL2 backend. On the Apple M4 at the pinned commit, 1681 cases are exact, 865 strict, 14 uninformative and 169 failing, and 203 of the 210 effects keep informative evidence of their own. Each of the 169 failing candidates is byte-identical to the reference's own WebGPU output for its case, so every failure is a difference between the reference's two backends, not between the port and the reference. That run is a report, never a gate.
 
 ### The other gates
 
@@ -135,7 +137,7 @@ The traced overlays of `fibers`, `scratches` and `strayHair` are drawn on a canv
 
 ### Continuous integration
 
-`.github/workflows/tests.yml` runs `cargo fmt --all --check` and `scripts/test` on every push to `main`, on a GitHub-hosted Linux runner. `.github/workflows/parity.yml` runs `scripts/parity-summary` every Monday and on demand, never on push, on a GitHub-hosted Apple-silicon macOS runner, and keeps its log as an artifact.
+`.github/workflows/tests.yml` runs `cargo fmt --all --check` and `scripts/test` on every push to `main`, on a GitHub-hosted Linux runner. `.github/workflows/parity.yml` runs `scripts/parity-summary` every Monday and on demand, never on push, on a GitHub-hosted Apple-silicon macOS runner, and keeps its log as an artifact. A second step in the same job grades the cases against WebGL2 goldens and keeps that log as its own artifact; it cannot fail the job.
 
 ### Reproducing
 

@@ -8,6 +8,13 @@ name: Parity
 # the sweep runs on a GitHub-hosted Apple-silicon macOS runner: this public
 # repository never targets self-hosted runners. Its own concurrency group keeps
 # it apart from the push gate (tests.yml).
+#
+# WebGPU gates: the port renders the reference WGSL and equals the reference's
+# WebGPU output, so the gate isolates port regressions. The reference's WebGL2
+# output is reported, never gated: a second run grades the same cases against
+# WebGL2 goldens (NM_GOLDEN_BACKEND=webgl2) and keeps its log as an artifact.
+# Its failures are differences between the reference's own backends, which no
+# change to this port can resolve, so that step cannot fail the job.
 
 on:
   schedule:
@@ -65,4 +72,20 @@ jobs:
         with:
           name: parity-summary
           path: parity-summary.log
+          if-no-files-found: ignore
+
+      - name: WebGL2 grade (report, not a gate)
+        if: always()
+        continue-on-error: true
+        env:
+          NM_GOLDEN_BACKEND: webgl2
+        run: |
+          set -o pipefail
+          scripts/parity-summary 2>&1 | tee parity-webgl2.log
+
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: parity-webgl2
+          path: parity-webgl2.log
           if-no-files-found: ignore

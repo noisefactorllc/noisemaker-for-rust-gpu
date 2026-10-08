@@ -2,7 +2,8 @@
 # scripts/parity-summary [case-id ...]
 #
 # Renders the parity cases with this port and grades each against a golden minted
-# by the reference engine's WebGPU backend in the same run, then prints one line:
+# by the reference engine's WebGPU backend in the same run (its WebGL2 backend
+# with NM_GOLDEN_BACKEND=webgl2), then prints one line:
 #
 #   PARITY-SUMMARY {"expected":N,"executed":N,"exact":N,"strict":N,"near":N,"defer":N,"skip":N,"fail":N,"missing":N,"uninformative":N,"effects":N,"effects_evidenced":N}
 #
@@ -42,6 +43,10 @@
 #                      with cargo when absent)
 #   NM_REFERENCE_ROOT  reference checkout; when unset, the pinned revision of
 #                      parity/reference.json is cloned into parity/.cache
+#   NM_GOLDEN_BACKEND  the reference backend that mints the goldens: webgpu (the
+#                      gate, default) or webgl2 (the upstream report; the
+#                      reference's own WebGPU and WebGL2 output differ on some
+#                      cases, so this run is not a gate)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CASE_ARGS=("$@")
@@ -103,7 +108,8 @@ fi
 # ---- sweep + classification ---------------------------------------------------------
 LEDGER="$(mktemp -t nm-parity-summary.XXXXXX)"
 trap 'rm -f "$LEDGER" "$LEDGER.effects.json"' EXIT
-"$PY" "$ROOT/parity/sweep.py" --ledger "$LEDGER" ${CASE_ARGS[@]+"${CASE_ARGS[@]}"} >&2
+"$PY" "$ROOT/parity/sweep.py" --ledger "$LEDGER" --golden-backend "${NM_GOLDEN_BACKEND:-webgpu}" \
+  ${CASE_ARGS[@]+"${CASE_ARGS[@]}"} >&2
 "$PY" - "$LEDGER" ${CASE_ARGS[@]+"${CASE_ARGS[@]}"} <<'EOF'
 import json, os, sys
 rows = json.load(open(sys.argv[1]))

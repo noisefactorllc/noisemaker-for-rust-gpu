@@ -198,6 +198,14 @@
       "smoothing": {
         "slot": 1,
         "components": "y"
+      },
+      "tileOffset": {
+        "slot": 2,
+        "components": "xy"
+      },
+      "fullResolution": {
+        "slot": 2,
+        "components": "zw"
       }
     },
     "caFb": {

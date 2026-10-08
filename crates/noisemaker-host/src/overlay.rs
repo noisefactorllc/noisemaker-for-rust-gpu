@@ -265,7 +265,7 @@ pub fn run_async_init<C: Canvas2d + ?Sized>(
 
 /// The overlay texture `effect` uploads once its trace completes at
 /// `width` x `height`: the RGBA8 bytes of the reference's rgba8unorm
-/// texture, row 0 first (see [`crate::upload_canvas_rgba8`]).
+/// texture, row 0 first (see [`crate::upload_read_back_rgba8`]).
 pub fn render_async_overlay(
     effect: OverlayEffect,
     width: u32,

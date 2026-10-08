@@ -1208,10 +1208,11 @@ impl RasterCanvas {
         (&self.line_cap, &self.line_join)
     }
 
-    /// The texture the reference uploads from this canvas (see
-    /// [`crate::upload_canvas_rgba8`]).
+    /// The texture the reference uploads from this canvas, which the
+    /// overlays create with `willReadFrequently` (see
+    /// [`crate::upload_read_back_rgba8`]).
     pub fn upload_image(&self) -> Rgba8Image {
-        crate::upload_canvas_rgba8(&self.premultiplied(), self.width, self.height)
+        crate::upload_read_back_rgba8(&self.premultiplied(), self.width, self.height)
     }
 
     fn canvas_rect(&self) -> IRect {

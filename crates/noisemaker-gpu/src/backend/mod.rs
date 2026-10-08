@@ -430,11 +430,16 @@ impl GpuDevice {
             {
                 required_features |= wgpu::Features::FLOAT32_FILTERABLE;
             }
+            // The reference's requiredLimits: up to 128 color-attachment
+            // bytes per sample, and the adapter's full 2D texture size (the
+            // default 8192 would cap a 128^3 volume atlas, 128 x 16384, to
+            // 64^3).
             let mut required_limits = wgpu::Limits {
                 max_color_attachment_bytes_per_sample: adapter
                     .limits()
                     .max_color_attachment_bytes_per_sample
                     .min(128),
+                max_texture_dimension_2d: adapter.limits().max_texture_dimension_2d,
                 ..wgpu::Limits::default()
             };
             if shader_compiler == ShaderCompiler::Tint {

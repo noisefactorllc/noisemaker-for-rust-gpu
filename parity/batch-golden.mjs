@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-// batch-golden.mjs — mint reference goldens on the reference engine's WebGPU backend.
+// batch-golden.mjs — mint reference goldens on the reference engine's WebGPU backend
+// (--backend webgl2 mints them on its WebGL2 backend instead; the texture
+// probes, --dump-texture and --dump-passes, read WebGPU textures only).
 //
 // The golden of a fixture is the reference engine's own render of its DSL, in the
 // reference demo page (/demo/shaders/), on the WebGPU backend, read back from the
@@ -58,6 +60,7 @@
 //
 // Usage:
 //   NM_REFERENCE_ROOT=/path/to/noisemaker node parity/batch-golden.mjs <outDir> \
+//       [--backend webgpu|webgl2] \
 //       [--size 256] [--time 0.25] [--frames 8] [--chunk-size 60] \
 //       [--run-seconds N --sample-every S] [--run-frames N] \
 //       [--sample-every-frames K] [--sample-frames a,b,c] \
@@ -80,6 +83,11 @@ if (!process.env.NM_REFERENCE_ROOT) {
 }
 const REFERENCE_ROOT = resolve(process.env.NM_REFERENCE_ROOT)
 const HARNESS = join(REFERENCE_ROOT, 'vendor', 'shade-mcp', 'harness', 'index.js')
+
+// The reference backend the goldens are minted on (--backend), and the name
+// its getName() reports.
+const BACKEND_NAMES = { webgpu: 'WebGPU', webgl2: 'WebGL2' }
+let goldenBackend = 'webgpu'
 const EFFECTS_DIR = join(REFERENCE_ROOT, 'shaders', 'effects')
 const VIEWER_PATH = '/demo/shaders/'
 const GLOBALS_PREFIX = '__noisemaker'
@@ -157,6 +165,24 @@ async function capture (page, textureId = null) {
     }
     const tex = backend.textures?.get(id)
     if (!tex) return { error: `no texture ${id}` }
+    if (backend.getName?.() === 'WebGL2') {
+      // The WebGL2 backend's readPixels flips GL's rows. The protocol
+      // compares texture rows, which on WebGL2 are GL's rows (the same
+      // order as the WebGPU backend's texture rows), so undo the flip.
+      const px = backend.readPixels(id)
+      const rowBytes = px.width * 4
+      const rows = new Uint8Array(px.data.length)
+      for (let y = 0; y < px.height; y++) {
+        rows.set(px.data.subarray((px.height - 1 - y) * rowBytes, (px.height - y) * rowBytes), y * rowBytes)
+      }
+      const upload = await fetch(`/__nm_capture/${token}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/octet-stream' },
+        body: new Blob([rows])
+      })
+      if (upload.status !== 204) return { error: `capture upload failed (${upload.status})` }
+      return { width: px.width, height: px.height }
+    }
     const device = backend.device
     device.pushErrorScope('validation')
     let px
@@ -573,15 +599,15 @@ async function runDsl (page, src, expectedPassCount) {
     editor.dispatchEvent(new Event('input', { bubbles: true }))
     document.getElementById('dsl-run-btn').click()
   }, { src })
-  await page.waitForFunction(({ src, expectedPassCount }) => {
+  await page.waitForFunction(({ src, expectedPassCount, backendName }) => {
     const status = document.getElementById('status')?.textContent || ''
     if (/error|failed/i.test(status)) throw new Error('DSL compile failed: ' + status)
     const p = window.__noisemakerRenderingPipeline
     if (!(p && p.graph && p.graph.source === src.trim() && !p.isCompiling)) return false
-    if (p.backend?.getName?.() !== 'WebGPU') return false
+    if (p.backend?.getName?.() !== backendName) return false
     if (typeof expectedPassCount === 'number' && p.graph.passes?.length !== expectedPassCount) return false
     return /compiled/i.test(status)
-  }, { src, expectedPassCount }, { timeout: STATUS_TIMEOUT })
+  }, { src, expectedPassCount, backendName: BACKEND_NAMES[goldenBackend] }, { timeout: STATUS_TIMEOUT })
 }
 
 // Register a fixture's Portable effect with the page's renderer (once per
@@ -765,20 +791,29 @@ async function withSession (opts, fn) {
   process.env.SHADE_GLOBALS_PREFIX = GLOBALS_PREFIX
   process.env.SHADE_HEADLESS = process.env.SHADE_HEADLESS ?? '1'
   const { BrowserSession } = await import(pathToFileURL(HARNESS).href)
-  const session = new BrowserSession({ backend: 'webgpu' })
+  const session = new BrowserSession({ backend: opts.backend })
   await session.setup()
   try {
     const page = session.page
     await installCaptureRoute(page)
-    await session.setBackend('webgpu')
+    await session.setBackend(opts.backend)
     await page.setViewportSize({ width: opts.size, height: opts.size })
     await page.waitForFunction(() => !!document.getElementById('dsl-editor') && !!document.getElementById('dsl-run-btn'),
       null, { timeout: STATUS_TIMEOUT })
-    const adapter = await page.evaluate(async () => {
-      const a = await navigator.gpu?.requestAdapter()
-      return a ? `${a.info?.vendor} ${a.info?.architecture} ${a.info?.description}` : null
-    })
-    process.stderr.write(`[batch-golden] golden WebGPU adapter: ${adapter}\n`)
+    if (opts.backend === 'webgpu') {
+      const adapter = await page.evaluate(async () => {
+        const a = await navigator.gpu?.requestAdapter()
+        return a ? `${a.info?.vendor} ${a.info?.architecture} ${a.info?.description}` : null
+      })
+      process.stderr.write(`[batch-golden] golden WebGPU adapter: ${adapter}\n`)
+    } else {
+      const renderer = await page.evaluate(() => {
+        const gl = document.createElement('canvas').getContext('webgl2')
+        const info = gl?.getExtension('WEBGL_debug_renderer_info')
+        return gl ? (info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)) : null
+      })
+      process.stderr.write(`[batch-golden] golden WebGL2 renderer: ${renderer}\n`)
+    }
     return await fn(session, page)
   } finally {
     await session.teardown()
@@ -787,7 +822,7 @@ async function withSession (opts, fn) {
 
 function parseArgs (argv) {
   const opts = {
-    size: 256, time: 0.25, frames: 8, chunkSize: 60, list: null, runSeconds: 0, sampleEvery: 5,
+    backend: 'webgpu', size: 256, time: 0.25, frames: 8, chunkSize: 60, list: null, runSeconds: 0, sampleEvery: 5,
     runFrames: 0, sampleEveryFrames: 0, sampleFrames: [], dumpTextures: [], dumpPasses: false, dslPaths: []
   }
   const pos = []
@@ -796,6 +831,7 @@ function parseArgs (argv) {
     const a = argv[i]
     if (rest) { opts.dslPaths.push(a); continue }
     if (a === '--') rest = true
+    else if (a === '--backend') opts.backend = argv[++i]
     else if (a === '--size') opts.size = parseInt(argv[++i], 10)
     else if (a === '--time') opts.time = parseFloat(argv[++i])
     else if (a === '--frames') opts.frames = parseInt(argv[++i], 10)
@@ -817,8 +853,17 @@ function parseArgs (argv) {
 
 async function main () {
   const opts = parseArgs(process.argv.slice(2))
+  if (!(opts.backend in BACKEND_NAMES)) {
+    console.error(`[batch-golden] --backend must be one of ${Object.keys(BACKEND_NAMES).join(', ')}`)
+    process.exit(2)
+  }
+  if (opts.backend !== 'webgpu' && (opts.dumpTextures.length || opts.dumpPasses)) {
+    console.error('[batch-golden] --dump-texture and --dump-passes read WebGPU textures; use --backend webgpu')
+    process.exit(2)
+  }
+  goldenBackend = opts.backend
   if (!opts.outDir) {
-    console.error('usage: node parity/batch-golden.mjs <outDir> [--size 256] [--time 0.25] [--frames 8] ' +
+    console.error('usage: node parity/batch-golden.mjs <outDir> [--backend webgpu|webgl2] [--size 256] [--time 0.25] [--frames 8] ' +
       '[--chunk-size 60] [--run-seconds N --sample-every S] [--run-frames N] [--sample-every-frames K] ' +
       '[--sample-frames a,b,c] [--dump-texture ID ...] [--dump-passes] [--list names.txt] [--] prog.dsl...')
     process.exit(2)

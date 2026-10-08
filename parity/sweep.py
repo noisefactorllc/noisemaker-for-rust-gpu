@@ -61,7 +61,7 @@ parity/curated/sources.json); a case id is the file stem. One run:
 Usage:
   NM_REFERENCE_ROOT=/path/to/noisemaker python3 parity/sweep.py [case-id ...]
       [--captured-host-inputs | --from-graph] [--skip-mint] [--skip-render]
-      [--chunk 60] [--out DIR] [--golden-dir DIR]
+      [--chunk 60] [--out DIR] [--golden-dir DIR] [--golden-backend webgpu|webgl2]
 
 Env: NM_RENDER (candidate binary, default target/release/nm-render).
 Exit 0 iff no case is near, failing or missing and every catalog effect has
@@ -81,6 +81,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "parity" / "out"
+GOLDEN_BACKEND = "webgpu"
 SIZE = 256
 TIME = 0.25
 FRAMES = 8
@@ -277,6 +278,7 @@ def mint(cases, chunk, schedules):
         listing = OUT / "mint-list.txt"
         listing.write_text("\n".join(single) + "\n")
         rc |= subprocess.call(["node", str(ROOT / "parity" / "batch-golden.mjs"), str(OUT),
+                               "--backend", GOLDEN_BACKEND,
                                "--size", str(SIZE), "--time", str(TIME), "--frames", str(FRAMES),
                                "--chunk-size", str(chunk), "--list", str(listing)])
     # One minter run per distinct timed schedule.
@@ -289,6 +291,7 @@ def mint(cases, chunk, schedules):
         listing = OUT / f"mint-list-timed-{n}.txt"
         listing.write_text("\n".join(paths) + "\n")
         rc |= subprocess.call(["node", str(ROOT / "parity" / "batch-golden.mjs"), str(OUT),
+                               "--backend", GOLDEN_BACKEND,
                                "--size", str(SIZE), "--chunk-size", str(chunk), "--list", str(listing)]
                               + schedule_args(json.loads(key)))
     return rc
@@ -457,9 +460,12 @@ def main():
     ap.add_argument("--skip-mint", action="store_true", help="grade against goldens already in parity/out (development only)")
     ap.add_argument("--skip-render", action="store_true", help="grade candidates already in parity/out (development only)")
     ap.add_argument("--chunk", type=int, default=60)
+    ap.add_argument("--golden-backend", choices=("webgpu", "webgl2"), default="webgpu",
+                    help="the reference backend that mints the goldens (default webgpu)")
     ap.add_argument("--ledger", default=None, help="ledger path (default <out>/ledger.json)")
     args = ap.parse_args()
-    global OUT
+    global OUT, GOLDEN_BACKEND
+    GOLDEN_BACKEND = args.golden_backend
     if args.out:
         OUT = Path(args.out).resolve()
     if args.ledger is None:

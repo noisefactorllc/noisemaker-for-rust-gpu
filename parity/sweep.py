@@ -4,8 +4,8 @@
 Cases are parity/programs/*.dsl (the shared fixture pool), parity/coverage/*.dsl
 (the generated effect x mode corpus), parity/portable/*.dsl (user-defined
 Portable effects: each registers its <id>.portable.json sidecar, WGSL in
-<id>.<program>.wgsl, before its program runs, in the golden page and in the
-candidate), parity/timed/*.dsl (the timed tier, generated with the coverage
+<id>.<program>.wgsl and GLSL in <id>.<program>.glsl, before its program runs,
+in the golden page and in the candidate), parity/timed/*.dsl (the timed tier, generated with the coverage
 corpus: every effect that evolves across frames, every oscillator kind and every
 shared or curated program running a stateful, particle or simulation effect,
 rendered with the timed protocol of parity/timed/manifest.json) and

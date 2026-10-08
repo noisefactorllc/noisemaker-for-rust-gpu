@@ -131,8 +131,8 @@ enum Command {
         #[arg(long)]
         graph_out: Option<PathBuf>,
         /// A Portable effect definition registered before the program loads
-        /// (default for --dsl: the .portable.json next to it, its WGSL in
-        /// <name>.<program>.wgsl files beside it)
+        /// (default for --dsl: the .portable.json next to it, its WGSL and
+        /// GLSL in <name>.<program>.wgsl and .glsl files beside it)
         #[arg(long, requires = "dsl")]
         portable: Option<PathBuf>,
         /// Timed mode: seconds to run, stepping render(((frame + 1) / 600) % 1)

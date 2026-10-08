@@ -38,8 +38,9 @@
 //! minter does in the reference page (`CanvasRenderer.setMidiState()`, then
 //! `MidiState.handleMessage`): the deterministic stand-in for a MIDI device.
 //!
-//! A DSL fixture with a Portable sidecar (`<name>.portable.json`, its WGSL in
-//! `<name>.<program>.wgsl` files beside it; [`load_portable_definition`])
+//! A DSL fixture with a Portable sidecar (`<name>.portable.json`, its WGSL and
+//! GLSL in `<name>.<program>.wgsl` and `.glsl` files beside it;
+//! [`load_portable_definition`])
 //! registers that user effect on the page's renderer before the program
 //! loads, as the minter registers it in the reference page.
 //!
@@ -849,8 +850,9 @@ pub fn portable_definition_path(dsl: &Path, portable: Option<&Path>) -> Option<P
 }
 
 /// Read a Portable definition (`<name>.portable.json`) and attach its shader
-/// sources: each pass program `P` whose `shaders[P]` has no `wgsl` source
-/// takes the file `<name>.P.wgsl` beside the definition, when it exists.
+/// sources: each pass program `P` whose `shaders[P]` has no `wgsl` (or
+/// `glsl`) source takes the file `<name>.P.wgsl` (or `<name>.P.glsl`)
+/// beside the definition, when it exists.
 /// The result is what `registerPortableEffect` takes.
 pub fn load_portable_definition(path: &Path) -> Result<Value, String> {
     let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
@@ -871,16 +873,18 @@ pub fn load_portable_definition(path: &Path) -> Result<Value, String> {
         return Ok(def);
     };
     for program in programs {
-        let wgsl = path.with_file_name(format!("{name}.{program}.wgsl"));
-        if !wgsl.exists() {
-            continue;
-        }
-        let shaders = fields.object_entry("shaders");
-        let bucket = shaders.object_entry(&program);
-        if bucket.get("wgsl").is_none_or(Value::is_undefined) {
-            let source =
-                std::fs::read_to_string(&wgsl).map_err(|e| format!("{}: {e}", wgsl.display()))?;
-            bucket.insert("wgsl", Value::from(source));
+        for language in ["wgsl", "glsl"] {
+            let file = path.with_file_name(format!("{name}.{program}.{language}"));
+            if !file.exists() {
+                continue;
+            }
+            let shaders = fields.object_entry("shaders");
+            let bucket = shaders.object_entry(&program);
+            if bucket.get(language).is_none_or(Value::is_undefined) {
+                let source = std::fs::read_to_string(&file)
+                    .map_err(|e| format!("{}: {e}", file.display()))?;
+                bucket.insert(language, Value::from(source));
+            }
         }
     }
     Ok(def)

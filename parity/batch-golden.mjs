@@ -9,10 +9,11 @@
 // a chunk of fixtures; each fixture runs this protocol:
 //
 //   1. pause the demo's render loop, pin the canvas and pipeline to SIZE x SIZE;
-//   1b. a fixture with a Portable sidecar (<name>.portable.json, its WGSL in
-//      <name>.<program>.wgsl; tools/portable.mjs) registers that user effect
-//      with the page's CanvasRenderer.registerPortableEffect (and in the Node
-//      realm that predicts the pass count) before its DSL loads;
+//   1b. a fixture with a Portable sidecar (<name>.portable.json, its WGSL and
+//      GLSL in <name>.<program>.wgsl and .glsl; tools/portable.mjs) registers
+//      that user effect with the page's CanvasRenderer.registerPortableEffect
+//      (and in the Node realm that predicts the pass count) before its DSL
+//      loads;
 //   2. load the DSL through the demo's editor and run button, wait until the
 //      pipeline runs exactly that source (graph.source, pass count from the
 //      reference compileGraph, compilation finished, WebGPU backend);

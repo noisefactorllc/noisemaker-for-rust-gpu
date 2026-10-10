@@ -62,6 +62,9 @@ jobs:
           key: parity-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml', 'Cargo.lock', 'crates/noisemaker-tint/dawn.json') }}
           restore-keys: parity-${{ runner.os }}-
 
+      - name: GPU host and render CLI regression tests
+        run: cargo test --release -p noisemaker-for-rust-gpu -p nm-render -- --test-threads=1
+
       - name: scripts/parity-summary
         run: |
           set -o pipefail

@@ -332,7 +332,9 @@ impl WebGpuBackend {
 
     /// `destroyTexture(id)`.
     pub fn destroy_texture(&mut self, id: &str) {
-        if let Some(record) = self.textures.shift_remove(id) {
+        if let Some(record) = self.textures.shift_remove(id)
+            && self.resource_checkpoint.is_none()
+        {
             record.handle.destroy();
         }
     }

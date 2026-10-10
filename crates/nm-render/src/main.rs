@@ -638,6 +638,8 @@ fn animate(args: AnimateArgs) -> Result<(), Failure> {
         .arg(number_to_string(args.fps))
         .arg("-i")
         .arg(&pattern)
+        .arg("-frames:v")
+        .arg(report.frames.len().to_string())
         // yuv420p needs even dimensions.
         .arg("-vf")
         .arg("pad=ceil(iw/2)*2:ceil(ih/2)*2")

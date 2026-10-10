@@ -419,11 +419,12 @@ pub struct MeshPlan {
 }
 
 /// `meshPlan(graph, dslPath)`: `None` when the graph reads no mesh and there
-/// is no sidecar.
-pub fn mesh_plan(graph: &Graph, obj: Option<&Path>) -> Option<MeshPlan> {
+/// is no sidecar. A supplied path must be readable; only an absent optional
+/// sidecar is represented by `None`.
+pub fn mesh_plan(graph: &Graph, obj: Option<&Path>) -> Result<Option<MeshPlan>, String> {
     let obj_text = obj
-        .filter(|p| p.exists())
-        .and_then(|p| std::fs::read(p).ok())
+        .map(|p| std::fs::read(p).map_err(|e| format!("{}: {e}", p.display())))
+        .transpose()?
         .map(|bytes| String::from_utf8_lossy(&bytes).into_owned());
     let mesh_input = JsRegex::new(MESH_TEXTURE_INPUT, "");
     let reads_mesh = graph.passes.iter().any(|p| {
@@ -434,7 +435,7 @@ pub fn mesh_plan(graph: &Graph, obj: Option<&Path>) -> Option<MeshPlan> {
         })
     });
     if !reads_mesh && obj_text.is_none() {
-        return None;
+        return Ok(None);
     }
     let mut builtins = Vec::new();
     let mut seen = HashSet::new();
@@ -464,7 +465,7 @@ pub fn mesh_plan(graph: &Graph, obj: Option<&Path>) -> Option<MeshPlan> {
             builtins.push((to_js_string(external), to_js_string(first)));
         }
     }
-    Some(MeshPlan { builtins, obj_text })
+    Ok(Some(MeshPlan { builtins, obj_text }))
 }
 
 impl MeshPlan {
@@ -832,7 +833,13 @@ fn sidecar(spec: &FixtureSpec) -> Option<PathBuf> {
 }
 
 fn dsl_sidecar(dsl: &Path, obj: Option<&Path>) -> Option<PathBuf> {
-    Some(obj.map_or_else(|| dsl.with_extension("obj"), Path::to_path_buf))
+    match obj {
+        Some(path) => Some(path.to_path_buf()),
+        None => {
+            let path = dsl.with_extension("obj");
+            path.exists().then_some(path)
+        }
+    }
 }
 
 /// The Portable sidecar of a DSL program: `<dsl without .dsl>.portable.json`.
@@ -1040,7 +1047,7 @@ fn load_dsl(
         .graph
         .clone();
     // applyMeshPlan: the minter loads through the page's renderer.
-    if let Some(plan) = mesh_plan(&graph, obj) {
+    if let Some(plan) = mesh_plan(&graph, obj)? {
         let mut results = Vec::new();
         for (mesh_id, path) in &plan.builtins {
             results.push(renderer.load_builtin_mesh(path, mesh_id));
@@ -1141,7 +1148,7 @@ pub fn run_fixture(
     let mut report = FixtureReport::default();
     let result = (|| -> Result<(), String> {
         let pipeline = renderer.pipeline_mut();
-        if let Some(plan) = mesh_plan(&pipeline.graph, sidecar(spec).as_deref()) {
+        if let Some(plan) = mesh_plan(&pipeline.graph, sidecar(spec).as_deref())? {
             for (mesh_id, mesh) in plan.loads()? {
                 pipeline.backend.upload_mesh_data(
                     &mesh_id,
@@ -1243,11 +1250,16 @@ pub fn frame_time(index: u32, fps: f64, loop_seconds: f64) -> f64 {
 }
 
 /// Render an animation on `device`.
+/// Existing numbered frames are rejected before writing anything, so an
+/// earlier export cannot be mixed with or overwritten by a new sequence.
 pub fn run_animation(
     device: &GpuDevice,
     spec: &AnimationSpec,
     context: &ProtocolContext,
 ) -> Result<AnimationReport, String> {
+    if spec.frames == 0 {
+        return Err("frames must be greater than zero".into());
+    }
     if !(spec.fps > 0.0 && spec.fps.is_finite()) {
         return Err(format!("fps must be positive, got {}", spec.fps));
     }
@@ -1259,6 +1271,28 @@ pub fn run_animation(
     }
     let text =
         std::fs::read_to_string(&spec.dsl).map_err(|e| format!("{}: {e}", spec.dsl.display()))?;
+    match std::fs::read_dir(&spec.out_dir) {
+        Ok(entries) => {
+            for entry in entries {
+                let entry = entry.map_err(|e| format!("{}: {e}", spec.out_dir.display()))?;
+                let name = entry.file_name();
+                let is_frame = name
+                    .to_str()
+                    .and_then(|s| s.strip_prefix("frame_"))
+                    .and_then(|s| s.strip_suffix(".png"))
+                    .is_some_and(|s| s.len() >= 5 && s.bytes().all(|b| b.is_ascii_digit()));
+                if is_frame {
+                    return Err(format!(
+                        "{} already contains {}; choose a new output directory for this animation",
+                        spec.out_dir.display(),
+                        name.to_string_lossy()
+                    ));
+                }
+            }
+        }
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+        Err(e) => return Err(format!("{}: {e}", spec.out_dir.display())),
+    }
     std::fs::create_dir_all(&spec.out_dir)
         .map_err(|e| format!("{}: {e}", spec.out_dir.display()))?;
     let mut host = demo_host(device, spec.width, spec.height, context);

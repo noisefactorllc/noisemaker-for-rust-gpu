@@ -78,11 +78,7 @@ import { deflateSync } from 'node:zlib'
 import { loadPortableDefinition, portableSidecar } from '../tools/portable.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-if (!process.env.NM_REFERENCE_ROOT) {
-  console.error('NM_REFERENCE_ROOT is not set; point it at a checkout of the noisemaker reference repository')
-  process.exit(2)
-}
-const REFERENCE_ROOT = resolve(process.env.NM_REFERENCE_ROOT)
+const REFERENCE_ROOT = resolve(process.env.NM_REFERENCE_ROOT || '.')
 const HARNESS = join(REFERENCE_ROOT, 'vendor', 'shade-mcp', 'harness', 'index.js')
 
 // The reference backend the goldens are minted on (--backend), and the name
@@ -879,6 +875,22 @@ async function main () {
     process.exit(2)
   }
 
+  // Clear all selected fixtures before reference imports or browser setup can
+  // fail. A previous run's graph, samples or host inputs are never evidence.
+  const clearFixture = (programName) => {
+    for (const file of readdirSync(opts.outDir)) {
+      if (file.startsWith(`${programName}.`) && !file.startsWith(`${programName}.candidate`) &&
+          (/\.(png|bin)$|\.passes\.json$/.test(file) || file === `${programName}.graph.json`)) {
+        unlinkSync(join(opts.outDir, file))
+      }
+    }
+  }
+  for (const dslPath of dslPaths) clearFixture(basename(dslPath, '.dsl'))
+  if (!process.env.NM_REFERENCE_ROOT) {
+    console.error('NM_REFERENCE_ROOT is not set; point it at a checkout of the noisemaker reference repository')
+    process.exit(2)
+  }
+
   // Expected pass counts come from the reference compileGraph, run in Node.
   const { bootstrapReference } = await import(pathToFileURL(join(ROOT, 'tools', 'reference-oracle.mjs')).href)
   const ref = await bootstrapReference()
@@ -920,12 +932,10 @@ async function main () {
               const programName = basename(dslPath).replace(/\.dsl$/, '')
               const t0 = Date.now()
               try {
+                clearFixture(programName)
                 const dsl = readFileSync(dslPath, 'utf8')
                 const portable = await portableFor(dslPath)
                 const expectedPassCount = ref.compileGraph(dsl).passes.length
-                for (const file of readdirSync(opts.outDir)) {
-                  if (file.startsWith(`${programName}.`) && /\.(png|bin)$|\.passes\.json$/.test(file)) unlinkSync(join(opts.outDir, file))
-                }
                 const info = await mintOne(page, opts, dslPath, dsl, expectedPassCount, programName, portable)
                 const notes = session.getConsoleMessages().map(m => m.text)
                 session.clearConsoleMessages()
@@ -935,6 +945,7 @@ async function main () {
                 minted.add(dslPath)
                 failed.delete(dslPath)
               } catch (err) {
+                clearFixture(programName)
                 const msg = err?.message || String(err)
                 process.stderr.write(`[batch-golden] ${programName}: FAILED after ${Date.now() - t0}ms: ${msg.slice(0, 600)}\n`)
                 failed.set(dslPath, msg)

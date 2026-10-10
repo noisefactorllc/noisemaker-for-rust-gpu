@@ -380,6 +380,51 @@ impl Pipeline {
         self.viewport_cache.clear();
     }
 
+    /// Prepare the new graph's programs and resources before committing a reload.
+    /// Async workers, lifecycle hooks and sinks keep their current state on failure.
+    pub(crate) fn recompile_graph(&mut self, graph: Graph) -> Result<(), RenderError> {
+        self.poll_async_effects()?;
+        let previous_graph = std::mem::replace(&mut self.graph, graph);
+        let previous_surfaces = self.surfaces.clone();
+        let previous_aliases = self.texture_aliases.clone();
+        let previous_mips = self.mip_targets.clone();
+        let previous_midi = self.needs_midi_note_grid;
+        let previous_volume_warnings = self.warned_volume_clamps.clone();
+        self.backend.begin_resource_update();
+        let validation_scope = self
+            .backend
+            .device
+            .push_error_scope(wgpu::ErrorFilter::Validation);
+        let prepared = (|| {
+            self.create_surfaces()?;
+            let defaults = self.collect_default_uniforms();
+            self.recreate_textures(&defaults)?;
+            self.compile_programs()
+        })();
+        let validation = pollster::block_on(validation_scope.pop());
+        let prepared = prepared.and_then(|()| match validation {
+            Some(error) => Err(RenderError::thrown(
+                "ERR_DEVICE_VALIDATION",
+                &[("detail", Value::from(error.to_string()))],
+            )),
+            None => Ok(()),
+        });
+        self.backend.finish_resource_update(prepared.is_ok());
+        if let Err(error) = prepared {
+            self.graph = previous_graph;
+            self.surfaces = previous_surfaces;
+            self.texture_aliases = previous_aliases;
+            self.mip_targets = previous_mips;
+            self.needs_midi_note_grid = previous_midi;
+            self.warned_volume_clamps = previous_volume_warnings;
+            return Err(error);
+        }
+        self.viewport_cache.clear();
+        self.restart_async_effects();
+        self.init_lifecycle_effects();
+        Ok(())
+    }
+
     /// `getCapabilities()`.
     pub fn get_capabilities(&self) -> Capabilities {
         self.backend.capabilities.clone()
@@ -545,6 +590,11 @@ impl Pipeline {
         // nodes no longer present in the current graph), drop pending debounced
         // regens, and clear the param cache.
         self.poll_async_effects()?;
+        self.restart_async_effects();
+        Ok(())
+    }
+
+    fn restart_async_effects(&mut self) {
         for run in self.async_renders.values() {
             run.cancel();
         }
@@ -578,7 +628,6 @@ impl Pipeline {
             let params = self.global_uniforms.clone();
             self.start_async_init(&node, &key, params);
         }
-        Ok(())
     }
 
     /// `_regenAsyncForUniform(uniformName)`: run `checkAsyncRegen` for every

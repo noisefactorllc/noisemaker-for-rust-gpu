@@ -105,11 +105,16 @@ if ! "$PY" -c 'import numpy, PIL' 2>/dev/null; then
   PY="$ROOT/parity/.venv/bin/python"
 fi
 
+"$PY" "$ROOT/parity/test_failure_paths.py" >&2 \
+  || fail_infra "parity orchestration regression tests failed"
+
 # ---- sweep + classification ---------------------------------------------------------
 LEDGER="$(mktemp -t nm-parity-summary.XXXXXX)"
 trap 'rm -f "$LEDGER" "$LEDGER.effects.json"' EXIT
 "$PY" "$ROOT/parity/sweep.py" --ledger "$LEDGER" --golden-backend "${NM_GOLDEN_BACKEND:-webgpu}" \
   ${CASE_ARGS[@]+"${CASE_ARGS[@]}"} >&2
+SWEEP_STATUS=$?
+[ -s "$LEDGER" ] || fail_infra "sweep failed before producing a ledger (exit $SWEEP_STATUS)"
 "$PY" - "$LEDGER" ${CASE_ARGS[@]+"${CASE_ARGS[@]}"} <<'EOF'
 import json, os, sys
 rows = json.load(open(sys.argv[1]))
@@ -149,3 +154,9 @@ ok = c["executed"] == c["expected"] and c["near"] + c["fail"] + c["missing"] + c
     and not missing_effects
 sys.exit(0 if ok else 1)
 EOF
+SUMMARY_STATUS=$?
+if [ "$SUMMARY_STATUS" -ne 0 ]; then exit "$SUMMARY_STATUS"; fi
+if [ "$SWEEP_STATUS" -ne 0 ]; then
+  echo "parity-summary: sweep failed (exit $SWEEP_STATUS)" >&2
+  exit "$SWEEP_STATUS"
+fi

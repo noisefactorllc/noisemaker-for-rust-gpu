@@ -120,6 +120,11 @@ impl FrameState {
     }
 }
 
+struct ResourceCheckpoint {
+    textures: IndexMap<String, Rc<TextureRecord>>,
+    programs: HashMap<String, Rc<Program>>,
+}
+
 /// The WebGPU backend.
 pub struct WebGpuBackend {
     pub device: wgpu::Device,
@@ -128,6 +133,8 @@ pub struct WebGpuBackend {
     pub textures: IndexMap<String, Rc<TextureRecord>>,
     /// `this.programs`.
     pub programs: HashMap<String, Rc<Program>>,
+    /// Retain live resources while a hot reload prepares its replacement.
+    resource_checkpoint: Option<ResourceCheckpoint>,
     pub capabilities: Capabilities,
     /// Structured diagnostics (device validation errors, missing render targets).
     pub diagnostics: DiagnosticCollector,
@@ -492,6 +499,7 @@ impl WebGpuBackend {
             queue,
             textures: IndexMap::new(),
             programs: HashMap::new(),
+            resource_checkpoint: None,
             capabilities: Capabilities::default(),
             diagnostics: DiagnosticCollector::default(),
             warned_missing_render_targets: HashSet::new(),
@@ -516,6 +524,23 @@ impl WebGpuBackend {
             device_error_log: Vec::new(),
             dropped_binding_count: 0,
             compiler: shaders::Compiler::Naga { lowering: false },
+        }
+    }
+
+    pub(crate) fn begin_resource_update(&mut self) {
+        debug_assert!(self.resource_checkpoint.is_none());
+        self.resource_checkpoint = Some(ResourceCheckpoint {
+            textures: self.textures.clone(),
+            programs: self.programs.clone(),
+        });
+    }
+
+    pub(crate) fn finish_resource_update(&mut self, commit: bool) {
+        if let Some(ResourceCheckpoint { textures, programs }) = self.resource_checkpoint.take()
+            && !commit
+        {
+            self.textures = textures;
+            self.programs = programs;
         }
     }
 

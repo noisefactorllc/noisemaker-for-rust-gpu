@@ -521,6 +521,7 @@ impl DemoHost {
         // and a still image is not uploaded again, so put back each media
         // step's uploaded size or the image stretches across the frame.
         self.restore_media_sizes()?;
+        self.sync_text_inputs_from_params()?;
         Ok(true)
     }
 
@@ -1006,7 +1007,11 @@ impl DemoHost {
             self.set_dsl(&new_dsl);
             self.renderer_mut().set_current_dsl(new_dsl);
         }
-        // _syncTextInputsFromParams
+        self.sync_text_inputs_from_params()
+    }
+
+    /// Refresh the host-rendered text textures after their step values change.
+    fn sync_text_inputs_from_params(&mut self) -> Result<(), RenderError> {
         let steps: Vec<usize> = self.text_inputs.keys().copied().collect();
         for step_index in steps {
             let Some(input) = self.text_inputs.get(&step_index) else {

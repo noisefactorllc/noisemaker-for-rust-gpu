@@ -4,9 +4,8 @@
 //!
 //! A [`CanvasRenderer`] owns the effect registries, the device and the live
 //! [`Pipeline`]. It compiles DSL ([`CanvasRenderer::compile`]: the first
-//! program creates the pipeline; later programs hot-swap the graph into it,
-//! falling back to a fresh pipeline when that fails), renders frames at a
-//! normalized loop time, applies effect parameters to pass uniforms
+//! program creates the pipeline; later programs atomically hot-swap its graph),
+//! renders frames at a normalized loop time, applies effect parameters to pass uniforms
 //! ([`CanvasRenderer::apply_parameter_values`],
 //! [`CanvasRenderer::apply_step_parameter_values`]), uploads host media and
 //! meshes, renders cubemaps, registers output sinks, creates frame export
@@ -270,13 +269,7 @@ pub fn recompile<'p>(
 ) -> Option<&'p Graph> {
     let result = (|| -> Result<(), RenderError> {
         let graph = compile_runtime_graph(registry, source, shader_overrides)?;
-        pipeline.poll_async_effects()?;
-        pipeline.swap_graph(graph);
-        pipeline.create_surfaces()?;
-        let defaults = pipeline.collect_default_uniforms();
-        pipeline.recreate_textures(&defaults)?;
-        pipeline.init_async_effects()?;
-        pipeline.init_lifecycle_effects();
+        pipeline.recompile_graph(graph)?;
         Ok(())
     })();
     match result {
@@ -907,55 +900,20 @@ impl CanvasRenderer {
         )
     }
 
-    /// `recompile(pipeline, newSource, options)`; `None` when it fails.
-    fn recompile(
-        &self,
-        pipeline: &mut Pipeline,
-        dsl: &str,
-        options: &CompileOptions,
-    ) -> Option<()> {
-        recompile(pipeline, &self.registry, dsl, &options.shader_overrides).map(|_| ())
-    }
-
-    /// `compile(dsl, {shaderOverrides})`: the first program creates the
-    /// pipeline (with this renderer's MIDI and audio states); later programs
-    /// recompile into it, or replace it with a fresh pipeline when the
-    /// recompile fails. Resets the frame count and uniform bindings and
-    /// re-uploads cached meshes.
+    /// Compile a new program, retaining the live graph and resources on failure.
+    /// Successful reloads preserve sinks and compatible textures, reset the frame
+    /// count and uniform bindings, and re-upload cached meshes.
     pub fn compile(&mut self, dsl: &str, options: &CompileOptions) -> Result<(), RenderError> {
         self.flush_program_passes();
         self.current_dsl = dsl.to_owned();
-        match self.pipeline.take() {
-            None => {
-                let mut pipeline = self.create_runtime(dsl, options)?;
-                pipeline.set_midi_state(self.midi_state.clone());
-                pipeline.set_audio_state(self.audio_state.clone());
-                self.pipeline = Some(pipeline);
-            }
-            Some(mut pipeline) => {
-                pipeline.is_compiling = true;
-                if self.recompile(&mut pipeline, dsl, options).is_none() {
-                    pipeline.is_compiling = false;
-                    match self.create_runtime(dsl, options) {
-                        Ok(mut replacement) => {
-                            replacement.set_midi_state(self.midi_state.clone());
-                            replacement.set_audio_state(self.audio_state.clone());
-                            if let Err(e) = pipeline.dispose() {
-                                eprintln!("Failed to dispose previous pipeline: {e}");
-                            }
-                            self.pipeline = Some(replacement);
-                        }
-                        Err(e) => {
-                            self.pipeline = Some(pipeline);
-                            return Err(e);
-                        }
-                    }
-                } else {
-                    let compiled = pipeline.compile_programs();
-                    self.pipeline = Some(pipeline);
-                    compiled?;
-                }
-            }
+        if let Some(pipeline) = self.pipeline.as_mut() {
+            let graph = compile_runtime_graph(&self.registry, dsl, &options.shader_overrides)?;
+            pipeline.recompile_graph(graph)?;
+        } else {
+            let mut pipeline = self.create_runtime(dsl, options)?;
+            pipeline.set_midi_state(self.midi_state.clone());
+            pipeline.set_audio_state(self.audio_state.clone());
+            self.pipeline = Some(pipeline);
         }
         self.frame_count = 0;
         self.uniform_bindings.clear();

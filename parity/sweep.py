@@ -271,7 +271,26 @@ def host_textures(case_id, golden_dir):
     return found
 
 
+def clear_goldens(cases):
+    for case_id in cases:
+        for path in OUT.glob(case_id + ".*"):
+            suffix = path.name[len(case_id) + 1:]
+            if not suffix.startswith("candidate") and (
+                    path.suffix in (".png", ".bin") or suffix == "graph.json"
+                    or suffix.endswith(".passes.json")):
+                path.unlink()
+
+
+def clear_candidates(cases):
+    for case_id in cases:
+        for path in OUT.glob(case_id + ".candidate*.png"):
+            path.unlink()
+
+
 def mint(cases, chunk, schedules):
+    # Invalidate every selected case before launching any fallible setup,
+    # including cases in timed groups that have not been reached yet.
+    clear_goldens(cases)
     single = [str(p) for i, p in cases.items() if i not in schedules]
     rc = 0
     if single:
@@ -298,6 +317,7 @@ def mint(cases, chunk, schedules):
 
 
 def render(cases, nm_render, mode, golden_dir, schedules):
+    clear_candidates(cases)
     manifest = []
     for case_id, path in cases.items():
         entry = {"out": str(OUT / (case_id + ".candidate.png")), "size": SIZE, "time": TIME,
@@ -318,9 +338,6 @@ def render(cases, nm_render, mode, golden_dir, schedules):
         if case_id in schedules:
             entry.update(schedules[case_id])
         manifest.append(entry)
-    for case_id in cases:
-        for p in OUT.glob(case_id + ".candidate*.png"):
-            p.unlink()
     path = OUT / "render-manifest.json"
     path.write_text(json.dumps(manifest, indent=1) + "\n")
     return subprocess.call([nm_render, "batch", str(path)])
@@ -481,14 +498,33 @@ def main():
     schedules = {**TIMED, **timed_schedules}
     schedules = {c: s for c, s in schedules.items() if c in cases}
 
+    stage_failed = False
     if not args.skip_mint and args.golden_dir is None:
         print(f"[sweep] minting {len(cases)} goldens", file=sys.stderr)
-        mint(cases, args.chunk, schedules)
+        try:
+            rc = mint(cases, args.chunk, schedules)
+        except OSError as err:
+            print(f"[sweep] mint could not run: {err}", file=sys.stderr)
+            rc = 1
+        if rc:
+            print(f"[sweep] mint failed (exit {rc})", file=sys.stderr)
+            stage_failed = True
+            # A batch exit code supplies no per-case success provenance. Do
+            # not award evidence to any outputs from the failed stage.
+            clear_goldens(cases)
     if not args.skip_render:
         label = {"graph": "graph + captured host inputs", "captured": "dsl + captured host inputs",
                  "native": "dsl + native host inputs"}[mode]
         print(f"[sweep] rendering {len(cases)} candidates ({label})", file=sys.stderr)
-        render(cases, nm_render, mode, golden_dir, schedules)
+        try:
+            rc = render(cases, nm_render, mode, golden_dir, schedules)
+        except OSError as err:
+            print(f"[sweep] render could not run: {err}", file=sys.stderr)
+            rc = 1
+        if rc:
+            print(f"[sweep] render failed (exit {rc})", file=sys.stderr)
+            stage_failed = True
+            clear_candidates(cases)
     rows = grade(cases, golden_dir, schedules)
     for r in rows:
         r["bucket"] = bucket(r)
@@ -533,7 +569,7 @@ def main():
                                              "missing": len(missing_effects),
                                              "uninformed": sum(1 for k in missing_effects if not informative_cases[k])},
                                             sort_keys=True))
-    ok = all(r["verdict"] in ("EXACT", "STRICT") for r in rows) and not missing_effects
+    ok = not stage_failed and all(r["verdict"] in ("EXACT", "STRICT") for r in rows) and not missing_effects
     return 0 if ok else 1
 
 

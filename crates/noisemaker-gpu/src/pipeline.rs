@@ -1078,7 +1078,9 @@ impl Pipeline {
             tmp.insert("format", existing.format.clone());
             tmp.insert(
                 "usage",
-                Value::from_json(r#"["sample","copySrc","copyDst"]"#).unwrap(),
+                // A mipmapped source is copied through the WebGPU resample
+                // path even when this temporary has the same dimensions.
+                Value::from_json(r#"["render","sample","copySrc","copyDst"]"#).unwrap(),
             );
             self.backend.create_texture(&id, &tmp)?;
             self.backend.copy_texture(tex_id, &id);
@@ -1840,7 +1842,7 @@ impl Pipeline {
                 let key = to_js_string(param);
                 let looked_up = uniforms.get_or_undefined(&key);
                 let value = if looked_up.is_nullish() {
-                    param_default
+                    param_default.clone()
                 } else {
                     looked_up.clone()
                 };
@@ -1855,18 +1857,45 @@ impl Pipeline {
                 {
                     value = spec.get("default").clone();
                 }
+                // Func wrappers and other nonnumeric authored values are not
+                // evaluated by the runtime. Use the texture spec's existing
+                // numeric default so backends never allocate a NaN size.
+                if !to_number(&value).is_finite() {
+                    if !spec.get("default").is_undefined() {
+                        value = spec.get("default").clone();
+                    } else {
+                        value = param_default.clone();
+                        if !spec.get("multiply").is_undefined() {
+                            value =
+                                Value::Number(to_number(&value) * to_number(spec.get("multiply")));
+                        }
+                        if !spec.get("power").is_undefined() {
+                            value = Value::Number(js_pow(
+                                to_number(&value),
+                                to_number(spec.get("power")),
+                            ));
+                        }
+                    }
+                }
                 return Ok(math_max(1.0, to_number(&value).floor()));
             }
             let screen_divide = spec.get("screenDivide");
             if !screen_divide.is_undefined() {
                 let looked_up = uniforms.get_or_undefined(&to_js_string(screen_divide));
-                let divisor = if !looked_up.is_nullish() {
+                let mut divisor = if !looked_up.is_nullish() {
                     looked_up.clone()
                 } else if !spec.get("default").is_nullish() {
                     spec.get("default").clone()
                 } else {
                     Value::Number(1.0)
                 };
+                if !to_number(&divisor).is_finite() {
+                    divisor = if spec.get("default").is_nullish() {
+                        Value::Number(1.0)
+                    } else {
+                        spec.get("default").clone()
+                    };
+                }
                 return Ok(math_max(1.0, math_round(screen / to_number(&divisor))));
             }
             let scale = spec.get("scale");

@@ -1086,7 +1086,7 @@ impl WebGpuBackend {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("copyBufferToTexture"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &output_tex.view,
+                    view: output_tex.render_or_view(),
                     resolve_target: None,
                     depth_slice: None,
                     ops: wgpu::Operations {

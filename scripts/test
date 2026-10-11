@@ -44,7 +44,7 @@
 // Exits nonzero on any failure.
 
 import { spawnSync } from 'node:child_process'
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -89,6 +89,33 @@ function findCargo () {
   return home
 }
 const cargo = findCargo()
+
+// Cargo writes its registry index, package cache and build state under
+// CARGO_HOME. Check containers ship a read-only one (an immutable
+// /opt/rust/cargo), which fails every crate download after the toolchain
+// resolves. Probe the configured home and fall back to a writable directory;
+// the rustup proxy keeps resolving toolchains through RUSTUP_HOME.
+function writableCargoHome (candidate) {
+  try {
+    mkdirSync(candidate, { recursive: true })
+    const probe = join(candidate, '.scripts-test-probe')
+    writeFileSync(probe, '')
+    unlinkSync(probe)
+    return true
+  } catch {
+    return false
+  }
+}
+const configuredCargoHome = process.env.CARGO_HOME || join(homedir(), '.cargo')
+if (!writableCargoHome(configuredCargoHome)) {
+  const fallback = join(tmpdir(), 'nm-cargo-home')
+  if (!writableCargoHome(fallback)) {
+    console.error(`no writable cargo home (tried ${configuredCargoHome}, ${fallback})`)
+    process.exit(1)
+  }
+  console.log(`cargo home ${configuredCargoHome} is not writable; using ${fallback}`)
+  env.CARGO_HOME = fallback
+}
 
 // ---- gates ---------------------------------------------------------------------------
 run('node', ['parity/check_effects.mjs'], { env })

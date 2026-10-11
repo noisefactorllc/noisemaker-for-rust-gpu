@@ -14,7 +14,9 @@ use crate::graph::pass;
 use crate::jsre::JsRegex;
 use crate::jsv::to_js_string;
 use crate::reflect::Stage;
-use crate::uniforms::{default_single_uniform, pack_uniforms_with_layout, single_uniform_data};
+use crate::uniforms::{
+    default_single_uniform, is_typed_array, pack_uniforms_with_layout, single_uniform_data,
+};
 use crate::wgsl::{BindingKind, ShaderBinding};
 
 /// The resource of one bind-group entry before it is turned into a wgpu entry.
@@ -186,7 +188,31 @@ impl WebGpuBackend {
                     let kind = if explicit.is_truthy() {
                         to_js_string(explicit)
                     } else {
-                        input_sampler_default.to_owned()
+                        // The sampler's filter comes from the texture its
+                        // `textureSample*` calls read: a 3D texture honors its
+                        // authored `filter` spec, any other sampled input keeps
+                        // the pass's default.
+                        let sampled_name = program
+                            .sampler_texture_names
+                            .get(&binding.name)
+                            .cloned()
+                            .flatten();
+                        let tex_id = sampled_name.and_then(|name| {
+                            inputs_value
+                                .as_object()
+                                .and_then(|inputs| inputs.get(&name))
+                                .cloned()
+                        });
+                        match tex_id.and_then(|id| self.texture_or_unscoped(&id)) {
+                            Some(t) if t.is_3d => {
+                                if t.filter.as_str() == Some("nearest") {
+                                    "nearest".to_owned()
+                                } else {
+                                    "default".to_owned()
+                                }
+                            }
+                            _ => input_sampler_default.to_owned(),
+                        }
                     };
                     entries.push((binding.binding, EntryResource::Sampler(kind)));
                 }
@@ -208,7 +234,9 @@ impl WebGpuBackend {
                         }
                     } else {
                         let mut value = get_uniform(&binding.name);
-                        if !matches!(value, Value::Number(_) | Value::Bool(_) | Value::Array(_)) {
+                        if !matches!(value, Value::Number(_) | Value::Bool(_) | Value::Array(_))
+                            && !is_typed_array(&value)
+                        {
                             value = default_single_uniform(decl);
                         }
                         if let Some(buffer) = self.create_single_uniform_buffer(&value, decl) {

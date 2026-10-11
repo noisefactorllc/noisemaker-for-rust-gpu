@@ -387,10 +387,49 @@ impl PackScratch {
     }
 }
 
+/// `value instanceof Float32Array`. The port's typed-array values (the audio
+/// state's waveform and spectrum, `pipeline.rs`'s `typed_array` shape) are
+/// objects whose keys are the element indices; the reference's typed arrays
+/// upload without repacking, and so do these.
+pub fn is_typed_array(value: &Value) -> bool {
+    match value {
+        Value::Object(o) if !o.is_empty() => o
+            .keys()
+            .all(|k| !k.is_empty() && k.bytes().all(|c| c.is_ascii_digit())),
+        _ => false,
+    }
+}
+
+/// The elements of a typed-array value, in index order (`None` for other
+/// objects).
+fn typed_array_items(value: &Value) -> Option<Vec<Value>> {
+    if !is_typed_array(value) {
+        return None;
+    }
+    let Value::Object(o) = value else {
+        return None;
+    };
+    let mut items: Vec<(usize, Value)> = o
+        .iter()
+        .filter_map(|(k, v)| k.parse::<usize>().ok().map(|i| (i, v.clone())))
+        .collect();
+    items.sort_by_key(|(i, _)| *i);
+    Some(items.into_iter().map(|(_, v)| v).collect())
+}
+
 /// `createSingleUniformBuffer`'s data: the bytes written for one value, or `None`
 /// when the value has no buffer form.
 pub fn single_uniform_data(value: &Value, type_decl: &str) -> Option<Vec<u8>> {
     let f32s = |v: &[f32]| v.iter().flat_map(|f| f.to_le_bytes()).collect::<Vec<u8>>();
+    // A typed array uploads like an array (`value instanceof Float32Array`).
+    let array_form;
+    let value = match typed_array_items(value) {
+        Some(items) => {
+            array_form = Value::Array(items);
+            &array_form
+        }
+        None => value,
+    };
     match value {
         // A boolean bound to an f32 uniform is written as 1.0 or 0.0: the int
         // bits of 1 read as an f32 are a denormal the GPU flushes to zero, so
@@ -500,6 +539,36 @@ mod tests {
 
     fn obj(json: &str) -> Object {
         Value::from_json(json).unwrap().as_object().unwrap().clone()
+    }
+
+    fn typed_array(len: usize) -> Value {
+        Value::Object(
+            (0..len)
+                .map(|i| (i.to_string(), Value::Number(i as f64)))
+                .collect(),
+        )
+    }
+
+    #[test]
+    fn typed_array_values_upload_like_their_elements() {
+        // `value instanceof Float32Array`: the audio waveform uploads without
+        // repacking (`array<vec4<f32>, 32>` -> 512 bytes).
+        let waveform = typed_array(128);
+        assert!(is_typed_array(&waveform));
+        let data = single_uniform_data(&waveform, "array<vec4<f32>, 32>").unwrap();
+        assert_eq!(data.len(), 512);
+        assert_eq!(f32_at(&data, 0), 0.0);
+        assert_eq!(f32_at(&data, 508), 127.0);
+        // A non-vec4 array type uploads the elements flat.
+        let data = single_uniform_data(&typed_array(5), "array<f32>").unwrap();
+        assert_eq!(data.len(), 20);
+        assert_eq!(f32_at(&data, 16), 4.0);
+        // A plain object is not a typed array and has no buffer form — but the port's
+        // typed-array shape (numeric keys) is exactly how `pipeline.rs` writes a
+        // Float32Array, so a numeric-keyed object is one by construction.
+        let plain = Value::Object(obj(r#"{"a":1,"b":2}"#));
+        assert!(!is_typed_array(&plain));
+        assert_eq!(single_uniform_data(&plain, "vec2f"), None);
     }
 
     fn f32_at(bytes: &[u8], offset: usize) -> f32 {

@@ -320,7 +320,10 @@ impl WebGpuBackend {
             mip_levels: None,
             persistent: None,
             is_3d: true,
-            filter: spec.get_or_undefined("filter").clone(),
+            filter: match spec.get_or_undefined("filter") {
+                v if v.is_truthy() => v.clone(),
+                _ => Value::from("linear"),
+            },
             cube: false,
             is_external: false,
             mip_bind_groups: RefCell::new(Vec::new()),
@@ -857,7 +860,7 @@ impl WebGpuBackend {
     }
 
     /// `generateMipmaps(ids)`: rebuild each mipmapped texture's chain from level 0
-    /// with a 2x2 box filter, one immediately submitted render pass per level.
+    /// with a nearest blit, one immediately submitted render pass per level.
     pub fn generate_mipmaps(&mut self, ids: &[String]) {
         for id in ids {
             let Some(tex) = self.textures.get(id).cloned() else {
@@ -940,7 +943,7 @@ impl WebGpuBackend {
             let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("clearTexture"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &tex.view,
+                    view: tex.render_or_view(),
                     resolve_target: None,
                     depth_slice: None,
                     ops: wgpu::Operations {
@@ -1085,20 +1088,18 @@ struct FsParams {
 @fragment
 fn fsMip(f: FsParams) -> @location(0) vec4f {
     let d = vec2u(f.frag.xy);
-    let base = d * 2u;
-    let a = textureLoad(src, base, 0u);
-    let b = textureLoad(src, base + vec2u(1u, 0u), 0u);
-    let c = textureLoad(src, base + vec2u(0u, 1u), 0u);
-    let e = textureLoad(src, base + vec2u(1u, 1u), 0u);
-    return (a + b + c + e) * 0.25;
+    let sourceSize = textureDimensions(src);
+    let targetSize = max(sourceSize / 2u, vec2u(1u));
+    let sourceCoord = min(vec2u((vec2f(d) + vec2f(0.5)) * vec2f(sourceSize) / vec2f(targetSize)), sourceSize - vec2u(1u));
+    return textureLoad(src, sourceCoord, 0u);
 }
 
 @fragment
 fn fsScale(f: FsParams) -> @location(0) vec4f {
     let d = vec2u(f.frag.xy);
     let ratio = vec2f(dims.x, dims.y) / vec2f(dims.z, dims.w);
-    let scaled = vec2f(d) * ratio;
-    let maxCoord = vec2u(max(dims.x - 1.0, 0.0), max(dims.y - 1.0, 0.0));
+    let scaled = (vec2f(d) + vec2f(0.5)) * ratio;
+    let maxCoord = vec2u(vec2f(max(dims.x - 1.0, 0.0), max(dims.y - 1.0, 0.0)));
     let coord = min(vec2u(scaled), maxCoord);
     return textureLoad(src, coord, 0u);
 }

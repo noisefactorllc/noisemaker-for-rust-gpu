@@ -20,7 +20,7 @@ use crate::reflect::{CompilationMessage, ShaderReflection, Stage};
 use crate::wgsl::{
     ShaderBinding, UniformLayout, detect_entry_points, has_shader_bindings, inject_defines,
     normalize_spec_layout, parse_declared_uniform_buffer_size, parse_entry_point_bindings,
-    parse_packed_uniform_layout, parse_shader_bindings,
+    parse_packed_uniform_layout, parse_sampler_texture_uses, parse_shader_bindings,
 };
 
 /// A compiled program (`programInfo`).
@@ -31,6 +31,10 @@ pub struct Program {
     pub bindings: Vec<ShaderBinding>,
     /// `_sourceHasBindings`.
     pub source_has_bindings: bool,
+    /// `samplerTextureNames`: the texture bound to each sampler by the
+    /// program's `textureSample*` calls (`None` when a sampler samples more
+    /// than one texture).
+    pub sampler_texture_names: HashMap<String, Option<String>>,
     /// `packedUniformLayout`: `spec.uniformLayout` or the parsed layout.
     pub packed_uniform_layout: Option<UniformLayout>,
     /// `declaredUniformBufferSize`.
@@ -286,6 +290,7 @@ impl WebGpuBackend {
             id: id.to_owned(),
             is_compute: true,
             source_has_bindings: has_shader_bindings(source),
+            sampler_texture_names: parse_sampler_texture_uses(source),
             packed_uniform_layout: Self::packed_layout(spec, source),
             declared_uniform_buffer_size: parse_declared_uniform_buffer_size(source),
             bindings,
@@ -311,12 +316,16 @@ impl WebGpuBackend {
         let mut bindings = parse_shader_bindings(source);
         let mut source_has_bindings = has_shader_bindings(source);
         let has_vertex = JsRegex::new(r"@vertex\s", "").test(source);
+        // `samplerTextureNames` parses the fragment source plus the separate
+        // vertex source when the spec provides one.
+        let mut vertex_source_text = "";
 
         let (main_module, main_reflection) = self.device_module(id, source)?;
 
         let vertex_source = spec_str(spec, "vertexWGSL").or_else(|| spec_str(spec, "vertexWgsl"));
         let (vertex_module, vertex_entry_point, vertex_bindings_used) =
             if let Some(vertex_source) = vertex_source {
+                vertex_source_text = vertex_source;
                 let (module, reflection) = self.device_module(id, vertex_source)?;
                 let entry_point = enhanced
                     .vertex_entry_point
@@ -410,6 +419,9 @@ impl WebGpuBackend {
             is_compute: false,
             bindings,
             source_has_bindings,
+            sampler_texture_names: parse_sampler_texture_uses(&format!(
+                "{source}\n{vertex_source_text}"
+            )),
             packed_uniform_layout: Self::packed_layout(spec, source),
             declared_uniform_buffer_size: parse_declared_uniform_buffer_size(source),
             kind: ProgramKind::Render(RenderProgram {

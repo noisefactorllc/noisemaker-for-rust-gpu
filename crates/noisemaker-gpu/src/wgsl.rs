@@ -11,6 +11,7 @@
 use indexmap::IndexMap;
 use noisemaker_dsl::Value;
 use noisemaker_dsl::js::{is_js_whitespace, number_to_string, parse_int, trim};
+use std::collections::HashMap;
 
 use crate::jsre::{JsRegex, group};
 use crate::jsv::to_js_string;
@@ -124,7 +125,9 @@ pub fn parse_shader_bindings(source: &str) -> Vec<ShaderBinding> {
         let storage = group(&caps, 3).unwrap_or("").to_owned();
         let name = group(&caps, 4).unwrap().to_owned();
         let type_decl = trim(group(&caps, 5).unwrap()).to_owned();
-        let kind = if type_decl.contains("texture_storage_2d") {
+        let kind = if type_decl.contains("texture_storage_2d")
+            || type_decl.contains("texture_storage_3d")
+        {
             BindingKind::StorageTexture
         } else if type_decl.contains("texture_2d") || type_decl.contains("texture_3d") {
             BindingKind::Texture
@@ -158,6 +161,31 @@ pub fn parse_shader_bindings(source: &str) -> Vec<ShaderBinding> {
         .collect();
     filtered.sort_by(|a, b| a.group.cmp(&b.group).then(a.binding.cmp(&b.binding)));
     filtered
+}
+
+/// `parseSamplerTextureUses`: the texture bound to each sampler by the
+/// `textureSample*` calls of the comment-stripped source. WGSL binding
+/// declarations have no required order, so the sampling calls decide which
+/// texture's authored filter applies; a sampler used with more than one
+/// texture maps to `None`.
+pub fn parse_sampler_texture_uses(source: &str) -> HashMap<String, Option<String>> {
+    let clean = strip_wgsl_comments(source);
+    let samples = JsRegex::new(r"\btextureSample\w*\s*\(\s*(\w+)\s*,\s*(\w+)\s*,", "g");
+    let mut names: HashMap<String, Option<String>> = HashMap::new();
+    for caps in samples.exec_all(&clean) {
+        let texture_name = group(&caps, 1).unwrap().to_owned();
+        let sampler_name = group(&caps, 2).unwrap().to_owned();
+        match names.get(&sampler_name) {
+            None => {
+                names.insert(sampler_name, Some(texture_name));
+            }
+            Some(Some(existing)) if *existing == texture_name => {}
+            _ => {
+                names.insert(sampler_name, None);
+            }
+        }
+    }
+    names
 }
 
 /// The entry point names `detectEntryPoints` finds.
@@ -726,6 +754,42 @@ mod tests {
         assert_eq!(names, ["tex", "samp", "u"]);
         assert_eq!(b[2].kind, BindingKind::Uniform);
         assert_eq!(b[2].type_decl, "U");
+    }
+
+    #[test]
+    fn binding_parser_classifies_writable_3d_storage_textures() {
+        let src = "@group(0) @binding(0) var volumeOut: texture_storage_3d<rgba8unorm, write>;\n\
+                   @compute @workgroup_size(4, 4, 4)\n\
+                   fn main(@builtin(global_invocation_id) gid: vec3<u32>) {\n\
+                       textureStore(volumeOut, vec3<i32>(gid), vec4<f32>(1.0));\n\
+                   }";
+        let b = parse_shader_bindings(src);
+        assert_eq!(b.len(), 1);
+        assert_eq!(b[0].kind, BindingKind::StorageTexture);
+        assert_eq!(b[0].name, "volumeOut");
+    }
+
+    #[test]
+    fn sampler_texture_uses_track_sampling_calls_only() {
+        let src = "// textureSample(surfaceTex, volSampler, uv) is dead commentary.\n\
+                   @group(0) @binding(0) var volTex: texture_3d<f32>;\n\
+                   @group(0) @binding(1) var volSampler: sampler;\n\
+                   @group(0) @binding(2) var surfaceTex: texture_2d<f32>;\n\
+                   @group(0) @binding(3) var surfaceSampler: sampler;\n\
+                   fn main() -> vec4f {\n\
+                       return textureSample(surfaceTex, surfaceSampler, vec2f(0.5)) +\n\
+                           textureSampleLevel(volTex, volSampler, vec3f(0.5), 0.0);\n\
+                   }";
+        let uses = parse_sampler_texture_uses(src);
+        assert_eq!(uses.get("volSampler").unwrap(), &Some("volTex".to_owned()));
+        assert_eq!(
+            uses.get("surfaceSampler").unwrap(),
+            &Some("surfaceTex".to_owned())
+        );
+        let shared = parse_sampler_texture_uses(
+            "fn f() { textureSample(a, s, uv); textureSample(b, s, uv); }",
+        );
+        assert_eq!(shared.get("s").unwrap(), &None);
     }
 
     #[test]

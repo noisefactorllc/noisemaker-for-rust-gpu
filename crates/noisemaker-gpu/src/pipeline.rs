@@ -195,6 +195,11 @@ pub struct Pipeline {
     warned_volume_clamps: HashSet<String>,
     needs_midi_note_grid: bool,
     viewport_cache: HashMap<usize, ViewportCache>,
+    /// `_feedbackSurfaces`: surfaces some pass reads before any pass writes and
+    /// that some pass writes — cross-frame feedback, whose final bindings
+    /// persist across frames like state surfaces instead of swapping. (A
+    /// surface first written and then read is frame-local scratch, not here.)
+    feedback_surfaces: HashSet<String>,
     /// The texture id presented by the last frame.
     pub last_presented: Option<String>,
     /// A diagnostic probe of the next frames: see [`PassProbe`].
@@ -316,6 +321,7 @@ impl Pipeline {
             warned_volume_clamps: HashSet::new(),
             needs_midi_note_grid: false,
             viewport_cache: HashMap::new(),
+            feedback_surfaces: HashSet::new(),
             last_presented: None,
             pass_probe: None,
         }
@@ -1149,19 +1155,42 @@ impl Pipeline {
         }
         let defaults = self.collect_default_uniforms();
         let mesh_pattern = JsRegex::new(r"^mesh\d+_(positions|normals|uvs)$", "");
+        // A surface some pass reads before any pass writes and that some pass
+        // writes is cross-frame feedback; one first written and then read is
+        // frame-local scratch (such as Lenia's clear/deposit density target).
+        let mut read_before_write: HashSet<String> = HashSet::new();
+        let mut written: HashSet<String> = HashSet::new();
         for p in &self.graph.passes {
-            for key in ["inputs", "outputs"] {
-                if let Some(ids) = pass::get(p, key).as_object() {
-                    for id in ids.values() {
-                        if let Some(name) = parse_global_name(id)
-                            && !mesh_pattern.test(&name)
-                        {
-                            names.insert(name, ());
+            if let Some(inputs) = pass::get(p, "inputs").as_object() {
+                for id in inputs.values() {
+                    if let Some(name) = parse_global_name(id)
+                        && !mesh_pattern.test(&name)
+                    {
+                        if !written.contains(&name) {
+                            read_before_write.insert(name.clone());
                         }
+                        names.insert(name, ());
+                    }
+                }
+            }
+            // WebGL2's compute fallback uses storageTextures only when the pass
+            // has no explicit outputs.
+            let outputs = match pass::get(p, "outputs").as_object() {
+                Some(outputs) => Some(outputs.clone()),
+                None => pass::get(p, "storageTextures").as_object().cloned(),
+            };
+            if let Some(outputs) = outputs {
+                for id in outputs.values() {
+                    if let Some(name) = parse_global_name(id)
+                        && !mesh_pattern.test(&name)
+                    {
+                        written.insert(name.clone());
+                        names.insert(name, ());
                     }
                 }
             }
         }
+        self.feedback_surfaces = read_before_write.intersection(&written).cloned().collect();
         self.needs_midi_note_grid = self.graph.passes.iter().any(|p| {
             pass::inputs(p).is_some_and(|inputs| {
                 inputs
@@ -2093,10 +2122,26 @@ impl Pipeline {
             let full_aspect = full[0] / full[1];
             g.insert("aspect", Value::Number(full_aspect));
             g.insert("aspectRatio", Value::Number(full_aspect));
+            // Correctly-rounded reciprocal of the aspect, used by rotate2D's
+            // final rescale so neither backend evaluates an in-shader
+            // division there (Dawn lowers divisions to approximate
+            // reciprocal multiplies; ANGLE divides correctly).
+            g.insert("aspectInv", Value::Number(1.0 / full_aspect));
+            // Correctly-rounded per-component reciprocals. Both shader mains
+            // multiply by this instead of dividing: Dawn's relaxed math lowers
+            // a vec2 division to an approximate reciprocal multiply while
+            // ANGLE divides correctly, and the 1-2 ulp uv difference flips
+            // sampler taps. A multiply of identical values is deterministic.
+            g.insert("invFullResolution", pair(1.0 / full[0], 1.0 / full[1]));
         } else {
             set_pair(g, "fullResolution", self.width, self.height);
             g.insert("aspect", Value::Number(aspect));
             g.insert("aspectRatio", Value::Number(aspect));
+            g.insert("aspectInv", Value::Number(1.0 / aspect));
+            g.insert(
+                "invFullResolution",
+                pair(1.0 / self.width, 1.0 / self.height),
+            );
         }
         let scale = match self.render_scale {
             Some(s) if s != 0.0 && !s.is_nan() => s,
@@ -2388,10 +2433,19 @@ impl Pipeline {
         result
     }
 
+    /// `pass.outputs || pass.storageTextures`: WebGL2's compute fallback uses
+    /// storage textures only when the pass has no explicit outputs.
+    fn outputs_or_storage_textures(p: &Object) -> Option<Object> {
+        match pass::get(p, "outputs").as_object() {
+            Some(outputs) => Some(outputs.clone()),
+            None => pass::get(p, "storageTextures").as_object().cloned(),
+        }
+    }
+
     /// `adoptIterationBindings(pass)`: mirror a repeated pass's frame-local
     /// ping-pong bindings into the cross-frame surface records.
     fn adopt_iteration_bindings(&mut self, p: &Object) {
-        let Some(outputs) = pass::outputs(p) else {
+        let Some(outputs) = Self::outputs_or_storage_textures(p) else {
             return;
         };
         for output in outputs.values() {
@@ -2417,13 +2471,23 @@ impl Pipeline {
         }
     }
 
-    /// `swapBuffers()`: state surfaces keep the frame's final bindings; display
+    /// `swapBuffers()`: state surfaces, graph feedback surfaces and surfaces
+    /// explicitly marked persistent keep the frame's final bindings; display
     /// surfaces swap.
     fn swap_buffers(&mut self) {
         let frame = self.frame_index;
+        let feedback_surfaces = self.feedback_surfaces.clone();
         for (name, surface) in self.surfaces.iter_mut() {
             surface.current_frame = Some(frame);
-            if is_state_surface(name) {
+            let persistent = self
+                .graph
+                .textures
+                .as_ref()
+                .and_then(|textures| textures.get(&format!("global_{name}")))
+                .is_some_and(|spec| {
+                    matches!(spec.get_or_undefined("persistent"), Value::Bool(true))
+                });
+            if is_state_surface(name) || feedback_surfaces.contains(name) || persistent {
                 let final_read = self.frame_read_textures.get(name).cloned().flatten();
                 let final_write = self.frame_write_textures.get(name).cloned().flatten();
                 if let (Some(r), Some(w)) = (final_read, final_write)
@@ -2501,7 +2565,7 @@ impl Pipeline {
     /// `updateFrameSurfaceBindings(pass, state)`: after a pass writes a global
     /// surface, later passes read the fresh texture and write the other one.
     fn update_frame_surface_bindings(&mut self, p: &Object, state: &FrameState) {
-        let Some(outputs) = pass::outputs(p) else {
+        let Some(outputs) = Self::outputs_or_storage_textures(p) else {
             return;
         };
         for output in outputs.values() {

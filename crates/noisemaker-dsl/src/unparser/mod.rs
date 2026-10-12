@@ -38,6 +38,12 @@ const OSC_KIND_NAMES: &[&str] = &[
     "sine", "tri", "saw", "sawInv", "square", "noise1d", "noise2d",
 ];
 
+/// The member names of `stdEnums.oscKind` (`lang/std_enums.js`): the names the
+/// `oscKind` namespace shares with `oscType` (`noise` only exists in `oscKind`).
+const OSC_KIND_ENUM_MEMBERS: &[&str] = &[
+    "sine", "tri", "saw", "sawInv", "square", "noise", "noise1d", "noise2d",
+];
+
 /// MIDI mode number → `midiMode` member (`midiModeNames`).
 const MIDI_MODE_NAMES: &[&str] = &[
     "noteChange",
@@ -388,9 +394,10 @@ fn format_oscillator(osc: &Value) -> Result<Value, JsError> {
         parts.push(format!("offset: {}", to_string(&offset)?));
     }
     let seed = get(osc, "seed")?;
-    // Only include seed for noise type
+    // Only the noise kinds read the seed
     if !strict_equals(&seed, &Value::Number(1.0))
-        && strict_equals(&get(osc, "oscType")?, &Value::Number(5.0))
+        && (strict_equals(&get(osc, "oscType")?, &Value::Number(5.0))
+            || strict_equals(&get(osc, "oscType")?, &Value::Number(6.0)))
     {
         parts.push(format!("seed: {}", to_string(&seed)?));
     }
@@ -1300,15 +1307,23 @@ fn format_let_oscillator(expr: &Value, options: &UnparseOptions<'_>) -> Result<V
     let mut type_str = Value::from("oscKind.sine");
     let type_value = get_opt(&osc_type, "value");
     if is_type(&osc_type, "Member") && get(&osc_type, "path")?.is_truthy() {
+        // Rewrite the namespace to oscKind only where oscKind has the
+        // same name (oscType.linear has no oscKind.linear); otherwise
+        // keep the path as written so it resolves to the same kind.
         let segment = last_path_segment(&get_opt(&osc_type, "path"))?;
-        type_str = format!("oscKind.{}", to_string(&segment)?).into();
+        let segment = to_string(&segment)?;
+        type_str = if OSC_KIND_ENUM_MEMBERS.contains(&segment.as_str()) {
+            format!("oscKind.{segment}").into()
+        } else {
+            array_join(&get_opt(&osc_type, "path"), ".", "expr.oscType.path")?.into()
+        };
     } else if is_type(&osc_type, "Ident") {
         type_str = get(&osc_type, "name")?; // variable reference, no prefix
     } else if is_type(&osc_type, "Number")
         && type_value.is_integer()
         && type_value
             .as_f64()
-            .is_some_and(|v| (0.0..=5.0).contains(&v))
+            .is_some_and(|v| v >= 0.0 && v < OSC_KIND_NAMES.len() as f64)
     {
         let index = type_value.as_f64().unwrap_or(0.0) as usize;
         type_str = format!("oscKind.{}", OSC_KIND_NAMES[index]).into();

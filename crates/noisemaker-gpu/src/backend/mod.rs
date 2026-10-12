@@ -142,6 +142,8 @@ pub struct WebGpuBackend {
     warned_missing_render_targets: HashSet<String>,
     samplers: HashMap<String, wgpu::Sampler>,
     storage_buffers: HashMap<String, wgpu::Buffer>,
+    /// Replaced (grown) storage buffers awaiting submission completion.
+    retired_storage_buffers: Vec<wgpu::Buffer>,
     command_encoder: Option<wgpu::CommandEncoder>,
     default_vertex_module: Option<DeviceShader>,
     depth_texture: Option<wgpu::Texture>,
@@ -505,6 +507,7 @@ impl WebGpuBackend {
             warned_missing_render_targets: HashSet::new(),
             samplers: HashMap::new(),
             storage_buffers: HashMap::new(),
+            retired_storage_buffers: Vec::new(),
             command_encoder: None,
             default_vertex_module: None,
             depth_texture: None,
@@ -741,6 +744,9 @@ impl WebGpuBackend {
     pub fn end_frame(&mut self) {
         if let Some(encoder) = self.command_encoder.take() {
             self.queue.submit([encoder.finish()]);
+            // A resized storage buffer may still be referenced by commands
+            // encoded earlier in this frame. Release it only after submission.
+            self.retired_storage_buffers.clear();
         }
         self.collect_device_errors();
     }
@@ -769,6 +775,12 @@ impl WebGpuBackend {
         }
         self.programs.clear();
         self.samplers.clear();
+        for buffer in self.storage_buffers.drain().map(|(_, buffer)| buffer) {
+            buffer.destroy();
+        }
+        for buffer in self.retired_storage_buffers.drain(..) {
+            buffer.destroy();
+        }
         for buffer in self.uniform_buffer_pool.drain(..) {
             buffer.destroy();
         }

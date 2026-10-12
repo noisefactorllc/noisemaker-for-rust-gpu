@@ -11,7 +11,9 @@
 use indexmap::IndexMap;
 use noisemaker_dsl::Value;
 use noisemaker_dsl::js::{is_js_whitespace, number_to_string, parse_int, trim};
-use std::collections::HashMap;
+use std::cell::RefCell;
+use std::collections::{HashMap, HashSet};
+use std::rc::Rc;
 
 use crate::jsre::{JsRegex, group};
 use crate::jsv::to_js_string;
@@ -210,18 +212,97 @@ pub fn detect_entry_points(source: &str) -> EntryPoints {
     }
 }
 
-/// `parseEntryPointBindings`: for every entry point, the binding indices whose
-/// names occur (as whole words) in its function body.
+/// One parsed function body: the text between its braces and the names of its
+/// parameters (the scopes `analyze_body` opens with).
+struct FunctionBody {
+    body: String,
+    parameters: HashSet<String>,
+}
+
+/// `parseEntryPointBindings`: for every entry point, the binding indices it uses
+/// — directly or through the helper functions it calls — over the
+/// comment-stripped source. A name a parameter or local declaration shadows is
+/// not a use, and a declaration's initializer still sees the global it shadows.
 pub fn parse_entry_point_bindings(
     source: &str,
     bindings: &[ShaderBinding],
 ) -> IndexMap<String, Vec<u32>> {
     let mut map: IndexMap<String, Vec<u32>> = IndexMap::new();
-    let re = JsRegex::new(
+    // Resources used in helper functions are part of the selected entry's
+    // auto layout too. Comments must not introduce a resource or call edge.
+    let source = strip_wgsl_comments(source);
+    let bytes = source.as_bytes();
+
+    // Every helper and entry-point function body (`\bfn\s+(\w+)\s*\(`).
+    let function_re = JsRegex::new(r"\bfn\s+(\w+)\s*\(", "g");
+    let parameter_re = JsRegex::new(r"(?:^|,)\s*(?:@\w+\s*\([^)]*\)\s*)*([A-Za-z_]\w*)\s*:", "g");
+    let mut function_bodies: HashMap<String, FunctionBody> = HashMap::new();
+    let mut cursor = 0usize;
+    while let Some(window) = source.get(cursor..) {
+        let Some(caps) = function_re.exec(window) else {
+            break;
+        };
+        let matched = caps.get(0).unwrap();
+        let name = group(&caps, 1).unwrap().to_owned();
+        let parameters_start = cursor + matched.end();
+        // The signature's balanced parameter list (the match's own `(` opens).
+        let mut parameters_end = parameters_start;
+        let mut parentheses = 1i64;
+        while parameters_end < bytes.len() && parentheses > 0 {
+            match bytes[parameters_end] {
+                b'(' => parentheses += 1,
+                b')' => parentheses -= 1,
+                _ => {}
+            }
+            parameters_end += 1;
+        }
+        cursor += matched.end();
+        if parentheses != 0 {
+            continue;
+        }
+        let mut parameters = HashSet::new();
+        let parameter_source = &source[parameters_start..parameters_end - 1];
+        for parameter in parameter_re.exec_all(parameter_source) {
+            if let Some(p) = group(&parameter, 1) {
+                parameters.insert(p.to_owned());
+            }
+        }
+        let Some(opening_brace) = source[parameters_end..].find('{') else {
+            continue;
+        };
+        let opening_brace = parameters_end + opening_brace;
+        let start = opening_brace + 1;
+        let mut depth = 1i64;
+        let mut end = start;
+        while end < bytes.len() && depth > 0 {
+            match bytes[end] {
+                b'{' => depth += 1,
+                b'}' => depth -= 1,
+                _ => {}
+            }
+            end += 1;
+        }
+        function_bodies.insert(
+            name,
+            FunctionBody {
+                body: source[start..end - 1].to_owned(),
+                parameters,
+            },
+        );
+        // The next search resumes after this function's closing brace.
+        cursor = end;
+    }
+
+    let binding_by_name: HashMap<&str, u32> = bindings
+        .iter()
+        .map(|b| (b.name.as_str(), b.binding))
+        .collect();
+
+    let entry_re = JsRegex::new(
         r"@(?:compute|vertex|fragment)[^f]*fn\s+(\w+)\s*\([^)]*\)[^{]*\{",
         "g",
     );
-    for caps in re.exec_all(source) {
+    for caps in entry_re.exec_all(&source) {
         let entry_point = group(&caps, 1).unwrap().to_owned();
         let start = caps.get(0).unwrap().end();
         // Simple brace counting from just after the opening brace; the body ends
@@ -239,18 +320,159 @@ pub fn parse_entry_point_bindings(
             }
             end = start + i;
         }
-        let body = &source[start..end];
-        let mut used = Vec::new();
-        for binding in bindings {
-            if JsRegex::new(&format!(r"\b{}\b", binding.name), "").test(body)
-                && !used.contains(&binding.binding)
-            {
-                used.push(binding.binding);
+        let entry_parameters = function_bodies
+            .get(&entry_point)
+            .map(|f| f.parameters.clone())
+            .unwrap_or_default();
+        let mut reachable: Vec<(String, HashSet<String>)> =
+            vec![(source[start..end].to_owned(), entry_parameters)];
+        let mut visited: HashSet<String> = HashSet::new();
+        visited.insert(entry_point.clone());
+        let mut used_bindings: Vec<u32> = Vec::new();
+        let mut index = 0usize;
+        while index < reachable.len() {
+            let (body, parameters) = &reachable[index];
+            let (used, calls) = analyze_body(body, parameters, &function_bodies, &binding_by_name);
+            for binding in used {
+                if !used_bindings.contains(&binding) {
+                    used_bindings.push(binding);
+                }
             }
+            for name in calls {
+                if !visited.insert(name.clone()) {
+                    continue;
+                }
+                if let Some(function) = function_bodies.get(&name) {
+                    reachable.push((function.body.clone(), function.parameters.clone()));
+                }
+            }
+            index += 1;
         }
-        map.insert(entry_point, used);
+        map.insert(entry_point, used_bindings);
     }
     map
+}
+
+/// The word tokens of `analyzeBody`: identifiers, numeric literals and the
+/// structural punctuation.
+fn body_tokens(body: &str) -> Vec<String> {
+    let token_re = JsRegex::new(r"[A-Za-z_]\w*|\d+\w*|[{}().,:;<>]", "g");
+    token_re
+        .exec_all(body)
+        .map(|caps| caps.get(0).unwrap().as_str().to_owned())
+        .collect()
+}
+
+/// `analyzeBody` of `parseEntryPointBindings`: walk the tokens of one function
+/// body with WGSL block scoping and collect the bindings used (skipping member
+/// accesses and shadowed names) and the functions called.
+fn analyze_body(
+    body: &str,
+    parameters: &HashSet<String>,
+    function_bodies: &HashMap<String, FunctionBody>,
+    binding_by_name: &HashMap<&str, u32>,
+) -> (Vec<u32>, Vec<String>) {
+    let tokens = body_tokens(body);
+    // A scope is shared by reference: a pending declaration enters its scope at
+    // the next `;` even when more blocks opened in between.
+    type Scope = Rc<RefCell<HashSet<String>>>;
+    let mut scopes: Vec<Scope> = vec![Rc::new(RefCell::new(parameters.clone()))];
+    let mut used: Vec<u32> = Vec::new();
+    let mut calls: Vec<String> = Vec::new();
+    let mut for_body_opens: HashSet<usize> = HashSet::new();
+    let mut for_body_depths: Vec<usize> = Vec::new();
+    let mut declarations: HashSet<usize> = HashSet::new();
+    let mut pending_declarations: Vec<(String, Scope)> = Vec::new();
+    for i in 0..tokens.len() {
+        let token = tokens[i].as_str();
+        if token == ";" {
+            // WGSL local names enter scope after their declaration,
+            // so an initializer can still refer to a global of that name.
+            for (name, scope) in pending_declarations.drain(..) {
+                scope.borrow_mut().insert(name);
+            }
+            continue;
+        }
+        if token == "for" && tokens.get(i + 1).map(String::as_str) == Some("(") {
+            let mut parentheses = 0i64;
+            let mut end = i + 1;
+            while end < tokens.len() {
+                if tokens[end] == "(" {
+                    parentheses += 1;
+                } else if tokens[end] == ")" {
+                    parentheses -= 1;
+                    if parentheses == 0 {
+                        break;
+                    }
+                }
+                end += 1;
+            }
+            if tokens.get(end + 1).map(String::as_str) == Some("{") {
+                scopes.push(Rc::new(RefCell::new(HashSet::new())));
+                for_body_opens.insert(end + 1);
+            }
+            continue;
+        }
+        if token == "{" {
+            scopes.push(Rc::new(RefCell::new(HashSet::new())));
+            if for_body_opens.contains(&i) {
+                for_body_depths.push(scopes.len());
+            }
+            continue;
+        }
+        if token == "}" {
+            let closing_depth = scopes.len();
+            if closing_depth > 1 {
+                scopes.pop();
+            }
+            if for_body_depths.last() == Some(&closing_depth) {
+                scopes.pop();
+                for_body_depths.pop();
+            }
+            continue;
+        }
+        if token == "let" || token == "var" || token == "const" {
+            let mut name_index = i + 1;
+            if token == "var" && tokens.get(name_index).map(String::as_str) == Some("<") {
+                let mut brackets = 1i64;
+                name_index += 1;
+                while name_index < tokens.len() && brackets > 0 {
+                    match tokens[name_index].as_str() {
+                        "<" => brackets += 1,
+                        ">" => brackets -= 1,
+                        _ => {}
+                    }
+                    name_index += 1;
+                }
+            }
+            let local_name = tokens.get(name_index).cloned();
+            if let Some(local_name) = local_name
+                && JsRegex::new(r"^[A-Za-z_]\w*$", "").test(&local_name)
+            {
+                declarations.insert(name_index);
+                pending_declarations.push((local_name, scopes.last().cloned().unwrap_or_default()));
+            }
+        }
+        if declarations.contains(&i) {
+            continue;
+        }
+        let previous_dot = i > 0 && tokens[i - 1] == ".";
+        if let Some(binding) = binding_by_name.get(token)
+            && !previous_dot
+            && !used.contains(binding)
+            && !scopes.iter().any(|scope| scope.borrow().contains(token))
+        {
+            used.push(*binding);
+        }
+        if function_bodies.contains_key(token)
+            && tokens.get(i + 1).map(String::as_str) == Some("(")
+            && !previous_dot
+            && !calls.contains(&token.to_owned())
+        {
+            calls.push(token.to_owned());
+        }
+    }
+    (used, calls)
 }
 
 /// `injectDefines`: each define becomes a `const` declaration prepended to the
@@ -895,5 +1117,101 @@ mod tests {
         assert_eq!(ep.vertex.as_deref(), Some("vs"));
         assert_eq!(ep.fragment.as_deref(), Some("fs_main"));
         assert_eq!(ep.compute.as_deref(), Some("cs"));
+    }
+
+    const TWO_VOLUME_SOURCES: &str = "@group(0) @binding(0) var volumeOut: texture_storage_3d<rgba8unorm, write>;\n\
+        @group(0) @binding(1) var otherOut: texture_storage_3d<rgba8unorm, write>;\n";
+
+    fn parse_entry(source: &str) -> IndexMap<String, Vec<u32>> {
+        parse_entry_point_bindings(source, &parse_shader_bindings(source))
+    }
+
+    #[test]
+    fn selected_entry_point_includes_storage_textures_reached_through_helper_calls() {
+        let src = TWO_VOLUME_SOURCES.to_owned()
+            + "fn writeVolume() { textureStore(volumeOut, vec3<i32>(0), vec4<f32>(1.0)); }\n\
+               fn nested() { writeVolume(); }\n\
+               @compute @workgroup_size(1) fn main() { nested(); /* otherOut belongs to another entry */ }\n\
+               @compute @workgroup_size(1) fn other() {\n\
+                   textureStore(otherOut, vec3<i32>(0), vec4<f32>(0.5));\n\
+               }";
+        let selected = parse_entry(&src);
+        assert_eq!(selected.get("main").unwrap(), &vec![0]);
+        assert_eq!(selected.get("other").unwrap(), &vec![1]);
+    }
+
+    #[test]
+    fn helper_struct_members_named_like_another_entry_resource_do_not_bind_it() {
+        let src = TWO_VOLUME_SOURCES.to_owned()
+            + "struct Marker { otherOut: u32, }\n\
+               fn writeVolume() {\n\
+                   let marker = Marker(1u);\n\
+                   if (marker.otherOut == 1u) {\n\
+                       textureStore(volumeOut, vec3<i32>(0), vec4<f32>(1.0));\n\
+                   }\n\
+               }\n\
+               @compute @workgroup_size(1) fn main() { writeVolume(); }\n\
+               @compute @workgroup_size(1) fn other() {\n\
+                   textureStore(otherOut, vec3<i32>(0), vec4<f32>(0.5));\n\
+               }";
+        let selected = parse_entry(&src);
+        assert_eq!(selected.get("main").unwrap(), &vec![0]);
+        assert_eq!(selected.get("other").unwrap(), &vec![1]);
+    }
+
+    #[test]
+    fn helper_parameters_and_local_variables_shadow_unrelated_storage_resources() {
+        let src = TWO_VOLUME_SOURCES.to_owned()
+            + "fn writeVolume(otherOut: u32) {\n\
+                   if (otherOut == 1u) {\n\
+                       textureStore(volumeOut, vec3<i32>(0), vec4<f32>(1.0));\n\
+                   }\n\
+               }\n\
+               fn nested() { let otherOut = 1u; writeVolume(otherOut); }\n\
+               @compute @workgroup_size(1) fn main() { nested(); }\n\
+               @compute @workgroup_size(1) fn other() {\n\
+                   textureStore(otherOut, vec3<i32>(0), vec4<f32>(0.5));\n\
+               }";
+        let selected = parse_entry(&src);
+        assert_eq!(selected.get("main").unwrap(), &vec![0]);
+        assert_eq!(selected.get("other").unwrap(), &vec![1]);
+    }
+
+    #[test]
+    fn a_for_loop_local_stops_shadowing_the_global_storage_resource_after_the_loop() {
+        let src = TWO_VOLUME_SOURCES.to_owned()
+            + "fn writeVolume() {\n\
+                   for (var volumeOut = 0u; volumeOut < 1u; volumeOut = volumeOut + 1u) {}\n\
+                   textureStore(volumeOut, vec3<i32>(0), vec4<f32>(1.0));\n\
+               }\n\
+               @compute @workgroup_size(1) fn main() { writeVolume(); }";
+        let selected = parse_entry(&src);
+        assert_eq!(selected.get("main").unwrap(), &vec![0]);
+    }
+
+    #[test]
+    fn a_local_declaration_sees_the_global_storage_resource_in_its_initializer() {
+        for statement in [
+            "let otherOut = textureDimensions(otherOut); if (otherOut.x == 8u) { textureStore(volumeOut, vec3<i32>(0), vec4<f32>(1.0)); }",
+            "var otherOut = textureDimensions(otherOut); if (otherOut.x == 8u) { textureStore(volumeOut, vec3<i32>(0), vec4<f32>(1.0)); }",
+            "for (var otherOut = textureDimensions(otherOut).x; otherOut > 0u; otherOut = otherOut - 1u) {} textureStore(volumeOut, vec3<i32>(0), vec4<f32>(1.0));",
+        ] {
+            let src = TWO_VOLUME_SOURCES.to_owned()
+                + &format!(
+                    "fn writeVolume() {{ {statement} }}\n\
+                     @compute @workgroup_size(1) fn main() {{ writeVolume(); }}\n\
+                     @compute @workgroup_size(1) fn other() {{\n\
+                         textureStore(otherOut, vec3<i32>(0), vec4<f32>(0.5));\n\
+                     }}"
+                );
+            let selected = parse_entry(&src);
+            let mut used = selected.get("main").unwrap().clone();
+            used.sort();
+            assert_eq!(
+                used,
+                vec![0, 1],
+                "initializer lost the global resource: {statement}"
+            );
+        }
     }
 }

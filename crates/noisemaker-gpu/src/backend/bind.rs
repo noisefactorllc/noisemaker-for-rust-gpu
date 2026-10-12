@@ -83,6 +83,25 @@ impl WebGpuBackend {
                     needed.insert(b.name.clone());
                 }
             }
+            // A storage texture is mapped separately from ordinary pass outputs.
+            // Keep only storage declarations used by the selected entry point;
+            // auto layouts omit declarations used exclusively by another entry.
+            let used_bindings = to_js_string(entry_point);
+            let used_bindings = program
+                .compute()
+                .and_then(|c| c.entry_point_bindings.get(&used_bindings));
+            if let Some(storage_textures) = pass::get(pass, "storageTextures").as_object() {
+                for storage_name in storage_textures.keys() {
+                    let binding = bindings
+                        .iter()
+                        .find(|b| b.name == *storage_name && b.kind == BindingKind::StorageTexture);
+                    if let Some(binding) = binding
+                        && used_bindings.is_none_or(|used| used.contains(&binding.binding))
+                    {
+                        needed.insert(storage_name.clone());
+                    }
+                }
+            }
             bindings.retain(|b| needed.contains(&b.name));
         }
 
@@ -440,15 +459,13 @@ impl WebGpuBackend {
     }
 
     /// `createStorageBuffer(binding, pass, state)`: one buffer per binding name for
-    /// the backend's lifetime, sized for the screen.
+    /// the backend's lifetime, sized for the screen; grown in place by replacing
+    /// the buffer when a larger one is needed.
     fn create_storage_buffer(
         &mut self,
         binding: &ShaderBinding,
         state: &FrameState,
     ) -> wgpu::Buffer {
-        if let Some(buffer) = self.storage_buffers.get(&binding.name) {
-            return buffer.clone();
-        }
         let name = binding.name.as_str();
         let width = if state.screen_width != 0.0 {
             state.screen_width
@@ -472,6 +489,12 @@ impl WebGpuBackend {
         };
         byte_size = byte_size.max(256.0);
         byte_size = (byte_size / 256.0).ceil() * 256.0;
+        let existing = self.storage_buffers.get(&binding.name);
+        if let Some(existing) = existing
+            && existing.size() >= byte_size as u64
+        {
+            return existing.clone();
+        }
         let buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some(name),
             size: byte_size as u64,
@@ -480,8 +503,14 @@ impl WebGpuBackend {
                 | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
-        self.storage_buffers
-            .insert(binding.name.clone(), buffer.clone());
+        if let Some(existing) = self
+            .storage_buffers
+            .insert(binding.name.clone(), buffer.clone())
+        {
+            // A resized storage buffer may still be referenced by commands
+            // encoded earlier in this frame. Release it only after submission.
+            self.retired_storage_buffers.push(existing);
+        }
         buffer
     }
 

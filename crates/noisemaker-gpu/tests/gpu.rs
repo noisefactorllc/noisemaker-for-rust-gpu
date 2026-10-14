@@ -188,7 +188,8 @@ fn persistent_textures_and_the_reference_copy_paths() {
     assert_eq!((kept.width, kept.height), (8, 8));
     assert!(
         kept.data.chunks(4).all(|p| p == [64, 128, 191, 255]),
-        "{:?}", &kept.data[..8]
+        "{:?}",
+        &kept.data[..8]
     );
     renderer.device_errors();
     let errors = &renderer.pipeline().backend.device_error_log;

@@ -97,16 +97,6 @@ fn single_value_bindings_and_defaults() {
     assert_eq!(&px[..4], &[64, 128, 0, 255]);
 }
 
-/// `true` when `errors` is the reference's RESAMPLE_WGSL cascade: the invalid
-/// resample module first, and nothing from the effect programs themselves.
-fn only_resample_errors(errors: &[String], programs: &[&str]) -> bool {
-    !errors.is_empty()
-        && errors[0].contains("label = 'resample'")
-        && !errors
-            .iter()
-            .any(|e| programs.iter().any(|p| e.contains(&format!("'{p}'"))))
-}
-
 /// Render without asserting on device errors; returns the renderer, the output
 /// and the device errors observed.
 fn render_with_errors(graph: Graph, size: u32, frames: u32) -> (Renderer, Vec<u8>, Vec<String>) {
@@ -125,9 +115,10 @@ fn render_with_errors(graph: Graph, size: u32, frames: u32) -> (Renderer, Vec<u8
 #[test]
 fn mip_chains_follow_the_reference_resample_shader() {
     // Pass A writes a checkerboard into a mipmapped texture; pass B samples its
-    // level 1. The reference's RESAMPLE_WGSL constructs `vec2u(f32, f32)`, which
-    // WGSL (Tint and naga alike) rejects, so its mip pipelines are invalid: every
-    // generateMipmaps() submission fails validation and level 1 stays zero.
+    // level 1. The reference regenerates the chain after each frame's passes
+    // with its fsMip nearest blit, so frame 1 samples the cleared chain while
+    // frame 2 samples frame 1's regenerated level 1. The 4x4 checkerboard
+    // downsamples to texels that are black with full alpha.
     let checker = r#"
         @group(0) @binding(0) var<uniform> gain: f32;
         @fragment fn main(@builtin(position) pos: vec4<f32>) -> @location(0) vec4<f32> {
@@ -152,11 +143,8 @@ fn mip_chains_follow_the_reference_resample_shader() {
             "usage":["render","sample","copySrc","copyDst"]}}"#,
     );
     let (renderer, px, errors) = render_with_errors(g, 4, 2);
-    assert_eq!(&px[..4], &[0, 0, 0, 0]);
-    assert!(
-        only_resample_errors(&errors, &["checker", "sample"]),
-        "{errors:#?}"
-    );
+    assert_eq!(&px[..4], &[0, 0, 0, 255]);
+    assert!(errors.is_empty(), "{errors:#?}");
     let level0 = renderer
         .pipeline()
         .backend
@@ -193,18 +181,18 @@ fn persistent_textures_and_the_reference_copy_paths() {
         let copy = backend.read_pixels("copy").unwrap();
         assert!(copy.data.chunks(4).all(|p| p == [64, 128, 191, 255]));
     }
-    // A resize recreates the persistent texture at the new size; the resampling
-    // copy runs the reference's invalid RESAMPLE_WGSL, so the contents are lost.
+    // A resize recreates the persistent texture at the new size; the reference's
+    // copyTextureScaled carries the contents over with its fsScale nearest blit.
     renderer.resize(8, 8).unwrap();
     let kept = renderer.read_pixels("node_keep").unwrap();
     assert_eq!((kept.width, kept.height), (8, 8));
-    assert!(kept.data.iter().all(|&b| b == 0));
+    assert!(
+        kept.data.chunks(4).all(|p| p == [64, 128, 191, 255]),
+        "{:?}", &kept.data[..8]
+    );
     renderer.device_errors();
     let errors = &renderer.pipeline().backend.device_error_log;
-    assert!(
-        only_resample_errors(errors, &["fill", "copy"]),
-        "{errors:#?}"
-    );
+    assert!(errors.is_empty(), "{errors:#?}");
 }
 
 #[test]

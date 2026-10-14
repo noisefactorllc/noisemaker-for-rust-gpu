@@ -190,8 +190,5 @@
         "color": "outputTex"
       }
     }
-  ],
-  "paramAliases": {
-    "patternType": "type"
-  }
+  ]
 }

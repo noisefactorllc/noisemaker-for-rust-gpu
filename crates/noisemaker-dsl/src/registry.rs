@@ -3,7 +3,7 @@
 //!
 //! The reference keeps these as module-level singletons (`runtime/registry.js`,
 //! `lang/ops.js`, `lang/enums.js`, the starter-op set in `lang/validator.js`,
-//! `lang/paramAliases.js`, `lang/effectAliases.js`, `runtime/tags.js`) that its
+//! `lang/effectAliases.js`, `runtime/tags.js`) that its
 //! host, `CanvasRenderer`, fills while it loads effects (and registers
 //! Portable effects: [`Registry::register_portable_effect`], `crate::portable`). [`Registry`] holds the same
 //! state as one value, and [`Registry::with_catalog`] performs the host's loading
@@ -64,8 +64,6 @@ pub struct Registry {
     pub starter_ops: IndexSet<String>,
     /// The merged enum tree (`mergeIntoEnums` target).
     pub enums: Object,
-    /// `registerParamAliases`: op name -> { oldName: newName }.
-    pub param_aliases: IndexMap<String, IndexMap<String, String>>,
     /// `registerEffectAlias`: old op name -> replacement name.
     pub effect_aliases: IndexMap<String, String>,
     /// `VALID_NAMESPACES` with descriptions, in registration order. Read it
@@ -304,16 +302,6 @@ impl Registry {
         self.ops.insert(name, spec);
     }
 
-    /// `registerParamAliases(opName, aliases)`.
-    pub fn register_param_aliases(&mut self, op_name: &str, aliases: &Object) {
-        let slot = self.param_aliases.entry(op_name.to_owned()).or_default();
-        for (old, new) in aliases.iter() {
-            if let Some(new) = new.as_str() {
-                slot.insert(old.clone(), new.to_owned());
-            }
-        }
-    }
-
     /// `registerEffectAlias(oldOpName, newName)`.
     pub fn register_effect_alias(&mut self, old_op_name: &str, new_name: &str) {
         self.effect_aliases
@@ -447,9 +435,6 @@ impl Registry {
         let op_name = format!("{namespace}.{func}");
         self.register_op(op_name.clone(), Value::Object(op_spec));
 
-        if let Value::Object(aliases) = def.get("paramAliases") {
-            self.register_param_aliases(&op_name, aliases);
-        }
         // registerEffectAlias stores the value; checkEffectAlias prints it
         // through a template literal.
         let deprecated_by = def.get("deprecatedBy");

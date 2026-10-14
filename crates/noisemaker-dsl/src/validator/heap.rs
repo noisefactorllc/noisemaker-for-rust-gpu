@@ -1,8 +1,7 @@
 //! JavaScript object semantics for the validator.
 //!
-//! `validate` mutates the objects it is given and shares them between its outputs:
-//! `resolveParamAliases` renames the keys of a call's `kwargs` object, which the
-//! step then publishes as `rawKwargs`; a member-typed argument rewrites its AST
+//! `validate` mutates the objects it is given and shares them between its
+//! outputs: a member-typed argument rewrites its AST
 //! node's `path`, which every other reference to that node (an outer step's
 //! `rawKwargs`, a variable's stored call) then shows; automation descriptors keep
 //! their AST node as `_ast`. The reference serializes the result only at the end,
@@ -100,13 +99,6 @@ impl JsObject {
         } else {
             self.props.insert(key.to_owned(), value);
         }
-    }
-
-    /// `delete obj[key]`.
-    pub(crate) fn remove(&mut self, key: &str) -> Option<V> {
-        self.props
-            .shift_remove(key)
-            .or_else(|| self.hidden.shift_remove(key))
     }
 
     /// `Object.entries(obj)`.

@@ -117,8 +117,5 @@
       }
     }
   ],
-  "paramAliases": {
-    "paletteIndex": "index"
-  },
   "defaultProgram": "search filter, synth\n\nnoise(ridges: true, colorMode: mono)\n.historicPalette()\n.write(o0)"
 }

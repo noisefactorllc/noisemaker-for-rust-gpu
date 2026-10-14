@@ -636,10 +636,6 @@
       }
     }
   },
-  "paramAliases": {
-    "backgroundColor": "bgColor",
-    "backgroundOpacity": "bgAlpha"
-  },
   "passes": [
     {
       "name": "render",

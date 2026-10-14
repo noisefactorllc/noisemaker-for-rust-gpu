@@ -45,8 +45,5 @@
       }
     }
   ],
-  "paramAliases": {
-    "aberrationAmt": "aberration"
-  },
   "defaultProgram": "search synth, filter\nnoise(colorMode: mono, ridges: true)\n.chromaticAberration()\n.write(o0)"
 }

@@ -226,13 +226,7 @@ fn check_definition(registry: &Registry, definition: &Value) -> Result<String, J
     }
     let aliases = member("paramAliases");
     if !aliases.is_undefined() {
-        let declared = |target: &Value| match (&globals, target) {
-            (Value::Object(g), Value::String(t)) => g.contains_key(t),
-            _ => false,
-        };
-        if !is_record(&aliases) || values(&aliases).iter().any(|t| !declared(t)) {
-            return Err(fail("paramAliases must map names to declared globals"));
-        }
+        return Err(fail("paramAliases is no longer supported"));
     }
     if registry
         .get_effect(&format!("{PORTABLE_NAMESPACE}.{func}"))
@@ -279,7 +273,7 @@ impl Registry {
     /// `inputs`/`outputs` map to empty texture references, a program has no
     /// shader source (or only some programs have a source in one language),
     /// `globals` holds a non-object, a parameter's `choices` map to values of
-    /// the wrong type, `paramAliases` name undeclared parameters, or
+    /// the wrong type, `paramAliases` appears, or
     /// `user.<func>` is already registered.
     pub fn register_portable_effect(
         &mut self,
@@ -346,8 +340,7 @@ mod tests {
         let entry = reg
             .register_portable_effect(&definition(
                 "portableParams",
-                r#"{"globals": {"mode": {"type": "int", "default": 0, "uniform": "mode", "choices": {"Modes:": -1, "Soft Light": 3}}},
-                    "paramAliases": {"oldMode": "mode"}}"#,
+                r#"{"globals": {"mode": {"type": "int", "default": 0, "uniform": "mode", "choices": {"Modes:": -1, "Soft Light": 3}}}}"#,
             ))
             .unwrap();
         assert_eq!(entry.id(), "user/portableParams");
@@ -364,13 +357,6 @@ mod tests {
             .get("mode")
             .get("SoftLight");
         assert_eq!(soft.get("value").as_f64(), Some(3.0));
-        assert_eq!(
-            reg.param_aliases
-                .get("user.portableParams")
-                .and_then(|a| a.get("oldMode"))
-                .map(String::as_str),
-            Some("mode")
-        );
         let err = reg
             .register_portable_effect(&definition("portableParams", "{}"))
             .unwrap_err();
@@ -378,6 +364,22 @@ mod tests {
             err.to_string(),
             "Error: Portable effect: user.portableParams is already registered"
         );
+    }
+
+    #[test]
+    fn rejects_param_aliases() {
+        let mut reg = Registry::with_catalog();
+        let def = definition(
+            "retiredAliasProbe",
+            r#"{"globals": {"scaleX": {"type": "float", "default": 1}},
+                "paramAliases": {"xScale": "scaleX"}}"#,
+        );
+        let err = reg.register_portable_effect(&def).unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "Error: Portable effect: paramAliases is no longer supported"
+        );
+        assert!(reg.get_effect("user.retiredAliasProbe").is_none());
     }
 
     #[test]
@@ -428,7 +430,7 @@ mod tests {
             ),
             (
                 definition("x", r#"{"paramAliases": {"old": "absent"}}"#),
-                "paramAliases must map names to declared globals",
+                "paramAliases is no longer supported",
             ),
         ] {
             let err = reg.register_portable_effect(&def).unwrap_err();

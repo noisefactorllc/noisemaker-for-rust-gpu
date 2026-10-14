@@ -36,7 +36,6 @@ pub const EFFECT_CONFIG_FIELDS: &[&str] = &[
     "outputGeo",
     "uniformLayout",
     "uniformLayouts",
-    "paramAliases",
     "openCategories",
     "defaultProgram",
 ];

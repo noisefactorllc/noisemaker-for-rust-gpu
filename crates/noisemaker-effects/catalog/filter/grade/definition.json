@@ -647,8 +647,5 @@
       "height": "input",
       "format": "rgba16f"
     }
-  },
-  "paramAliases": {
-    "vignetteHighlightProtect": "vigHiProtect"
   }
 }

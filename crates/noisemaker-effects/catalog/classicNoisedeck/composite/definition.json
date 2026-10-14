@@ -95,8 +95,5 @@
         "fragColor": "outputTex"
       }
     }
-  ],
-  "paramAliases": {
-    "mixAmt": "mix"
-  }
+  ]
 }

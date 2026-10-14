@@ -132,12 +132,6 @@ pub const DIAGNOSTICS: &[DiagnosticInfo] = &[
         message: "Starter chain missing write() call",
     },
     DiagnosticInfo {
-        code: "S007",
-        stage: "semantic",
-        severity: "warning",
-        message: "Deprecated parameter alias",
-    },
-    DiagnosticInfo {
         code: "S008",
         stage: "semantic",
         severity: "warning",

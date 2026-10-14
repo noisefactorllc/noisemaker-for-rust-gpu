@@ -219,10 +219,5 @@
         "fragColor": "outputTex"
       }
     }
-  ],
-  "paramAliases": {
-    "aberrationAmt": "aberration",
-    "opacity": "alpha",
-    "loopAmp": "speed"
-  }
+  ]
 }

@@ -7,7 +7,8 @@
 //! take a packed color and whose `level` defaults from another parameter
 //! (`defaultFrom`), an op with a surface, a member and a vec4/vec3 parameter
 //! without defaults and a string parameter outside the allowlist, a deprecated
-//! effect (S008) with a parameter alias, and the validator hook of [`hooks`].
+//! effect (S008) whose retired parameter name is unknown, and the validator
+//! hook of [`hooks`].
 
 use std::rc::Rc;
 
@@ -45,9 +46,6 @@ fn registry() -> Registry {
         reg.register_op(name.clone(), spec.clone());
     }
     reg.register_effect_alias("synth.oldThing", "newThing");
-    let mut aliases = Object::new();
-    aliases.insert("sz", Value::from("size"));
-    reg.register_param_aliases("synth.oldThing", &aliases);
     reg.register_starter_ops(&[
         "synth.rgbStarter",
         "rgbStarter",

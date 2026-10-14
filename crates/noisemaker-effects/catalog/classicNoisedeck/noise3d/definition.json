@@ -164,9 +164,5 @@
         "fragColor": "outputTex"
       }
     }
-  ],
-  "paramAliases": {
-    "noiseScale": "scale",
-    "noiseType": "type"
-  }
+  ]
 }

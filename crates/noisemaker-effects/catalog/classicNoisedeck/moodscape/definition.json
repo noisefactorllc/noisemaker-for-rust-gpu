@@ -220,8 +220,5 @@
       "slot": 4,
       "components": "zw"
     }
-  },
-  "paramAliases": {
-    "loopAmp": "speed"
   }
 }

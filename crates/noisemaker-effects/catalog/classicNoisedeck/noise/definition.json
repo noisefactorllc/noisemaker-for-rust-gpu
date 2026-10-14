@@ -565,10 +565,6 @@
       }
     }
   },
-  "paramAliases": {
-    "noiseType": "type",
-    "loopAmp": "speed"
-  },
   "passes": [
     {
       "name": "render",

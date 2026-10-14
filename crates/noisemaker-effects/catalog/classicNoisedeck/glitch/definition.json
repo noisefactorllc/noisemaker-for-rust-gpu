@@ -143,8 +143,5 @@
         "fragColor": "outputTex"
       }
     }
-  ],
-  "paramAliases": {
-    "aberrationAmt": "aberration"
-  }
+  ]
 }

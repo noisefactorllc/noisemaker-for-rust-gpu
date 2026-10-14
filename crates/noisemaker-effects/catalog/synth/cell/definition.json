@@ -153,9 +153,5 @@
       "slot": 3,
       "components": "zw"
     }
-  },
-  "paramAliases": {
-    "cellVariation": "variation",
-    "loopAmp": "speed"
   }
 }

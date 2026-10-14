@@ -200,8 +200,5 @@
     }
   },
   "outputTex3d": "volumeCache",
-  "outputGeo": "geoBuffer",
-  "paramAliases": {
-    "fractalType": "type"
-  }
+  "outputGeo": "geoBuffer"
 }

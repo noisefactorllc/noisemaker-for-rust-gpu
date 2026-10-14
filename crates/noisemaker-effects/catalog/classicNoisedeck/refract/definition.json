@@ -113,9 +113,5 @@
         "fragColor": "outputTex"
       }
     }
-  ],
-  "paramAliases": {
-    "refractDir": "direction",
-    "mixAmt": "mix"
-  }
+  ]
 }

@@ -238,11 +238,5 @@
       "slot": 4,
       "components": "zw"
     }
-  },
-  "paramAliases": {
-    "noiseType": "type",
-    "loopAmp": "speed",
-    "xScale": "scaleX",
-    "yScale": "scaleY"
   }
 }

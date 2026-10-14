@@ -192,7 +192,6 @@ async function loadReference () {
   const opsModule = await refModule('lang/ops.js')
   const validator = await refModule('lang/validator.js')
   const registry = await refModule('runtime/registry.js')
-  const paramAliases = await refModule('lang/paramAliases.js')
   const effectAliases = await refModule('lang/effectAliases.js')
   const enums = await refModule('lang/enums.js')
   const stdEnumsModule = await refModule('lang/std_enums.js')
@@ -210,7 +209,6 @@ async function loadReference () {
     isStarterOp: validator.isStarterOp,
     registerEffect: registry.registerEffect,
     getEffect: registry.getEffect,
-    registerParamAliases: paramAliases.registerParamAliases,
     registerEffectAlias: effectAliases.registerEffectAlias,
     mergeIntoEnums: enums.mergeIntoEnums,
     enumsModule: enums,
@@ -225,7 +223,6 @@ async function applySetup (m, setup) {
       case 'registerOp': m.registerOp(step.name, decode(step.spec)); break
       case 'registerStarterOps': m.registerStarterOps(decode(step.names)); break
       case 'registerEffect': m.registerEffect(step.name, decode(step.definition)); break
-      case 'registerParamAliases': m.registerParamAliases(step.opName, decode(step.aliases)); break
       case 'registerEffectAlias': m.registerEffectAlias(step.opName, step.newName); break
       case 'mergeIntoEnums': await m.mergeIntoEnums(decode(step.source)); break
       default: throw new Error(`unknown setup op ${step.op}`)

@@ -234,9 +234,5 @@
       "height": "input",
       "format": "rgba8unorm"
     }
-  },
-  "paramAliases": {
-    "mixAmt": "mix",
-    "aberrationAmt": "aberration"
   }
 }

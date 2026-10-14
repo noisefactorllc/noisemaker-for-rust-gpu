@@ -236,13 +236,9 @@ fn set_has(set: &[Value], v: &Value) -> bool {
     set.iter().any(|k| same_value_zero(k, v))
 }
 
-/// `collectAcceptedArgNames(spec, instance, aliases)`: spec argument names,
-/// instance globals and both sides of the alias map.
-fn collect_accepted_arg_names(
-    spec: &Value,
-    instance: &Value,
-    aliases: &Value,
-) -> Result<Vec<Value>, JsError> {
+/// `collectAcceptedArgNames(spec, instance)`: spec argument names and instance
+/// globals.
+fn collect_accepted_arg_names(spec: &Value, instance: &Value) -> Result<Vec<Value>, JsError> {
     let mut accepted = Vec::new();
     for def in iterate_anon(&or(get_opt(spec, "args"), || Value::Array(Vec::new())))? {
         let name = get_opt(&def, "name");
@@ -256,30 +252,7 @@ fn collect_accepted_arg_names(
             set_add(&mut accepted, key.into());
         }
     }
-    for name in keys(aliases) {
-        set_add(&mut accepted, name.into());
-    }
-    for name in values(aliases) {
-        set_add(&mut accepted, name);
-    }
     Ok(accepted)
-}
-
-/// `getParamAliases(resolvedName)`: a copy of the registered alias map.
-fn alias_map_for(registry: &Registry, resolved_name: &Value) -> Result<Value, JsError> {
-    let key = to_property_key(resolved_name)?;
-    let mut out = Object::new();
-    if let Some(aliases) = registry.param_aliases.get(&key) {
-        for (old, new) in aliases {
-            out.insert(old.clone(), Value::from(new.as_str()));
-        }
-    }
-    Ok(Value::Object(out))
-}
-
-/// `aliases[key] || key`.
-fn canonical_name(aliases: &Value, key: &str) -> Value {
-    or(member(aliases, key), || key.into())
 }
 
 /// `predictBackendSupport(instance, resolvedName, manifest)`.
@@ -465,18 +438,17 @@ pub fn predict_replacement(
         ]));
     }
 
-    let aliases = alias_map_for(registry, resolved_name)?;
-    let accepted = collect_accepted_arg_names(spec, instance, &aliases)?;
+    let accepted = collect_accepted_arg_names(spec, instance)?;
 
     let provided = or(new_args.clone(), || Value::Object(Object::new()));
     let provided_keys = keys(&provided);
     let mut provided_canonical = Vec::new();
     for key in &provided_keys {
-        set_add(&mut provided_canonical, canonical_name(&aliases, key));
+        set_add(&mut provided_canonical, key.as_str().into());
     }
     let mut unknown: Vec<Value> = Vec::new();
     for key in &provided_keys {
-        let canonical = canonical_name(&aliases, key);
+        let canonical = key.as_str().into();
         if !set_has(&accepted, &canonical) {
             unknown.push(key.as_str().into());
         }
@@ -528,7 +500,7 @@ pub fn predict_replacement(
     let mut types: Vec<Value> = Vec::new();
     let mut ranges: Vec<Value> = Vec::new();
     for (key, value) in entries(&provided) {
-        let canonical = canonical_name(&aliases, &key);
+        let canonical: Value = key.as_str().into();
         let Some(def) = known_defs
             .iter()
             .find(|(k, _)| same_value_zero(k, &canonical))

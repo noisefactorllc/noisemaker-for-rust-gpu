@@ -138,8 +138,5 @@
     }
   },
   "outputTex3d": "volumeCache",
-  "outputGeo": "geoBuffer",
-  "paramAliases": {
-    "cellVariation": "variation"
-  }
+  "outputGeo": "geoBuffer"
 }

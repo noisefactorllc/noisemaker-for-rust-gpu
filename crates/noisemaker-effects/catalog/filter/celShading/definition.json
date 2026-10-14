@@ -175,10 +175,6 @@
       "format": "rgba16f"
     }
   },
-  "paramAliases": {
-    "shadingStrength": "strength",
-    "mixAmount": "mix"
-  },
   "openCategories": [
     "general",
     "edges"

@@ -13,8 +13,8 @@
 //! result does.
 //!
 //! Helpers ported alongside: `lang/enumPaths.js` ([`enum_paths`]),
-//! `lang/stringLiterals.js` ([`string_literals`]), `resolveParamAliases` and
-//! `checkEffectAlias` ([`aliases`]). The registries the reference imports (`ops`,
+//! `lang/stringLiterals.js` ([`string_literals`]) and `checkEffectAlias`
+//! ([`aliases`]). The registries the reference imports (`ops`,
 //! `enums`, the starter ops, the alias tables) are the [`Registry`]; `stdEnums`
 //! is [`Registry::std_enums`]. `new Function` syntax checks are [`func_syntax`].
 
@@ -2272,12 +2272,6 @@ impl<'r> Validator<'r> {
         // literal `[…]`); absent until something sets a form.
         let mut arg_sources: Option<V> = None;
         let kw = call.get("kwargs")?;
-        // Resolve deprecated param aliases.
-        if kw.truthy() {
-            for warning in aliases::resolve_param_aliases(self.registry, &op_name, &kw)? {
-                self.push_diag("S007", &call, Some(warning))?;
-            }
-        }
         let mut seen: HashSet<String> = HashSet::new();
         let spec_args = spec.get("args");
         let spec_args: &[Value] = match spec_args {

@@ -80,8 +80,5 @@
         "color": "outputTex"
       }
     }
-  ],
-  "paramAliases": {
-    "frequency": "freq"
-  }
+  ]
 }

@@ -76,7 +76,6 @@ async function loadReference () {
     ops: await refModule('lang/ops.js'),
     validator: await refModule('lang/validator.js'),
     enums: await refModule('lang/enums.js'),
-    paramAliases: await refModule('lang/paramAliases.js'),
     effectAliases: await refModule('lang/effectAliases.js'),
     resources: await refModule('runtime/resources.js'),
     renderers: []
@@ -604,15 +603,14 @@ function portableScenarios () {
     passes: [{ name: 'main', program: 'main', type: 'compute', drawMode: 'points', count: 16, inputs: { previous: 'history' }, outputs: { fragColor: 'outputTex' } }],
     defaultProgram: 'search user\nportableContract().write(o0)\nrender(o0)'
   })), { op: 'register', definition: testDefinition('portableContract'), renderer: 0 }])
-  const paramsDsl = 'search user\nportableParams(oldMode: SoftLight, pinned: Keep, primary: Keep).write(o0)\nrender(o0)'
+  const paramsDsl = 'search user\nportableParams(mode: SoftLight, pinned: Keep, primary: Keep).write(o0)\nrender(o0)'
   scenario('test/params', [
     reg(testDefinition('portableParams', {
       globals: {
         mode: { type: 'int', default: 0, uniform: 'modeUniform', choices: { 'Modes:': -1, 'Soft Light': 3 } },
         pinned: { type: 'int', default: 0, uniform: 'pinnedUniform', enumPath: 'portableExplicit', choices: { Keep: 99 } },
         primary: { type: 'int', default: 0, uniform: 'primaryUniform', enum: 'portableExplicit', enumPath: 'missing', choices: { Keep: 99 } }
-      },
-      paramAliases: { oldMode: 'mode' }
+      }
     })),
     { op: 'compile', dsl: paramsDsl },
     { op: 'graph', dsl: paramsDsl },
@@ -638,6 +636,7 @@ function portableScenarios () {
     testDefinition('portableInvalid', { shaders: {} }), testDefinition('portableInvalid', { shaders: { main: { glsl: ' ' } } }),
     testDefinition('portableInvalid', { passes: [{ program: 'a' }, { program: 'b' }], shaders: { a: { glsl: 'source' }, b: { wgsl: 'source' } } }),
     testDefinition('portableInvalid', { globals: { amount: null } }), testDefinition('portableInvalid', { starter: 'false' }),
+    testDefinition('portableInvalid', { paramAliases: { old: 'mode' }, globals: { mode: { type: 'int' } } }),
     testDefinition('portableInvalid', { paramAliases: 'bad' }),
     testDefinition('portableInvalid', { paramAliases: { old: 42 } }),
     testDefinition('portableInvalid', { paramAliases: { old: 'absent' } }),
@@ -740,7 +739,6 @@ function observe (R, func) {
     enums: R.enums.default?.user?.[func],
     starter: R.validator.isStarterOp(user),
     starterBare: R.validator.isStarterOp(func),
-    paramAliases: R.paramAliases.getParamAliases(user),
     effectAlias: R.effectAliases.checkEffectAlias(user)
   }
 }
@@ -757,7 +755,6 @@ function digest (R) {
     userOps: Object.fromEntries(keys.filter(k => k.startsWith('user.')).map(k => [k, ops[k]])),
     enums: R.enums.default,
     starters: [...keys, ...effectKeys].filter(n => R.validator.isStarterOp(n)),
-    paramAliases: keys.map(k => [k, R.paramAliases.getParamAliases(k)]).filter(([, a]) => Object.keys(a).length),
     effectAliases: keys.map(k => [k, R.effectAliases.checkEffectAlias(k)]).filter(([, a]) => a !== null),
     loaded: R.renderers.flatMap(r => [...r.loadedEffects.keys()])
   }

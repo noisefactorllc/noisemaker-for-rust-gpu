@@ -188,12 +188,5 @@
         "fragColor": "outputTex"
       }
     }
-  ],
-  "paramAliases": {
-    "cellSmooth": "smooth",
-    "cellVariation": "variation",
-    "refractAmt": "amount",
-    "refractDir": "direction",
-    "loopAmp": "speed"
-  }
+  ]
 }

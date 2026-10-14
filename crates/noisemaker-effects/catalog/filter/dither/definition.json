@@ -114,9 +114,5 @@
         "fragColor": "outputTex"
       }
     }
-  ],
-  "paramAliases": {
-    "ditherType": "type",
-    "mixAmount": "mix"
-  }
+  ]
 }

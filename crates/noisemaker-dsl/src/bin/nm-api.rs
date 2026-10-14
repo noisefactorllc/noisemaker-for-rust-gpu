@@ -355,15 +355,6 @@ fn cmd_cases(input: &str, out: &str) -> Result<(), String> {
 fn observe(registry: &Registry, func: &str) -> Value {
     let user = format!("user.{func}");
     let enums = Value::Object(registry.enums.clone());
-    let aliases: Object = registry
-        .param_aliases
-        .get(&user)
-        .map(|a| {
-            a.iter()
-                .map(|(k, v)| (k.clone(), Value::from(v.as_str())))
-                .collect()
-        })
-        .unwrap_or_default();
     let mut o = Object::new();
     o.insert("bare", describe(registry.get_effect(func)));
     o.insert("dot", describe(registry.get_effect(&user)));
@@ -375,7 +366,6 @@ fn observe(registry: &Registry, func: &str) -> Value {
     o.insert("enums", get_opt(&get_opt(&enums, "user"), func));
     o.insert("starter", Value::Bool(registry.is_starter_op(&user)));
     o.insert("starterBare", Value::Bool(registry.is_starter_op(func)));
-    o.insert("paramAliases", Value::Object(aliases));
     o.insert(
         "effectAlias",
         check_effect_alias(registry, &user).map_or(Value::Null, Value::from),
@@ -391,17 +381,6 @@ fn digest(registry: &Registry) -> Value {
     for k in keys.iter().filter(|k| k.starts_with("user.")) {
         user_ops.insert(*k, registry.ops.get(k).cloned().unwrap_or_default());
     }
-    let param_aliases: Vec<Value> = keys
-        .iter()
-        .filter_map(|k| {
-            let aliases = registry.param_aliases.get(*k).filter(|a| !a.is_empty())?;
-            let o: Object = aliases
-                .iter()
-                .map(|(a, t)| (a.clone(), Value::from(t.as_str())))
-                .collect();
-            Some(Value::Array(vec![Value::from(*k), Value::Object(o)]))
-        })
-        .collect();
     let effect_aliases: Vec<Value> = keys
         .iter()
         .filter_map(|k| {
@@ -432,7 +411,6 @@ fn digest(registry: &Registry) -> Value {
                 .filter(|n| registry.is_starter_op(n)),
         ),
     );
-    o.insert("paramAliases", Value::Array(param_aliases));
     o.insert("effectAliases", Value::Array(effect_aliases));
     o.insert(
         "loaded",

@@ -2,14 +2,6 @@
  "profile": "edge-transform",
  "setup": [
   {
-   "op": "registerParamAliases",
-   "opName": "filter.grain",
-   "aliases": {
-    "amt": "amount",
-    "old": "mode"
-   }
-  },
-  {
    "op": "registerEffect",
    "name": "nope.none",
    "definition": {

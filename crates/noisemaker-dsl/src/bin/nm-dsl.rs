@@ -72,14 +72,6 @@ fn apply_setup(registry: &mut Registry, setup: &Value) {
                 };
                 registry.register_effect(name(), Rc::new(entry));
             }
-            Some("registerParamAliases") => {
-                if let Value::Object(aliases) = decode(step.get("aliases")) {
-                    registry.register_param_aliases(
-                        step.get("opName").as_str().unwrap_or_default(),
-                        &aliases,
-                    );
-                }
-            }
             Some("registerEffectAlias") => registry.register_effect_alias(
                 step.get("opName").as_str().unwrap_or_default(),
                 step.get("newName").as_str().unwrap_or_default(),

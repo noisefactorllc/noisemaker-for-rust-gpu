@@ -691,7 +691,7 @@ fn demo_host_control_changes_follow_the_page() {
 }
 
 /// A Portable generator: a solid color from its own WGSL, with a choice
-/// parameter and a parameter alias.
+/// parameter.
 fn portable_solid() -> Value {
     Value::from_json(
         r#"{
@@ -701,7 +701,6 @@ fn portable_solid() -> Value {
                 "channel": {"type": "int", "default": 0, "uniform": "channel",
                             "choices": {"red": 0, "green": 1, "blue": 2}}
             },
-            "paramAliases": {"amount": "level"},
             "passes": [{"name": "main", "program": "main", "inputs": {}, "outputs": {"fragColor": "outputTex"}}],
             "shaders": {"main": {"wgsl": "@group(0) @binding(0) var<uniform> level: f32;\n@group(0) @binding(1) var<uniform> channel: i32;\n@fragment fn main(@builtin(position) p: vec4<f32>) -> @location(0) vec4<f32> {\n  var c = vec3<f32>(0.0);\n  c[channel] = level;\n  return vec4<f32>(c, 1.0);\n}\n"}}
         }"#,
@@ -728,7 +727,7 @@ fn portable_effects_register_compile_and_render() {
     assert!(REGISTRY.with(|reg| reg.get_effect("user.portableSolid").is_none()));
     compile(
         &mut r,
-        "search user\nportableSolid(amount: 0.5, channel: blue).write(o0)\nrender(o0)",
+        "search user\nportableSolid(level: 0.5, channel: blue).write(o0)\nrender(o0)",
     );
     r.render(0.25).unwrap();
     assert_eq!(&output(&mut r)[..4], &[0, 0, 128, 255]);

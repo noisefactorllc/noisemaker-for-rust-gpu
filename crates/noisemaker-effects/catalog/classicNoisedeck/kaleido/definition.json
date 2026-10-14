@@ -222,10 +222,6 @@
       }
     }
   ],
-  "paramAliases": {
-    "kaleido": "sides",
-    "loopAmp": "speed"
-  },
   "openCategories": [
     "general",
     "animation"

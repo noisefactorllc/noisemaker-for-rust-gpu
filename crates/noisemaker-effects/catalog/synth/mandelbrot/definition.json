@@ -290,9 +290,6 @@
       "components": "zw"
     }
   },
-  "paramAliases": {
-    "poiMode": "poi"
-  },
   "openCategories": [
     "fractal",
     "animation"

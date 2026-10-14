@@ -534,11 +534,6 @@
       }
     }
   },
-  "paramAliases": {
-    "fractalType": "type",
-    "backgroundColor": "bgColor",
-    "backgroundOpacity": "bgAlpha"
-  },
   "passes": [
     {
       "name": "render",

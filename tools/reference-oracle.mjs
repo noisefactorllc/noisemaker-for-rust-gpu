@@ -51,7 +51,6 @@ export async function bootstrapReference () {
   // exports a `stdEnums`, but that one is the merged enum tree of lang/enums.js,
   // which is still empty here.)
   const { stdEnums } = await import(pathToFileURL(join(SHADERS, 'src', 'lang', 'std_enums.js')).href)
-  const { registerParamAliases } = await import(pathToFileURL(join(SHADERS, 'src', 'lang', 'paramAliases.js')).href)
   const { registerEffectAlias } = await import(pathToFileURL(join(SHADERS, 'src', 'lang', 'effectAliases.js')).href)
   const manifest = JSON.parse(readFileSync(join(EFFECTS, 'manifest.json'), 'utf8'))
 
@@ -127,7 +126,6 @@ export async function bootstrapReference () {
           }
         })
         registerOp(`${namespace}.${instance.func}`, { name: instance.func, args })
-        if (instance.paramAliases) registerParamAliases(`${namespace}.${instance.func}`, instance.paramAliases)
         if (instance.hidden && instance.deprecatedBy) registerEffectAlias(`${namespace}.${instance.func}`, instance.deprecatedBy)
         if (Object.keys(choicesToRegister).length > 0) await mergeIntoEnums(choicesToRegister)
       }

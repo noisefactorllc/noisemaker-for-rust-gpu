@@ -149,9 +149,5 @@
         "fragColor": "outputTex"
       }
     }
-  ],
-  "paramAliases": {
-    "freq": "scale",
-    "nth": "mode"
-  }
+  ]
 }

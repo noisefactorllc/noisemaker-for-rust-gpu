@@ -1715,9 +1715,6 @@
       "format": "rgba16f"
     }
   },
-  "paramAliases": {
-    "rotationVariation": "rotationVar"
-  },
   "openCategories": [
     "source",
     "visual"

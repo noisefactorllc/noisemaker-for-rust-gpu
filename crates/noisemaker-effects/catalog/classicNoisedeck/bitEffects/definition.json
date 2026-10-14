@@ -354,9 +354,6 @@
       "components": "zw"
     }
   },
-  "paramAliases": {
-    "loopAmp": "speed"
-  },
   "openCategories": [
     "general",
     "bit mask"

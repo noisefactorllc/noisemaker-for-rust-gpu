@@ -138,7 +138,6 @@ export const mergeIntoEnums = async () => {};
 export const compileGraph = () => { throw new Error('fixture compile failed'); };
 ''')
         self.write('reference/shaders/src/lang/std_enums.js', 'export const stdEnums = {};')
-        self.write('reference/shaders/src/lang/paramAliases.js', 'export const registerParamAliases = () => {};')
         self.write('reference/shaders/src/lang/effectAliases.js', 'export const registerEffectAlias = () => {};')
         self.write('reference/shaders/effects/manifest.json', '{}')
         # Only browser operations are doubled. bootstrapReference, compile

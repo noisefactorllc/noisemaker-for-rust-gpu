@@ -83,11 +83,5 @@
         "fragColor": "outputTex"
       }
     }
-  ],
-  "paramAliases": {
-    "paletteIndex": "index",
-    "paletteOffset": "offset",
-    "paletteRepeat": "repeat",
-    "paletteRotation": "rotation"
-  }
+  ]
 }

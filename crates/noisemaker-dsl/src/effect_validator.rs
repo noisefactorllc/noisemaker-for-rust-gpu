@@ -160,7 +160,6 @@ const TOP_LEVEL_KEYS: &[&str] = &[
     "shaders",
     "uniformLayout",
     "uniformLayouts",
-    "paramAliases",
     "openCategories",
     "defaultProgram",
     "hidden",
@@ -1826,30 +1825,6 @@ pub fn validate_definition(definition: Definition<'_>) -> Result<Vec<String>, Js
         }
     }
 
-    // --- param aliases ---
-    let param_aliases = source.get("paramAliases");
-    if !param_aliases.is_undefined() {
-        if !is_obj(&param_aliases) {
-            errors
-                .push("\"paramAliases\" must be an object mapping aliases to global names".into());
-        } else {
-            for (alias, target) in entries(&param_aliases) {
-                match &target {
-                    Value::String(t) if !t.is_empty() => {
-                        if !context.has_global(&target) {
-                            errors.push(format!(
-                                "paramAliases['{alias}'] references unknown global '{t}'"
-                            ));
-                        }
-                    }
-                    _ => errors.push(format!(
-                        "paramAliases['{alias}'] must be a non-empty string"
-                    )),
-                }
-            }
-        }
-    }
-
     // --- top-level unknown-field diagnosis (plain definition objects only) ---
     if diagnose_top_level_unknowns {
         for key in top_level_keys {
@@ -1895,7 +1870,6 @@ mod tests {
             "hidden": false,
             "uniformLayout": {"resolution": {"slot": 0, "components": "xy"}, "time": {"slot": 0, "components": "z"}},
             "uniformLayouts": {"alt": {"amount": {"slot": 0, "components": "x"}}},
-            "paramAliases": {"amt": "amount"},
             "textures": {
                 "scratch": {"width": 64, "height": "100%", "format": "rgba16f"},
                 "scaled": {"width": {"param": "volumeSize", "power": 2, "default": 1024}, "height": {"screenDivide": "zoom", "default": 8}}
@@ -1948,6 +1922,16 @@ mod tests {
         let mut def = valid_definition();
         def.set("globalz", Value::object());
         assert_eq!(errors(&def), vec!["Unknown definition field 'globalz'"]);
+        // Retired parameter-alias metadata is an unknown field now.
+        let mut def = valid_definition();
+        def.set(
+            "paramAliases",
+            Value::from_json(r#"{"amt": "amount"}"#).unwrap(),
+        );
+        assert_eq!(
+            errors(&def),
+            vec!["Unknown definition field 'paramAliases'"]
+        );
         // Instances do not diagnose top-level extras.
         assert!(
             validate_definition(Definition::Instance {

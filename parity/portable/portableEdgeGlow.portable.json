@@ -18,7 +18,6 @@
       "ui": { "label": "glow", "control": "color" }
     }
   },
-  "paramAliases": { "amount": "strength" },
   "textures": {
     "_edgeTex": { "width": "input", "height": "input", "format": "rgba16float" }
   },

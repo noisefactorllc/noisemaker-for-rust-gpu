@@ -31,6 +31,9 @@
 //! software is freely granted, provided that this notice
 //! is preserved.
 //! ```
+//!
+//! V8 modified that code: Copyright 2016 the V8 project authors, under V8's
+//! BSD license in LICENSE-v8.txt.
 
 // fdlibm is kept as written in V8's ieee754.cc: its constants (each parses to
 // the documented bit pattern), `x - x` for NaN results, and its loops.

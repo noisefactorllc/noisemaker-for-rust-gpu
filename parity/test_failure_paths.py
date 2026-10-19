@@ -28,6 +28,21 @@ class ParityFailurePaths(unittest.TestCase):
         self.reference = self.root / 'reference'
         self.write('reference/package.json', '{"type":"module"}')
         self.write('reference/node_modules/playwright/package.json', '{}')
+        # The summary launches the minter's Chromium before the sweep.
+        self.write('reference/node_modules/playwright/index.js', '''
+exports.chromium = { launch: async () => {
+  if (process.env.CHROMIUM_LAUNCH_RC) throw new Error("Executable doesn't exist")
+  return { close: async () => {} }
+} }
+''')
+        self.write('reference/node_modules/playwright/cli.js', 'process.exit(0)\n')
+        # The summary mints only from a reference checkout at the pin.
+        git = ['git', '-C', str(self.reference), '-c', 'user.name=parity', '-c', 'user.email=parity@example.com']
+        subprocess.run(['git', 'init', '-q', str(self.reference)], check=True)
+        subprocess.run(git + ['commit', '-q', '--allow-empty', '-m', 'pin'], check=True)
+        self.pin = subprocess.run(git + ['rev-parse', 'HEAD'], check=True, capture_output=True,
+                                  text=True).stdout.strip()
+        self.write('parity/reference.json', json.dumps({'commit': self.pin}))
         self.env = dict(os.environ, NM_REFERENCE_ROOT=str(self.reference))
         # A real, informative PNG with hand-selected black and white pixels.
         image = Image.new('RGBA', (2, 2))
@@ -247,6 +262,41 @@ sys.exit(7)
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(counts['skip'], 2)
         self.assertEqual(counts['executed'], 0)
+
+    def test_summary_refuses_a_reference_off_the_pin(self):
+        self.fake_minter()
+        other = '3f5775c64d55c31906eab114087e09827cb2a1cc'
+        self.write('parity/reference.json', json.dumps({'commit': other}))
+        result, counts = self.summary()
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertEqual(counts['skip'], 2)
+        self.assertEqual(counts['executed'], 0)
+        self.assertIn(self.pin, result.stderr)
+        self.assertIn(other, result.stderr)
+        self.assertEqual(sorted(self.out.glob('*.golden.png')), [])
+
+    def test_scripts_test_keeps_a_named_directory_that_is_not_a_reference(self):
+        shutil.copy2(ROOT / 'scripts/test', self.root / 'scripts/test')
+        named = self.root / 'user-files'
+        self.write('user-files/notes.txt', 'keep me')
+        self.write('user-files/data/values.csv', '1,2,3\n')
+        files = lambda: {str(p.relative_to(named)): p.read_bytes() for p in named.rglob('*') if p.is_file()}
+        before = files()
+        env = {k: v for k, v in self.env.items() if k != 'NM_REFERENCE_ROOT'}
+        result = subprocess.run(['node', 'scripts/test'], cwd=self.root, env={**env, 'NM_TEST_REFERENCE': str(named)},
+                                capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn(str(named), result.stderr)
+        self.assertIn('is not a noisemaker checkout', result.stderr)
+        self.assertEqual(files(), before)
+
+    def test_summary_refuses_a_minter_that_cannot_launch_its_chromium(self):
+        self.fake_minter()
+        result, counts = self.summary(CHROMIUM_LAUNCH_RC='1')
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertEqual(counts['skip'], 2)
+        self.assertIn('cannot launch its Chromium', result.stderr)
+        self.assertEqual(sorted(self.out.glob('*.golden.png')), [])
 
     def test_summary_success_and_failure_do_not_reuse_goldens(self):
         self.fake_minter()

@@ -24,6 +24,12 @@
 //! Time is counted in render quanta: two reads without a new quantum see the
 //! same analysis, like two reads at the same `AudioContext.currentTime`.
 
+// This module reproduces Chromium 153.0.8010.12 code
+// (https://chromium.googlesource.com/chromium/src): realtime_analyser.cc,
+// audio_bus.cc and fft_frame.cc, Copyright (C) 2010 Google Inc., and
+// analyser_handler.cc and rustfft_ffi.rs, Copyright 2022 and 2026 The Chromium
+// Authors. Their licenses are in LICENSE-chromium.txt.
+
 use std::collections::HashMap;
 use std::fmt;
 use std::sync::{Arc, OnceLock, RwLock};

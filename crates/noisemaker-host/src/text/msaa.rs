@@ -30,6 +30,12 @@
 //! coverage levels 0, 64, 128, 191 and 255 of white text, and coloured
 //! edges round as the resolve above.
 
+// Wang's formula and the tessellation limits here port Skia's
+// src/gpu/tessellate/WangsFormula.h (copyright 2020 Google LLC) and
+// Tessellation.h (copyright 2021 Google LLC) at commit
+// 9d07e5bad9e3e21da2426946e589daa647218271 (https://skia.org). Skia's license
+// is at the top of `src/raster.rs` and in LICENSE-skia.txt.
+
 use rustybuzz::ttf_parser;
 
 /// Rasterizer fixed point: 8 bits of subpixel precision.

@@ -33,6 +33,12 @@
 //! outlines vertically (cap heights and overshoots snap to whole pixels),
 //! which this rasterizer does not reproduce.
 
+// `accumulate_line` and the row sums of `accumulated_mask` port font-rs
+// (https://github.com/raphlinus/font-rs: `Raster::draw_line` in src/raster.rs
+// and src/accumulate.rs), Copyright 2015 Google Inc., licensed under the
+// Apache License, Version 2.0 (LICENSE-font-rs.txt). This port computes in
+// f64 over the glyph's own bounds.
+
 /// Quadratic flatness: the largest max-norm distance between a piece's
 /// control point and its chord's midpoint, in pixels.
 pub const QUAD_FLATNESS: f64 = 0.4;

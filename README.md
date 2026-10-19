@@ -179,7 +179,12 @@ These files are not covered by the MIT license:
 - `crates/noisemaker-effects/catalog/share/fonts/Nunito/Nunito-VariableFont_wght.ttf` is the Nunito font, Copyright 2014 The Nunito Project Authors, licensed under the SIL Open Font License 1.1 ([OFL.txt](crates/noisemaker-effects/catalog/share/fonts/Nunito/OFL.txt)). It is a copy of the reference demo's `demo/font/Nunito/`.
 - `crates/noisemaker-effects/catalog/share/img/testcard.png`, the default media image, is the Philips PM5544 test card, by Ebnz, modified by Tucvbif (Wikimedia Commons, File:Philips_PM5544.svg), CC BY 2.5; rasterized to 768×576 for the Noisemaker demo. It is a copy of the reference demo's `demo/shaders/img/testcard.png`.
 
-`crates/noisemaker-host/src/raster.rs` and `raster/fill.rs` port parts of Skia's CPU rasterizer (BSD 3-Clause; Google Inc., Google LLC and The Android Open Source Project). Skia's license text is at the top of `raster.rs`.
+These source files port third-party code. Each carries the notice, and the crate holds the license:
+
+- `crates/noisemaker-host/src/raster.rs` and `raster/fill.rs` port parts of Skia's CPU rasterizer. `text/sdf.rs` ports Skia's `SkDistanceFieldGen.cpp`, and `text/msaa.rs` ports Skia's Wang's formula and tessellation limits. Skia is BSD 3-Clause (Google Inc., Google LLC and The Android Open Source Project): [LICENSE-skia.txt](crates/noisemaker-host/LICENSE-skia.txt), also at the top of `raster.rs`.
+- `crates/noisemaker-host/src/text/raster.rs` ports the accumulation rasterizer of font-rs (Copyright 2015 Google Inc.): Apache License 2.0, [LICENSE-font-rs.txt](crates/noisemaker-host/LICENSE-font-rs.txt).
+- `crates/noisemaker-input/src/analyser.rs` reproduces Chromium's Web Audio analyser (`realtime_analyser.cc`, `analyser_handler.cc`, `audio_bus.cc`, `fft_frame.cc` and `rustfft_ffi.rs`): BSD licenses of Google Inc. and The Chromium Authors, [LICENSE-chromium.txt](crates/noisemaker-input/LICENSE-chromium.txt).
+- `crates/noisemaker-dsl/src/jsmath.rs` ports V8's fdlibm (`src/base/ieee754.cc`): the Sun Microsystems fdlibm notice in the file, and V8's BSD 3-Clause license, [LICENSE-v8.txt](crates/noisemaker-dsl/LICENSE-v8.txt).
 
 On Apple targets the build compiles these into the binaries it links (`crates/noisemaker-tint/`):
 

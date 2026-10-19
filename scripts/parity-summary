@@ -74,9 +74,9 @@ fi
 export NM_RENDER
 
 # ---- reference -----------------------------------------------------------------
+PIN="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["commit"])' "$ROOT/parity/reference.json")" \
+  || fail_infra "cannot read parity/reference.json"
 if [ -z "${NM_REFERENCE_ROOT:-}" ]; then
-  PIN="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["commit"])' "$ROOT/parity/reference.json")" \
-    || fail_infra "cannot read parity/reference.json"
   CACHE="$ROOT/parity/.cache/noisemaker-reference"
   if [ "$(git -C "$CACHE" rev-parse HEAD 2>/dev/null)" != "$PIN" ]; then
     echo "[parity-summary] cloning the reference at $PIN" >&2
@@ -87,11 +87,27 @@ if [ -z "${NM_REFERENCE_ROOT:-}" ]; then
   fi
   export NM_REFERENCE_ROOT="$CACHE"
 fi
+# Goldens come only from the pinned commit, as parity/check_effects.mjs requires.
+REFERENCE_HEAD="$(git -C "$NM_REFERENCE_ROOT" rev-parse HEAD 2>/dev/null)" || REFERENCE_HEAD="an unknown revision"
+[ "$REFERENCE_HEAD" = "$PIN" ] \
+  || fail_infra "reference checkout $NM_REFERENCE_ROOT is at $REFERENCE_HEAD, the pin in parity/reference.json is $PIN"
 if [ ! -f "$NM_REFERENCE_ROOT/node_modules/playwright/package.json" ]; then
   echo "[parity-summary] installing playwright into the reference checkout" >&2
   (cd "$NM_REFERENCE_ROOT" && npm install --no-save --no-audit --no-fund playwright@1.63.0 >&2) \
     || fail_infra "cannot install playwright for the golden minter"
-  (cd "$NM_REFERENCE_ROOT" && npx playwright install chromium >&2) || fail_infra "cannot install chromium"
+fi
+minter_chromium_launches() {
+  (cd "$NM_REFERENCE_ROOT" && node -e 'require("playwright").chromium.launch().then(browser => browser.close())')
+}
+if ! minter_chromium_launches >/dev/null 2>&1; then
+  # node_modules/.bin/playwright can belong to the lockfile's @playwright/test,
+  # another version with another browser build. Install the browser with the
+  # CLI of the playwright package that the minter imports.
+  echo "[parity-summary] installing the Chromium build of the minter's playwright" >&2
+  (cd "$NM_REFERENCE_ROOT" && node node_modules/playwright/cli.js install chromium >&2) \
+    || fail_infra "cannot install chromium"
+  minter_chromium_launches >&2 \
+    || fail_infra "the playwright that the golden minter imports from $NM_REFERENCE_ROOT cannot launch its Chromium"
 fi
 
 # ---- python with numpy + pillow --------------------------------------------------

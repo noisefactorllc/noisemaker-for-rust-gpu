@@ -24,6 +24,10 @@
 //! linearization whatever the text colour, stem edges agree within 0.02 px
 //! on average; without smoothing they are 0.2 to 0.6 px off.
 
+// This module ports Skia's src/core/SkDistanceFieldGen.cpp (https://skia.org)
+// at commit 9d07e5bad9e3e21da2426946e589daa647218271, copyright 2014 Google Inc.
+// Skia's license is at the top of `src/raster.rs` and in LICENSE-skia.txt.
+
 /// `SK_DistanceFieldPad`: texels of field around the glyph mask.
 pub const PAD: i64 = 4;
 

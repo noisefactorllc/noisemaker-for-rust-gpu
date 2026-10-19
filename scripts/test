@@ -63,9 +63,16 @@ function run (cmd, args, opts = {}) {
 // ---- reference checkout at the pin -------------------------------------------------
 let referenceRoot = process.env.NM_REFERENCE_ROOT
 if (!referenceRoot) {
-  referenceRoot = process.env.NM_TEST_REFERENCE || join(tmpdir(), `noisemaker-reference-${PIN.slice(0, 12)}`)
+  const named = process.env.NM_TEST_REFERENCE
+  referenceRoot = named || join(tmpdir(), `noisemaker-reference-${PIN.slice(0, 12)}`)
   if (!existsSync(join(referenceRoot, 'shaders', 'src'))) {
-    rmSync(referenceRoot, { recursive: true, force: true })
+    // Replace only the cache directory this script owns. A directory that the
+    // caller named is cloned into only while it is absent or empty.
+    if (named && existsSync(named) && readdirSync(named).length > 0) {
+      console.error(`NM_TEST_REFERENCE ${named} is not a noisemaker checkout (no shaders/src); it was not changed`)
+      process.exit(1)
+    }
+    if (!named) rmSync(referenceRoot, { recursive: true, force: true })
     mkdirSync(referenceRoot, { recursive: true })
     run('git', ['clone', '--quiet', 'https://github.com/noisefactorllc/noisemaker.git', referenceRoot])
   }
@@ -121,7 +128,14 @@ if (!writableCargoHome(configuredCargoHome)) {
 run('node', ['parity/check_effects.mjs'], { env })
 run('node', ['tools/generate-kit-compat.mjs', '--check'], { env })
 run('node', ['tools/generate-coverage.mjs', '--check'], { env })
-run(cargo, ['test', '--release', '-p', 'noisemaker-effects', '-p', 'noisemaker-dsl', '-p', 'noisemaker-input'], { env })
+// The noisemaker-tint test compares the linked Tint with Chromium's MSL; Tint
+// is built on Apple targets only.
+const testedCrates = ['noisemaker-effects', 'noisemaker-dsl', 'noisemaker-input',
+  ...(process.platform === 'darwin' ? ['noisemaker-tint'] : [])]
+run(cargo, ['test', '--release', ...testedCrates.flatMap(name => ['-p', name])], { env })
+// noisemaker-host's OBJ and worm differentials compare with NM_REFERENCE_ROOT and
+// print their summaries, or why they skipped, on stderr.
+run(cargo, ['test', '--release', '-p', 'noisemaker-host', '--', '--nocapture'], { env })
 run(cargo, ['build', '--release', '-p', 'nm-render', '-p', 'noisemaker-dsl', '-p', 'noisemaker-input', '--bins'], { env })
 const programs = ['programs', 'corpus', 'coverage', 'timed', 'curated'].flatMap(dir =>
   readdirSync(join(ROOT, 'parity', dir)).filter(f => f.endsWith('.dsl')).sort().map(f => join(ROOT, 'parity', dir, f)))

@@ -5,8 +5,8 @@ name: Tests
 # the catalog, coverage-corpus and kit-list freshness gates, the Rust tests of
 # the GPU-free crates, and the frontend, DSL tooling, ProgramState, public API,
 # Portable, MIDI, audio and automation gates. The pixel parity sweep renders,
-# so it runs weekly in parity.yml. GitHub-hosted runners only: this public
-# repository never targets self-hosted runners.
+# so it runs weekly in parity.yml. This job runs on a GitHub-hosted runner;
+# only parity.yml, on main, runs on the self-hosted GPU runner.
 
 on:
   push:

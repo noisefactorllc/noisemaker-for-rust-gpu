@@ -26,7 +26,7 @@ Cargo writes the build to `engine/target/`. On an Apple M4 the first build, with
 engine/target/release/nm-render render --dsl program.dsl --out out.png --size 512 --orientation presented
 ```
 
-The command writes a 512×512 `out.png` beside your program. Paths are relative to your working directory. `--orientation presented` writes the image the way Noisedeck shows it; without it the rows are in GPU texture order, upside down.
+The command writes a 512×512 `out.png` beside your program. Paths are relative to your working directory. The image is written the way Noisedeck shows it (`--orientation presented`, the default); `--orientation texture` writes the rows in GPU texture order, upside down.
 
 `render` draws 8 frames at one moment of the program's 10 second loop (`--time 0.25` by default, a fraction of the loop). Programs with feedback, particles or simulations build up over time, so render them in timed mode instead. This runs 10 seconds of frames at 60 frames per second and writes the last one as `out.t10.png`:
 

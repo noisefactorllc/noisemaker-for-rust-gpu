@@ -44,7 +44,7 @@ target/release/nm-render render --dsl parity/programs/hero.dsl --out hero.png --
     --orientation presented --run-seconds 10 --sample-every 10
 ```
 
-Without `--run-seconds`, `render` draws `--frames` frames (8) at one normalized loop time (`--time`, 0.25). `--orientation presented` writes the image as the reference's canvas shows it; the default, `texture`, writes rows in texture order, the order the parity protocol compares. `--param step_N.NAME=VALUE` sets a parameter as the demo's controls do, `--media IMAGE.png` replaces the default media image and `--obj FILE.obj` loads a mesh. `target/release/nm-render render --help` lists every option.
+Without `--run-seconds`, `render` draws `--frames` frames (8) at one normalized loop time (`--time`, 0.25). By default `render` writes the image as the reference's canvas shows it (`--orientation presented`); `--orientation texture` writes rows in texture order, upside down, the order the parity protocol compares. `render` rejects `--frames 0`, a `--sample-every` or `--sample-every-frames` of zero, and a size outside 1 to the GPU's largest texture, with exit 2 and no file written. `--param step_N.NAME=VALUE` sets a parameter as the demo's controls do, `--media IMAGE.png` replaces the default media image and `--obj FILE.obj` loads a mesh. `target/release/nm-render render --help` lists every option.
 
 Render one loop of a program (10 seconds at 30 frames per second) to numbered PNG frames. `--mp4 loop.mp4` also encodes them with `ffmpeg` (H.264) when it is installed:
 

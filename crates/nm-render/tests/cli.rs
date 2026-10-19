@@ -179,3 +179,78 @@ fn zero_frame_animation_fails_without_creating_output() {
     assert!(!out.status.success());
     assert!(!scratch.0.join("frames").exists());
 }
+
+/// Runs `render` on the repository's synth_media program (the asymmetric
+/// test card) and returns the written PNG's RGBA rows.
+fn render_test_card(scratch: &Scratch, out: &str, orientation: Option<&str>) -> Vec<u8> {
+    let program =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../parity/coverage/synth_media.dsl");
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_nm-render"));
+    cmd.current_dir(&scratch.0)
+        .arg("render")
+        .arg("--dsl")
+        .arg(&program)
+        .args(["--out", out, "--size", "64", "--frames", "1"]);
+    if let Some(orientation) = orientation {
+        cmd.args(["--orientation", orientation]);
+    }
+    succeeded(&cmd.output().unwrap());
+    noisemaker_gpu::png_io::read_png_rgba8(&scratch.0.join(out))
+        .unwrap()
+        .data
+}
+
+#[test]
+fn render_writes_the_image_upright_by_default() {
+    let scratch = Scratch::new();
+    let default = render_test_card(&scratch, "default.png", None);
+    let presented = render_test_card(&scratch, "presented.png", Some("presented"));
+    let texture = render_test_card(&scratch, "texture.png", Some("texture"));
+    assert_eq!(default, presented);
+    let row = 64 * 4;
+    let flipped: Vec<u8> = texture.chunks(row).rev().flatten().copied().collect();
+    assert_eq!(default, flipped);
+    assert_ne!(
+        default, texture,
+        "the test card must not be vertically symmetric"
+    );
+}
+
+#[test]
+fn render_rejects_values_that_cannot_give_the_image() {
+    let cases: [(&[&str], &str); 6] = [
+        (&["--frames", "0"], "--frames must be at least 1"),
+        (
+            &["--run-seconds", "1", "--sample-every", "0"],
+            "--sample-every must be a positive",
+        ),
+        (
+            &["--run-frames", "4", "--sample-every-frames", "0"],
+            "--sample-every-frames must be at least 1",
+        ),
+        (&["--size", "0"], "--size must be 1 to "),
+        (&["--size", "70000"], "--size must be 1 to "),
+        (
+            &["--width", "16", "--height", "0"],
+            "--height must be 1 to ",
+        ),
+    ];
+    for (options, message) in cases {
+        let scratch = Scratch::new();
+        let out = Command::new(env!("CARGO_BIN_EXE_nm-render"))
+            .current_dir(&scratch.0)
+            .args(["render", "--dsl", "mesh.dsl", "--out", "out.png"])
+            .args(options)
+            .output()
+            .unwrap();
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        assert_eq!(out.status.code(), Some(2), "{options:?}: {stderr}");
+        assert!(stderr.contains(message), "{options:?}: {stderr}");
+        let written: Vec<_> = std::fs::read_dir(&scratch.0)
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name().into_string().unwrap())
+            .filter(|name| name.ends_with(".png"))
+            .collect();
+        assert!(written.is_empty(), "{options:?} wrote {written:?}");
+    }
+}

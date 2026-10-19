@@ -114,7 +114,7 @@ enum Command {
         #[arg(long = "param", value_name = "step_N.NAME=VALUE")]
         params: Vec<String>,
         /// Row order of the PNG
-        #[arg(long, value_enum, default_value_t = OrientationArg::Texture)]
+        #[arg(long, value_enum, default_value_t = OrientationArg::Presented)]
         orientation: OrientationArg,
         /// Host texture overrides, ID=PNG (repeatable): texture contents
         /// uploaded in place of the natively produced input
@@ -489,7 +489,52 @@ struct RenderArgs {
     dump_passes: bool,
 }
 
+/// Rejects option values that cannot give the requested images, before any
+/// GPU work, as `animate` rejects `--fps`.
+fn check_render_options(args: &RenderArgs) -> Result<(), Failure> {
+    if args.frames == 0 {
+        return Err(Failure::Usage("--frames must be at least 1, got 0".into()));
+    }
+    if let Some(seconds) = args.sample_every
+        && !(seconds > 0.0 && seconds.is_finite())
+    {
+        return Err(Failure::Usage(format!(
+            "--sample-every must be a positive number of seconds, got {}",
+            number_to_string(seconds)
+        )));
+    }
+    if args.sample_every_frames == Some(0) {
+        return Err(Failure::Usage(
+            "--sample-every-frames must be at least 1, got 0".into(),
+        ));
+    }
+    Ok(())
+}
+
+/// Rejects an image dimension outside 1 to the device's largest 2D texture.
+fn check_render_size(
+    size: u32,
+    width: Option<u32>,
+    height: Option<u32>,
+    max: u32,
+) -> Result<(), Failure> {
+    let dimensions = match (width, height) {
+        (Some(width), Some(height)) => vec![("--width", width), ("--height", height)],
+        _ => vec![("--size", size)],
+    };
+    for (option, value) in dimensions {
+        if value == 0 || value > max {
+            return Err(Failure::Usage(format!(
+                "{option} must be 1 to {max} pixels on this GPU, got {value}"
+            )));
+        }
+    }
+    Ok(())
+}
+
 fn render(args: RenderArgs) -> Result<(), Failure> {
+    check_render_options(&args)?;
+    let (size, width, height) = (args.size, args.width, args.height);
     if !args.params.is_empty() && args.dsl.is_none() {
         return Err(Failure::Usage("--param needs a --dsl program".into()));
     }
@@ -527,6 +572,12 @@ fn render(args: RenderArgs) -> Result<(), Failure> {
         midi: None,
     };
     let device = device()?;
+    check_render_size(
+        size,
+        width,
+        height,
+        device.device.limits().max_texture_dimension_2d,
+    )?;
     let result = noisemaker_gpu::protocol::run_fixture(&device, &spec, &context);
     let name = args
         .out

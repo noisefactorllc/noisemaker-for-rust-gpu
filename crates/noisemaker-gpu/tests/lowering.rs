@@ -1,8 +1,14 @@
 //! GPU tests of the Metal shader lowering (`noisemaker_gpu::lowering`) of the
 //! naga compiler path: the rewritten loops keep their WGSL semantics on the
 //! device, and on Metal a constant-trip-count loop compiles to the arithmetic
-//! of its unrolled form, the shape Metal's compiler gives the loop Tint
-//! writes.
+//! of the loop Tint writes, bit for bit. Where Metal's compiler gives Tint's
+//! loop the arithmetic of its unrolled form, the lowered loop gets it too.
+//! The Metal compiler of an Apple M4 with macOS 26 does; that of an Apple M2
+//! with macOS 14.8.3 (Metal 343.21) does not, for Tint's loop or any other
+//! loop, so that check applies only where Tint's own renders show the
+//! property.
+
+use std::io::Write;
 
 use noisemaker_gpu::lowering::lower_for_tint_msl;
 use noisemaker_gpu::{DeviceOptions, GpuDevice, Graph, Renderer, RendererOptions, ShaderCompiler};
@@ -14,6 +20,15 @@ fn naga_device() -> GpuDevice {
         ..Default::default()
     })
     .expect("a GPU adapter")
+}
+
+/// A Metal device compiling with Tint (the reference's compiler on Metal).
+fn tint_device() -> GpuDevice {
+    GpuDevice::create(&DeviceOptions {
+        shader_compiler: Some(ShaderCompiler::Tint),
+        ..Default::default()
+    })
+    .expect("Tint on a Metal adapter")
 }
 
 /// Render a one-pass graph running `src` (with its `scale` uniform at 1)
@@ -31,6 +46,13 @@ fn render_wgsl(device: &GpuDevice, src: &str, size: u32) -> Vec<u8> {
         Renderer::new(device, graph, size, size, RendererOptions::default()).unwrap();
     renderer.render(0.0).unwrap();
     let pixels = renderer.read_output().unwrap();
+    let backend = &renderer.pipeline().backend;
+    assert_eq!(backend.shader_compiler(), device.shader_compiler);
+    assert!(
+        backend.tint_fallback_log().is_empty(),
+        "Tint fell back to naga: {:#?}",
+        backend.tint_fallback_log()
+    );
     assert_eq!(
         renderer.device_errors(),
         0,
@@ -134,13 +156,8 @@ fn h(p: vec2<f32>) -> f32 {
 }
 "#;
 
-#[test]
-fn constant_trip_count_loops_compile_to_their_unrolled_arithmetic() {
-    let device = naga_device();
-    if !device.is_metal() {
-        // The lowering mirrors Metal's compiler; other backends keep naga's shape.
-        return;
-    }
+/// An fbm loop with a constant trip count, and its unrolled form.
+fn fbm_shaders() -> (String, String) {
     let looped = format!(
         "{ENCODE}
         @fragment fn main(@builtin(position) pos: vec4<f32>) -> @location(0) vec4<f32> {{
@@ -167,6 +184,64 @@ fn constant_trip_count_loops_compile_to_their_unrolled_arithmetic() {
         }}",
         step.repeat(5)
     );
+    (looped, unrolled)
+}
+
+/// The number of the four-byte floats that differ between two outputs.
+fn floats_differing(a: &[u8], b: &[u8]) -> usize {
+    a.chunks(4).zip(b.chunks(4)).filter(|(x, y)| x != y).count()
+}
+
+#[test]
+fn constant_trip_count_loops_compile_to_tints_arithmetic() {
+    let device = naga_device();
+    if !device.is_metal() {
+        // The lowering mirrors Metal's compiler; other backends keep naga's shape.
+        return;
+    }
+    let (looped, _) = fbm_shaders();
+    // The device compiles the rotated loop of the lowering.
+    assert!(lower_for_tint_msl(&looped).is_some_and(|l| l.source.contains("loop {")));
+    let lowered = render_wgsl(&device, &looped, 16);
+    let tint = render_wgsl(&tint_device(), &looped, 16);
+    assert!(
+        lowered == tint,
+        "the lowered loop compiled with naga differs from Tint's loop in {} of {} floats",
+        floats_differing(&lowered, &tint),
+        lowered.len() / 4
+    );
+}
+
+#[test]
+fn constant_trip_count_loops_compile_to_their_unrolled_arithmetic() {
+    let device = naga_device();
+    if !device.is_metal() {
+        // The lowering mirrors Metal's compiler; other backends keep naga's shape.
+        return;
+    }
+    let (looped, unrolled) = fbm_shaders();
+    // Whether Metal's compiler gives a constant-trip-count loop the
+    // arithmetic of its unrolled form is a property of the compiler, so
+    // Tint's own renders decide whether the check applies here.
+    // `constant_trip_count_loops_compile_to_tints_arithmetic` holds the
+    // lowered loop to Tint's on every Metal compiler.
+    let tint = tint_device();
+    let tint_looped = render_wgsl(&tint, &looped, 16);
+    let tint_unrolled = render_wgsl(&tint, &unrolled, 16);
+    if tint_looped != tint_unrolled {
+        // Written to stderr directly so that the line shows in passing runs.
+        writeln!(
+            std::io::stderr(),
+            "lowering: this Metal compiler does not compile Tint's constant-trip-count \
+             loop to the arithmetic of its unrolled form ({} of {} floats differ), so the \
+             looped-equals-unrolled check does not apply; the lowered-equals-Tint check \
+             still does",
+            floats_differing(&tint_looped, &tint_unrolled),
+            tint_looped.len() / 4
+        )
+        .unwrap();
+        return;
+    }
     let a = render_wgsl(&device, &looped, 16);
     let b = render_wgsl(&device, &unrolled, 16);
     assert_eq!(a, b);

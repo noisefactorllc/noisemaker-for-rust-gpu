@@ -26,13 +26,22 @@
 //!   the exit test inline. Metal's optimizer rotates that loop and fully
 //!   unrolls it when the trip count is a constant and the unrolled body is
 //!   small (an fbm-style body unrolls up to 15 iterations, not 16), then
-//!   reassociates arithmetic across the unrolled iterations. naga writes a
+//!   reassociates arithmetic across the unrolled iterations. That is Metal's
+//!   compiler on an Apple M4 with macOS 26, where the evidence below was
+//!   measured. On an Apple M2 with macOS 14.8.3 (Metal 343.21) the compiler
+//!   still unrolls the loop (it compiles as with `#pragma clang loop
+//!   unroll(full)`, not as with `unroll(disable)`), but the unrolled
+//!   iterations keep the loop's arithmetic: the unrolled source folds the
+//!   repeated `p *= 2.03` of the fbm test in `tests/lowering.rs` into one
+//!   rounded power of 2.03 per step, the loop does not. There Tint's loop and
+//!   the rotated one both differ from the unrolled source (in 172 of the
+//!   test's 256 floats) and agree with each other bit for bit. naga writes a
 //!   continuing block first, behind a `loop_init` gate, and bakes the test's
 //!   load of the induction variable into a temporary declared before the
 //!   `break` (`int _e11 = i; if (_e11 < 5) {} else { break; }`); with that
 //!   declaration in the loop header Metal does not unroll, so every iteration
 //!   rounds on its own. Hoisting the declaration out of the loop, or testing
-//!   at the bottom, restores the unrolled arithmetic; the rule emits the
+//!   at the bottom, restores Tint's arithmetic; the rule emits the
 //!   guarded bottom-tested form (`init; if (cond) { loop { body update; if
 //!   (cond) {} else { break; } } }`), which naga writes without a gate.
 //!   Measured in a fragment-shader harness over 65536 random inputs, the

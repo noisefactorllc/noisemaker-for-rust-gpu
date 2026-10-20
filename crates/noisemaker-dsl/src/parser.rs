@@ -1210,12 +1210,20 @@ impl<'a> Parser<'a> {
                 ]);
                 if !then_trailing.is_empty() {
                     if let Value::Object(o) = &mut if_stmt {
-                        define_non_enumerable(o, "thenTrailingComments", comments_value(then_trailing));
+                        define_non_enumerable(
+                            o,
+                            "thenTrailingComments",
+                            comments_value(then_trailing),
+                        );
                     }
                 }
                 if !else_trailing.is_empty() {
                     if let Value::Object(o) = &mut if_stmt {
-                        define_non_enumerable(o, "elseTrailingComments", comments_value(else_trailing));
+                        define_non_enumerable(
+                            o,
+                            "elseTrailingComments",
+                            comments_value(else_trailing),
+                        );
                     }
                 }
                 return Ok(if_stmt);

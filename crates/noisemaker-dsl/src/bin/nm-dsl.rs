@@ -255,9 +255,7 @@ impl Runner<'_> {
     /// data.
     fn strip_hidden(value: &Value) -> Value {
         match value {
-            Value::Array(items) => {
-                Value::Array(items.iter().map(Self::strip_hidden).collect())
-            }
+            Value::Array(items) => Value::Array(items.iter().map(Self::strip_hidden).collect()),
             Value::Object(o) => {
                 let mut out = Object::new();
                 for (key, v) in o.iter() {

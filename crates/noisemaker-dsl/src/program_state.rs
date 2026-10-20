@@ -1131,7 +1131,11 @@ impl<H: ProgramHost> ProgramState<H> {
             Value::String(s) => s.clone(),
             _ => {
                 let err = match compile("", &self.registry) {
-                    Ok(_) => return Ok(DeleteStepResult::failure("DSL syntax error: empty program".to_string())),
+                    Ok(_) => {
+                        return Ok(DeleteStepResult::failure(
+                            "DSL syntax error: empty program".to_string(),
+                        ));
+                    }
                     Err(err) => err,
                 };
                 return Ok(DeleteStepResult::failure(format!(
@@ -1315,7 +1319,11 @@ impl<H: ProgramHost> ProgramState<H> {
             Value::String(s) => s.clone(),
             _ => {
                 let err = match compile("", &self.registry) {
-                    Ok(_) => return Ok(InsertStepResult::failure("DSL syntax error: empty program".to_string())),
+                    Ok(_) => {
+                        return Ok(InsertStepResult::failure(
+                            "DSL syntax error: empty program".to_string(),
+                        ));
+                    }
                     Err(err) => err,
                 };
                 return Ok(InsertStepResult::failure(format!(

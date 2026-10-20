@@ -29,9 +29,8 @@ use crate::js::{is_js_whitespace, math_round};
 use jsv::{
     DepthGuard, cannot_read, entries, get, get_opt, get_v, is_finite_number, is_object_like,
     iterate, iterate_anon, join, keys, member, not_a_function, number_to_hex, object_member,
-    pad_start,
-    quote_json_string, quote_json_utf16, repeat, same_value_zero, set_plain, spread_into,
-    strict_equals, to_number, to_property_key, to_string, utf16, values,
+    pad_start, quote_json_string, quote_json_utf16, repeat, same_value_zero, set_plain,
+    spread_into, strict_equals, to_number, to_property_key, to_string, utf16, values,
 };
 
 /// Oscillator type number → `oscKind` member (`oscKindNames`).
@@ -243,7 +242,11 @@ fn quoted_scan_ends_at_close(value: &str, quote: char) -> bool {
     let value_len = text.len() - 1;
     let mut i = 0usize;
     while i < text.len() && text[i] != quote && text[i] != '\n' {
-        i += if text[i] == '\\' && i + 1 < text.len() { 2 } else { 1 };
+        i += if text[i] == '\\' && i + 1 < text.len() {
+            2
+        } else {
+            1
+        };
     }
     i == value_len
 }
@@ -550,7 +553,10 @@ fn format_midi(midi: &Value) -> Result<Value, JsError> {
     }
     let sensitivity = get(midi, "sensitivity")?;
     if !strict_equals(&sensitivity, &Value::Number(1.0)) {
-        parts.push(format!("sensitivity: {}", format_number_text(&sensitivity)?));
+        parts.push(format!(
+            "sensitivity: {}",
+            format_number_text(&sensitivity)?
+        ));
     }
     if let Value::String(name) = get(midi, "name")?
         && !name.is_empty()
@@ -1726,7 +1732,12 @@ fn unparse_control_flow(
         }
         let mut block_options = options.clone();
         block_options.omit_search_directive = Rc::new(Value::Bool(true));
-        let text = unparse(&Value::Object(compiled), &Value::Undefined, &block_options, registry)?;
+        let text = unparse(
+            &Value::Object(compiled),
+            &Value::Undefined,
+            &block_options,
+            registry,
+        )?;
         if !text.is_empty() {
             Ok(format!("{text}\n"))
         } else {
@@ -1770,9 +1781,7 @@ fn unparse_control_flow(
         for (index, elif_plan) in elif_items.iter().enumerate() {
             let elif_source = elif_sources.get(index);
             let condition_text = match elif_source {
-                Some(elif_source) => {
-                    condition(&get_opt(elif_source, "condition"))?
-                }
+                Some(elif_source) => condition(&get_opt(elif_source, "condition"))?,
                 None => to_string(&format_value(
                     &get(elif_plan, "cond")?,
                     &Value::Null,
@@ -2225,7 +2234,10 @@ pub fn unparse(
                 let id = get_opt(&args, "id");
                 let mut parts = Vec::new();
                 if name.is_truthy() {
-                    parts.push(format!("name: {}", format_string_literal(&to_string(&name)?)));
+                    parts.push(format!(
+                        "name: {}",
+                        format_string_literal(&to_string(&name)?)
+                    ));
                 }
                 if id.is_truthy() {
                     parts.push(format!("id: {}", format_string_literal(&to_string(&id)?)));
@@ -2661,7 +2673,10 @@ mod tests {
         assert_eq!(f("0vjd", Value::Null), Value::from("\"0vjd\""));
         // The `"` scan stops at the unescaped quote, so the single-quote form
         // holds the value.
-        assert_eq!(f("a \"b\" \\ c", Value::Null), Value::from("'a \"b\" \\ c'"));
+        assert_eq!(
+            f("a \"b\" \\ c", Value::Null),
+            Value::from("'a \"b\" \\ c'")
+        );
         assert_eq!(
             f("two\nlines", Value::Null),
             Value::from("\"\"\"two\nlines\"\"\"")

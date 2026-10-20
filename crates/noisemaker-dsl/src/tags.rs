@@ -14,8 +14,8 @@
 //! The parser's `search` directive accepts exactly the registered namespaces.
 
 use crate::error::JsError;
-use crate::lexer::is_reserved_keyword;
 use crate::lexer::TokenType;
+use crate::lexer::is_reserved_keyword;
 use crate::registry::Registry;
 use crate::unparser::jsv::object_member;
 use crate::value::{Object, Value};

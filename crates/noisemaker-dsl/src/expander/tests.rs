@@ -84,9 +84,10 @@ fn expand_reports_missing_render_surface() {
     );
     assert_eq!(expansion.render_surface, Value::Null);
     let branch = crate::js!({"plans": [{"type": "Branch"}], "diagnostics": [], "render": "o0"});
+    let expansion = expand(&branch, &registry, &ExpandOptions::default()).unwrap();
     assert_eq!(
-        expand(&branch, &registry, &ExpandOptions::default()),
-        Err(JsError::type_error("plan.chain is not iterable"))
+        Value::Array(expansion.errors).to_json().unwrap(),
+        r#"[{"message":"The runtime does not yet execute control flow ('if')"}]"#
     );
 }
 

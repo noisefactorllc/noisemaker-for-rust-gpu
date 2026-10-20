@@ -1042,6 +1042,11 @@ impl<'a> Parser<'a> {
             }
             // appendStatement(stmt)
             if stmt.get("type").as_str() == Some("VarAssign") {
+                // Statement order: the number of plans written before this
+                // let. Non-enumerable, so the AST shape is unchanged.
+                if let Value::Object(o) = &mut stmt {
+                    define_non_enumerable(o, "planIndex", Value::Number(plans.len() as f64));
+                }
                 vars.push(stmt);
             } else {
                 plans.push(stmt);
@@ -1106,18 +1111,31 @@ impl<'a> Parser<'a> {
     }
 
     /// `parseBlock()`.
-    fn parse_block(&mut self) -> PResult<Vec<Value>> {
+    ///
+    /// Returns the statements and the comments before the block's `'}'`.
+    /// The comments have no statement to attach to.
+    fn parse_block(&mut self) -> PResult<(Vec<Value>, Vec<String>)> {
         self.expect(TokenType::LBrace, "Expect '{'")?;
         let mut body = Vec::new();
-        while self.peek()?.kind != TokenType::RBrace {
-            let stmt = self.parse_statement()?;
+        let mut trailing: Vec<String> = Vec::new();
+        loop {
+            // Comments attach to the next statement, as at top level
+            let leading_comments = self.collect_comments();
+            if self.peek()?.kind == TokenType::RBrace {
+                trailing = leading_comments;
+                break;
+            }
+            let mut stmt = self.parse_statement()?;
+            if !leading_comments.is_empty() {
+                stmt.set("leadingComments", comments_value(leading_comments));
+            }
             body.push(stmt);
             while self.peek()?.kind == TokenType::Semicolon {
                 self.advance();
             }
         }
         self.expect(TokenType::RBrace, "Expect '}'")?;
-        Ok(body)
+        Ok((body, trailing))
     }
 
     /// `parseStatement()`.
@@ -1155,28 +1173,52 @@ impl<'a> Parser<'a> {
                 self.expect(TokenType::LParen, "Expect '('")?;
                 let condition = self.parse_additive()?.node;
                 self.expect(TokenType::RParen, "Expect ')'")?;
-                let then = self.parse_block()?;
+                let (then, then_trailing) = self.parse_block()?;
                 let mut elif = Vec::new();
                 while self.peek()?.kind == TokenType::Elif {
                     self.advance();
                     self.expect(TokenType::LParen, "Expect '('")?;
                     let ec = self.parse_additive()?.node;
                     self.expect(TokenType::RParen, "Expect ')'")?;
-                    let body = self.parse_block()?;
-                    elif.push(node(vec![("condition", ec), ("then", Value::Array(body))]));
+                    let (body, body_trailing) = self.parse_block()?;
+                    let mut entry = node(vec![("condition", ec), ("then", Value::Array(body))]);
+                    if !body_trailing.is_empty() {
+                        // The comments before the elif body's '}' ride on the
+                        // elif entry (non-enumerable, so the shape is unchanged).
+                        if let Value::Object(o) = &mut entry {
+                            let mut stash = Object::new();
+                            stash.insert("then", comments_value(body_trailing));
+                            define_non_enumerable(o, "blockTrailingComments", Value::Object(stash));
+                        }
+                    }
+                    elif.push(entry);
                 }
                 let mut else_branch = Value::Null;
+                let mut else_trailing: Vec<String> = Vec::new();
                 if self.peek()?.kind == TokenType::Else {
                     self.advance();
-                    else_branch = Value::Array(self.parse_block()?);
+                    let (body, body_trailing) = self.parse_block()?;
+                    else_trailing = body_trailing;
+                    else_branch = Value::Array(body);
                 }
-                return Ok(node(vec![
+                let mut if_stmt = node(vec![
                     ("type", "IfStmt".into()),
                     ("condition", condition),
                     ("then", Value::Array(then)),
                     ("elif", Value::Array(elif)),
                     ("else", else_branch),
-                ]));
+                ]);
+                if !then_trailing.is_empty() {
+                    if let Value::Object(o) = &mut if_stmt {
+                        define_non_enumerable(o, "thenTrailingComments", comments_value(then_trailing));
+                    }
+                }
+                if !else_trailing.is_empty() {
+                    if let Value::Object(o) = &mut if_stmt {
+                        define_non_enumerable(o, "elseTrailingComments", comments_value(else_trailing));
+                    }
+                }
+                return Ok(if_stmt);
             }
             TokenType::Break => {
                 self.advance();
@@ -1933,10 +1975,18 @@ impl<'a> Parser<'a> {
                         ("path", Value::Array(path)),
                     ])));
                 }
-                Ok(Expr::plain(node(vec![
+                let mut ident = node(vec![
                     ("type", "Ident".into()),
                     ("name", path.swap_remove(0)),
-                ])))
+                ]);
+                // Private source position for structured diagnostics; the
+                // public AST shape is unchanged.
+                if let Some(position) = token.position {
+                    if let Value::Object(o) = &mut ident {
+                        define_non_enumerable(o, "position", position.to_value());
+                    }
+                }
+                Ok(Expr::plain(ident))
             }
             TokenType::OutputRef => {
                 self.advance();

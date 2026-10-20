@@ -576,6 +576,10 @@ pub fn validate_with_hooks(
         program_search_order: V::Undefined,
         temp_index: 0.0,
         reported_automation_cycles: HashSet::new(),
+        reads_before_let: HashSet::new(),
+        pending_lets: HashSet::new(),
+        top_level_vars: Vec::new(),
+        next_var: 0,
     };
     Ok(validator.validate(&ast)?.to_value())
 }
@@ -604,6 +608,15 @@ pub struct Validator<'r> {
     temp_index: f64,
     /// `reportedAutomationCycles`.
     reported_automation_cycles: HashSet<String>,
+    /// `readsBeforeLet`: identifier nodes that already have their S003 for a
+    /// read before the let (the addresses of the nodes' objects).
+    reads_before_let: HashSet<usize>,
+    /// `pendingLets`: the names of the top-level lets that come after the
+    /// current statement.
+    pending_lets: HashSet<String>,
+    /// `topLevelVars` and `nextVar` of the statement-order declaration.
+    top_level_vars: Vec<V>,
+    next_var: usize,
 }
 
 /// `options` of `resolveAutomationNumber`.
@@ -634,6 +647,20 @@ impl<'r> Validator<'r> {
 
     /// `pushDiag(code, node, message = diagnostics[code].message)`.
     fn push_diag(&mut self, code: &str, node: &V, message: Option<String>) -> Result<(), JsError> {
+        // An identifier that already has its S003 for a read before the let
+        // gets no other diagnostics.
+        if !self.reads_before_let.is_empty() {
+            let addr = match node {
+                V::Obj(o) => Some(Rc::as_ptr(o) as usize),
+                V::Arr(a) => Some(Rc::as_ptr(a) as usize),
+                _ => None,
+            };
+            if let Some(addr) = addr {
+                if self.reads_before_let.contains(&addr) {
+                    return Ok(());
+                }
+            }
+        }
         let info = diagnostics::lookup(code);
         let message = match message {
             Some(m) => m,
@@ -1102,71 +1129,161 @@ impl<'r> Validator<'r> {
 
     // -------------------------------------------------------- variables
 
-    /// The `ast.vars` loop: binds every variable in `symbols`.
-    fn bind_vars(&mut self, vars: &V) -> Result<(), JsError> {
-        let Some(vars) = vars.elements() else {
-            return Ok(());
-        };
-        for v in vars {
-            // `substitute(clone(v.expr), [v.name])`: `v.expr` is read first.
-            let v_expr = clone(&v.get("expr")?);
-            let v_name = v.get("name")?;
-            let resolving = vec![v_name.to_js_string()];
-            let expr = self.substitute(&v_expr, &resolving)?;
-            if expr.truthy() && self.is_starter_chain(&expr)? {
-                let head = first_chain_call(&expr)?;
-                if head.truthy() {
-                    self.push_diag("S006", &head, None)?;
-                }
+    /// `declareVar(v)`: binds one variable in `symbols`.
+    fn declare_var(&mut self, v: &V) -> Result<(), JsError> {
+        // `substitute(clone(v.expr), [v.name])`: `v.expr` is read first.
+        let v_expr = clone(&v.get("expr")?);
+        let v_name = v.get("name")?;
+        let resolving = vec![v_name.to_js_string()];
+        let expr = self.substitute(&v_expr, &resolving)?;
+        if expr.truthy() && self.is_starter_chain(&expr)? {
+            let head = first_chain_call(&expr)?;
+            if head.truthy() {
+                self.push_diag("S006", &head, None)?;
             }
-            if expr.is_nullish() || {
-                let ty = expr.get("type")?;
-                let name = if ty.is_str("Ident") {
-                    expr.get("name")?
-                } else {
-                    V::Undefined
-                };
-                ty.is_str("Ident") && (name.is_str("null") || name.is_str("undefined"))
-            } {
-                self.push_diag("S004", &v, None)?;
-                continue;
-            }
+        }
+        if expr.is_nullish() || {
             let ty = expr.get("type")?;
-            if ty.is_str("Ident") {
-                let name = expr.get("name")?;
-                let known = name.as_str().is_some_and(|n| self.symbols.contains_key(n))
-                    || has_str(STATE_VALUES, &name)
-                    || self.ops_has(&name)
-                    || self.can_resolve_op_name(&name)?;
-                if !known {
-                    self.push_diag("S003", &expr, None)?;
-                    continue;
-                }
+            let name = if ty.is_str("Ident") {
+                expr.get("name")?
+            } else {
+                V::Undefined
+            };
+            ty.is_str("Ident") && (name.is_str("null") || name.is_str("undefined"))
+        } {
+            self.push_diag("S004", &v, None)?;
+            return Ok(());
+        }
+        let ty = expr.get("type")?;
+        if ty.is_str("Ident") {
+            let name = expr.get("name")?;
+            let known = name.as_str().is_some_and(|n| self.symbols.contains_key(n))
+                || has_str(STATE_VALUES, &name)
+                || self.ops_has(&name)
+                || self.can_resolve_op_name(&name)?;
+            if !known {
+                self.push_diag("S003", &expr, None)?;
+                return Ok(());
             }
-            let key = v_name.to_js_string();
-            if ty.is_str("Chain")
-                && expr
-                    .get("chain")?
-                    .get("length")?
-                    .strict_equals(&V::num(1.0))
-            {
-                let head = expr.get("chain")?.get("0")?;
-                self.symbols.insert(key, head);
-            } else if ty.is_str("Member") {
-                let resolved = self.resolve_enum(&expr.get("path")?)?;
-                if let V::Num(n) = resolved {
-                    self.symbols.insert(
-                        key,
-                        V::object_from(vec![("type", V::str("Number")), ("value", V::num(n))]),
-                    );
-                } else if !resolved.is_undefined() {
-                    self.symbols.insert(key, resolved);
-                } else {
-                    self.symbols.insert(key, expr);
-                }
+        }
+        let key = v_name.to_js_string();
+        if ty.is_str("Chain")
+            && expr
+                .get("chain")?
+                .get("length")?
+                .strict_equals(&V::num(1.0))
+        {
+            let head = expr.get("chain")?.get("0")?;
+            self.symbols.insert(key, head);
+        } else if ty.is_str("Member") {
+            let resolved = self.resolve_enum(&expr.get("path")?)?;
+            if let V::Num(n) = resolved {
+                self.symbols.insert(
+                    key,
+                    V::object_from(vec![("type", V::str("Number")), ("value", V::num(n))]),
+                );
+            } else if !resolved.is_undefined() {
+                self.symbols.insert(key, resolved);
             } else {
                 self.symbols.insert(key, expr);
             }
+        } else {
+            self.symbols.insert(key, expr);
+        }
+        Ok(())
+    }
+
+    /// `declareVarsBefore(planIndex)`: declares the top-level lets written
+    /// before the statement at `planIndex`, in statement order. `pendingLets`
+    /// then holds the names of the lets that come after the current
+    /// statement.
+    fn declare_vars_before(&mut self, plan_index: f64) -> Result<(), JsError> {
+        while self.next_var < self.top_level_vars.len() {
+            let v = self.top_level_vars[self.next_var].clone();
+            let index = match v.get_opt("planIndex") {
+                V::Num(n) => n,
+                _ => 0.0,
+            };
+            if index <= plan_index {
+                self.next_var += 1;
+                self.declare_var(&v)?;
+            } else {
+                break;
+            }
+        }
+        self.pending_lets = self.top_level_vars[self.next_var..]
+            .iter()
+            .filter_map(|v| v.get_opt("name").as_str().map(str::to_owned))
+            .collect();
+        Ok(())
+    }
+
+    /// `reportReadsBeforeLet(node)`: a statement that reads a variable before
+    /// any let assigns it gets S003 "Variable used before assignment" at the
+    /// identifier. Other diagnostics for that identifier node are not added.
+    fn report_reads_before_let(&mut self, node: &V) -> Result<(), JsError> {
+        if self.pending_lets.is_empty() || node.is_nullish() {
+            return Ok(());
+        }
+        match node {
+            V::Arr(items) => {
+                let items: Vec<V> = items.borrow().iter().cloned().collect();
+                for item in items {
+                    self.report_reads_before_let(&item)?;
+                }
+            }
+            V::Obj(obj) => {
+                let (ty, name) = {
+                    let o = obj.borrow();
+                    (
+                        o.get("type").cloned().unwrap_or_default(),
+                        o.get("name").cloned().unwrap_or_default(),
+                    )
+                };
+                if ty.is_str("Ident") && name.as_str().is_some() {
+                    let name_str = name.as_str().unwrap().to_owned();
+                    if self.pending_lets.contains(&name_str)
+                        && !self.symbols.contains_key(&name_str)
+                    {
+                        let addr = Rc::as_ptr(obj) as usize;
+                        if !self.reads_before_let.contains(&addr) {
+                            let position = {
+                                let o = obj.borrow();
+                                o.get("position").cloned().unwrap_or_default()
+                            };
+                            let diag_node = if position.truthy() {
+                                V::object_from(vec![
+                                    ("type", V::str("Ident")),
+                                    ("name", V::str(&name_str)),
+                                    (
+                                        "loc",
+                                        V::object_from(vec![
+                                            ("line", position.get("line")?),
+                                            ("column", position.get("column")?),
+                                        ]),
+                                    ),
+                                ])
+                            } else {
+                                V::object_from(vec![
+                                    ("type", V::str("Ident")),
+                                    ("name", V::str(&name_str)),
+                                ])
+                            };
+                            self.push_diag("S003", &diag_node, None)?;
+                            self.reads_before_let.insert(addr);
+                        }
+                        return Ok(());
+                    }
+                }
+                let values: Vec<V> = {
+                    let o = obj.borrow();
+                    o.entries().into_iter().map(|(_, v)| v).collect()
+                };
+                for value in values {
+                    self.report_reads_before_let(&value)?;
+                }
+            }
+            _ => {}
         }
         Ok(())
     }
@@ -1861,8 +1978,9 @@ impl<'r> Validator<'r> {
 
     /// `compileChainStatement(stmt)`.
     fn compile_chain_statement(&mut self, stmt: &V) -> Result<V, JsError> {
-        // Check for S006: Starter chain missing write() or write3d().
         let stmt_chain = stmt.get("chain")?;
+        self.report_reads_before_let(&stmt_chain)?;
+        // Check for S006: Starter chain missing write() or write3d().
         let chain_node = V::object_from(vec![
             ("type", V::str("Chain")),
             ("chain", stmt_chain.clone()),
@@ -2489,6 +2607,40 @@ impl<'r> Validator<'r> {
             return Ok(Some(V::array_from(value)));
         }
 
+        // vec2(x, y) on a vec2 parameter, and vec4(x, y, z, w) on a vec4
+        // parameter. The loader registers vec4 parameters as `color`; their
+        // default keeps its four components. Any other form, including a
+        // wrong component count, takes the branches below.
+        let def_type = def.get("type").as_str();
+        if def_type != Some("surface") && node.truthy() && ntype.is_str("Call") {
+            let call_args = node.get("args")?;
+            let args_len = call_args.get_opt("length");
+            let callee = node.get("name")?.to_js_string();
+            let expected_len = if callee == "vec2" { 2.0 } else { 4.0 };
+            let paired = (def_type == Some("vec2") && callee == "vec2")
+                || (def_type == Some("color")
+                    && callee == "vec4"
+                    && matches!(def_default, Value::Array(items) if items.len() == 4));
+            if paired && args_len.strict_equals(&V::num(expected_len)) {
+                let mut out = Vec::new();
+                for arg in iterate(&call_args, Some("node.args"))? {
+                    if arg.get("type")?.is_str("Number") {
+                        out.push(arg.get("value")?);
+                    } else {
+                        self.push_diag(
+                            "S002",
+                            &arg,
+                            Some(format!(
+                                "Argument out of range for '{shown_def}' in {shown_call}()"
+                            )),
+                        )?;
+                        out.push(V::num(0.0));
+                    }
+                }
+                return Ok(Some(V::array_from(out)));
+            }
+        }
+
         match def.get("type").as_str() {
             Some("surface") => {
                 if is_string_node {
@@ -2714,7 +2866,11 @@ impl<'r> Validator<'r> {
                 } else if node.truthy() && ntype.is_str("Func") {
                     let src = node.get("src")?;
                     if compile_func(&src)? {
-                        V::object_from(vec![("fn", closure("(state) => !!fn(state)"))])
+                        // _ast keeps the source text for the unparser.
+                        V::object_from(vec![
+                            ("fn", closure("(state) => !!fn(state)")),
+                            ("_ast", node.clone()),
+                        ])
                     } else {
                         let shown = func_snippet(&src)?;
                         self.push_diag(
@@ -3030,6 +3186,8 @@ impl<'r> Validator<'r> {
                 ("fn", f),
                 ("min", V::from_value(def_min)),
                 ("max", V::from_value(def_max)),
+                // _ast keeps the source text for the unparser.
+                ("_ast", node.clone()),
             ])
         };
         let value = if node.truthy() && (ntype.is_str("Number") || ntype.is_str("Boolean")) {
@@ -3220,19 +3378,53 @@ impl<'r> Validator<'r> {
         } else {
             Vec::new()
         };
+        // A `let` inside a block applies to the rest of that block only, so a
+        // block cannot change how statements outside it compile.
+        let mut shadowed: Vec<(String, Option<V>)> = Vec::new();
         for s in items {
+            if s.get("type")?.is_str("VarAssign") {
+                let name = s.get("name")?.to_js_string();
+                if !shadowed.iter().any(|(n, _)| *n == name) {
+                    let previous = self.symbols.get(&name).cloned();
+                    shadowed.push((name, previous));
+                }
+                self.declare_var(&s)?;
+                // Kept as the parser node, like the top-level `vars` entries
+                result.push(s);
+                continue;
+            }
             let compiled = self.compile_stmt(&s)?;
             if compiled.truthy() {
                 result.push(compiled);
             }
         }
+        for (name, previous) in shadowed {
+            match previous {
+                Some(value) => {
+                    self.symbols.insert(name, value);
+                }
+                None => {
+                    self.symbols.remove(&name);
+                }
+            }
+        }
         Ok(V::array_from(result))
+    }
+
+    /// `withSource(plan, stmt)`: control-flow plans keep their parser
+    /// statement as a non-enumerable `source`, so the unparser can write
+    /// conditions and return values as written. The public compiled plan
+    /// shape is unchanged.
+    fn with_source(plan: V, stmt: &V) -> V {
+        plan.define_hidden("source", stmt.clone());
+        plan
     }
 
     /// `compileStmt(stmt)`.
     fn compile_stmt(&mut self, stmt: &V) -> Result<V, JsError> {
         let ty = stmt.get("type")?;
         if ty.is_str("IfStmt") {
+            self.report_reads_before_let(&stmt.get("condition")?)?;
             let cond = self.eval_condition(&stmt.get("condition")?)?;
             let then_branch = self.compile_block(&stmt.get("then")?)?;
             let mut elif = Vec::new();
@@ -3243,33 +3435,44 @@ impl<'r> Validator<'r> {
                 Vec::new()
             };
             for e in elifs {
+                self.report_reads_before_let(&e.get("condition")?)?;
                 let cond = self.eval_condition(&e.get("condition")?)?;
                 let then = self.compile_block(&e.get("then")?)?;
                 elif.push(V::object_from(vec![("cond", cond), ("then", then)]));
             }
             let else_branch = self.compile_block(&stmt.get("else")?)?;
-            return Ok(V::object_from(vec![
-                ("type", V::str("Branch")),
-                ("cond", cond),
-                ("then", then_branch),
-                ("elif", V::array_from(elif)),
-                ("else", else_branch),
-            ]));
+            return Ok(Self::with_source(
+                V::object_from(vec![
+                    ("type", V::str("Branch")),
+                    ("cond", cond),
+                    ("then", then_branch),
+                    ("elif", V::array_from(elif)),
+                    ("else", else_branch),
+                ]),
+                stmt,
+            ));
         }
         if ty.is_str("Break") {
-            return Ok(V::object_from(vec![("type", V::str("Break"))]));
+            return Ok(Self::with_source(
+                V::object_from(vec![("type", V::str("Break"))]),
+                stmt,
+            ));
         }
         if ty.is_str("Continue") {
-            return Ok(V::object_from(vec![("type", V::str("Continue"))]));
+            return Ok(Self::with_source(
+                V::object_from(vec![("type", V::str("Continue"))]),
+                stmt,
+            ));
         }
         if ty.is_str("Return") {
             let node = V::object_from(vec![("type", V::str("Return"))]);
             let value = stmt.get("value")?;
             if value.truthy() {
+                self.report_reads_before_let(&value)?;
                 let evaluated = self.eval_expr(&value)?;
                 node.set("value", evaluated)?;
             }
-            return Ok(node);
+            return Ok(Self::with_source(node, stmt));
         }
         self.compile_chain_statement(stmt)
     }
@@ -3294,22 +3497,29 @@ impl<'r> Validator<'r> {
         }
 
         let vars = ast.get("vars")?;
+        // Top-level lets are declared in statement order (see the plan loop).
         if vars.is_array() {
-            self.bind_vars(&vars)?;
+            self.top_level_vars = iterate(&vars, Some("ast.vars"))?;
         }
+        self.next_var = 0;
 
+        // Statements compile in order. Each one sees the lets written before
+        // it, and the latest assignment of a name wins. Lets that come after
+        // the last statement are still declared, so their own checks run.
         let stmts = ast.get("plans")?;
         let stmts = if stmts.truthy() {
             iterate(&stmts, None)?
         } else {
             Vec::new()
         };
-        for stmt in stmts {
-            let compiled = self.compile_stmt(&stmt)?;
+        for (index, stmt) in stmts.iter().enumerate() {
+            self.declare_vars_before(index as f64)?;
+            let compiled = self.compile_stmt(stmt)?;
             if compiled.truthy() {
                 plans.push(compiled);
             }
         }
+        self.declare_vars_before(f64::INFINITY)?;
 
         // Include original variable declarations for unparsing.
         let vars = if vars.truthy() {
@@ -3319,6 +3529,14 @@ impl<'r> Validator<'r> {
         };
         // Include the search order for transform operations.
         let search_namespaces = search_order;
+        // A hidden per-plan stamp: the plan's index in `planOrder`. Hosts edit
+        // chains in place and the stamp survives those edits, so the
+        // unparser's planOrder scan can recognize a plan the way the
+        // reference's object identity does.
+        for (i, plan) in plans.iter_mut().enumerate() {
+            plan.define_hidden("planRef", V::Num(i as f64));
+        }
+        let plan_order = V::array_from(plans.clone());
         let result = V::object_from(vec![
             ("plans", V::array_from(plans)),
             (
@@ -3334,6 +3552,10 @@ impl<'r> Validator<'r> {
         if trailing.truthy() {
             result.set("trailingComments", trailing)?;
         }
+        // The plans in source order. A let's `planIndex` points into this
+        // list, so the unparser can keep statement order after hosts remove
+        // plans.
+        result.define_hidden("planOrder", plan_order);
         Ok(result)
     }
 }

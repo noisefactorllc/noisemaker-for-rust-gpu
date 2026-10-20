@@ -15,6 +15,7 @@
 
 use crate::error::JsError;
 use crate::lexer::is_reserved_keyword;
+use crate::lexer::TokenType;
 use crate::registry::Registry;
 use crate::unparser::jsv::object_member;
 use crate::value::{Object, Value};
@@ -238,6 +239,19 @@ fn matches_id_pattern(id: &str) -> bool {
         && chars.all(|c| c.is_ascii_alphanumeric())
 }
 
+/// `_lexesAsIdentifier(id)`: true when the lexer reads `id` as exactly one
+/// identifier token. A name that starts with a surface reference (o0-o7, s1,
+/// vol0, geo2, xyz3, ...) lexes as that reference, so the DSL cannot read it as
+/// a namespace id.
+fn lexes_as_identifier(id: &str) -> bool {
+    match crate::lexer::lex(id) {
+        Ok(tokens) => {
+            tokens.len() == 2 && tokens[0].kind == TokenType::Ident && tokens[0].lexeme == id
+        }
+        Err(_) => false,
+    }
+}
+
 fn is_builtin_namespace(id: &str) -> bool {
     BUILTIN_NAMESPACES.iter().any(|(b, _)| *b == id)
 }
@@ -330,6 +344,11 @@ impl Registry {
         if is_reserved_keyword(id) {
             return Err(JsError::error(format!(
                 "Cannot register namespace '{id}': reserved DSL keyword"
+            )));
+        }
+        if !lexes_as_identifier(id) {
+            return Err(JsError::error(format!(
+                "Cannot register namespace '{id}': the DSL reads it as a surface reference"
             )));
         }
         if is_io_function(id) {

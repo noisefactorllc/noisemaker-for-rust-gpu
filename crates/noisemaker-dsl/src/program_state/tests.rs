@@ -20,7 +20,7 @@ fn host_for(dsl: &str, methods: MockMethods) -> MockHost {
     let reg = registry();
     let graph = compile_graph(dsl, &reg, &CompileOptions::default()).expect("graph compiles");
     MockHost {
-        current_dsl: dsl.to_owned(),
+        current_dsl: Value::from(dsl),
         enums: Rc::new(Value::Object(reg.enums.clone())),
         convert: MockConvert::Canvas,
         pipeline: Some(MockPipeline::new(graph, methods)),
@@ -267,7 +267,7 @@ fn insert_and_delete_steps() {
     let new_dsl = inserted.new_dsl.unwrap();
     assert!(new_dsl.starts_with("search synth, filter"), "{new_dsl}");
     assert_eq!(state.structure()[1].effect_key, "filter.blur");
-    state.renderer_mut().unwrap().current_dsl = new_dsl;
+    state.renderer_mut().unwrap().current_dsl = Value::from(new_dsl);
     let deleted = state.delete_step(0.0).unwrap();
     assert!(deleted.success);
     assert_eq!(deleted.deleted_surface_name, Value::from("o0"));

@@ -30,8 +30,9 @@ pub enum MockConvert {
 /// The mock renderer.
 #[derive(Debug, Clone)]
 pub struct MockHost {
-    /// `renderer.currentDsl`.
-    pub current_dsl: String,
+    /// `renderer.currentDsl` (any value: `deserialize` can restore a
+    /// non-string program).
+    pub current_dsl: Value,
     /// `renderer.enums` (and the tree CanvasRenderer's conversion resolves in).
     pub enums: Rc<Value>,
     /// The renderer's `convertParameterForUniform`.
@@ -118,7 +119,7 @@ impl MockHost {
     /// A renderer without pipeline, DSL or enums, converting like CanvasRenderer.
     pub fn new() -> Self {
         MockHost {
-            current_dsl: String::new(),
+            current_dsl: Value::String(String::new()),
             enums: Rc::new(Value::Undefined),
             convert: MockConvert::Canvas,
             pipeline: None,
@@ -167,7 +168,18 @@ pub fn collect_default_uniforms(graph: &Value) -> Object {
 
 impl ProgramHost for MockHost {
     fn current_dsl(&self) -> String {
+        match &self.current_dsl {
+            Value::String(s) => s.clone(),
+            _ => String::new(),
+        }
+    }
+
+    fn current_dsl_value(&self) -> Value {
         self.current_dsl.clone()
+    }
+
+    fn set_current_dsl_value(&mut self, value: Value) {
+        self.current_dsl = value;
     }
 
     fn enums(&self) -> Rc<Value> {

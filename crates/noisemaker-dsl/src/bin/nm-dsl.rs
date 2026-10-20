@@ -247,6 +247,28 @@ struct Runner<'a> {
 }
 
 impl Runner<'_> {
+    /// The reference resolves each case to JSONL, so the compiled programs its
+    /// tools see have already been serialized: the non-enumerable members
+    /// (`planIndex`, `planOrder`, a control-flow plan's `source`) are gone,
+    /// while the tagged encoding keeps function values. The Rust frontend
+    /// compiles in memory, so it strips the hidden members to see the same
+    /// data.
+    fn strip_hidden(value: &Value) -> Value {
+        match value {
+            Value::Array(items) => {
+                Value::Array(items.iter().map(Self::strip_hidden).collect())
+            }
+            Value::Object(o) => {
+                let mut out = Object::new();
+                for (key, v) in o.iter() {
+                    out.insert(key.clone(), Self::strip_hidden(v));
+                }
+                Value::Object(out)
+            }
+            other => other.clone(),
+        }
+    }
+
     /// A decoded argument (`undefined` when the case omits it); with
     /// `--rust-frontend`, arguments the reference compiled from DSL are
     /// compiled here instead (programs the reference compiled with parse
@@ -257,7 +279,7 @@ impl Runner<'_> {
             && from.get("options").is_none_or(Value::is_nullish)
             && let Some(Value::String(dsl)) = from.get("dsl")
         {
-            return compile(dsl, self.registry);
+            return Ok(Self::strip_hidden(&compile(dsl, self.registry)?));
         }
         Ok(match case.as_object().and_then(|o| o.get(name)) {
             Some(v) => decode(v),
@@ -285,7 +307,7 @@ impl Runner<'_> {
                 let dsl = dsl.as_str().unwrap_or_default();
                 let compile_fn = |src: &str| -> Result<Value, JsError> {
                     if self.rust_frontend && !case.get("compiledLiteral").is_truthy() {
-                        return compile(src, registry);
+                        return Ok(Runner::strip_hidden(&compile(src, registry)?));
                     }
                     match case.as_object().and_then(|o| o.get("compileError")) {
                         Some(e) => Err(decode_thrown(e)),

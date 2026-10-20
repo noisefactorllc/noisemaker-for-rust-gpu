@@ -33,6 +33,15 @@ pub trait ProgramHost {
     /// `renderer.currentDsl` (`""` when there is none).
     fn current_dsl(&self) -> String;
 
+    /// `renderer.currentDsl` as a raw value: `deserialize` can restore a
+    /// non-string program, so the current program can be any value.
+    fn current_dsl_value(&self) -> Value {
+        Value::String(self.current_dsl())
+    }
+
+    /// `renderer.currentDsl = value` (any value the restore assigns).
+    fn set_current_dsl_value(&mut self, _value: Value) {}
+
     /// `renderer.enums`: the enum tree `toDsl` formats enum names with and
     /// `convertParameterForUniform` resolves enum names in (`undefined` when
     /// the renderer has none).

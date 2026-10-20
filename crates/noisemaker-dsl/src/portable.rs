@@ -19,6 +19,27 @@
 use std::rc::Rc;
 
 use crate::canvas::is_valid_identifier;
+
+/// Check if a `search user` program can call `name()` as an effect. Keywords,
+/// surface references (o1, s1, vol2, ...) and the calls that the parser turns
+/// into other nodes (osc, midi, audio, read, read3d, from) cannot be called.
+fn parses_as_user_effect_call(name: &str) -> bool {
+    let source = format!("search user\n{name}()");
+    let chain = (|| -> Option<Value> {
+        let tokens = crate::lexer::lex(&source).ok()?;
+        let program = crate::parser::parse(&tokens).ok()?;
+        let plans = program.get("plans");
+        let first = plans.at(0);
+        Some(first.get("chain").clone())
+    })();
+    chain.is_some_and(|chain| {
+        chain.as_array().is_some_and(|items| {
+            items.len() == 1
+                && items[0].get("type").as_str() == Some("Call")
+                && items[0].get("name").as_str() == Some(name)
+        })
+    })
+}
 use crate::effect::effect_instance;
 use crate::error::JsError;
 use crate::js::{is_finite_number, trim};
@@ -134,6 +155,9 @@ fn check_definition(registry: &Registry, definition: &Value) -> Result<String, J
         Value::String(f) if is_valid_identifier(f) => f.clone(),
         _ => return Err(fail("func must be a DSL identifier")),
     };
+    if !parses_as_user_effect_call(&func) {
+        return Err(fail(format!("reserved func {func}")));
+    }
     if PORTABLE_RESERVED_KEYS.contains(&func.as_str()) {
         return Err(fail(format!("reserved func {func}")));
     }

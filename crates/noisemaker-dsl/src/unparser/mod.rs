@@ -28,7 +28,8 @@ use crate::value::{Object, Value};
 use crate::js::{is_js_whitespace, math_round};
 use jsv::{
     DepthGuard, cannot_read, entries, get, get_opt, get_v, is_finite_number, is_object_like,
-    iterate, join, keys, member, not_a_function, number_to_hex, object_member, pad_start,
+    iterate, iterate_anon, join, keys, member, not_a_function, number_to_hex, object_member,
+    pad_start,
     quote_json_string, quote_json_utf16, repeat, same_value_zero, set_plain, spread_into,
     strict_equals, to_number, to_property_key, to_string, utf16, values,
 };
@@ -180,6 +181,17 @@ fn format_enum_name(name: &str) -> String {
 /// `formatLosslessNumber(value)`: a finite number without rounding and without
 /// exponent notation (which the DSL's numeric literal grammar lacks).
 pub fn format_lossless_number(value: f64) -> String {
+    // A value that is not finite has no literal, so it is written as the
+    // division that the parser folds back to the same value.
+    if value.is_nan() {
+        return "0 / 0".to_owned();
+    }
+    if value == f64::INFINITY {
+        return "1 / 0".to_owned();
+    }
+    if value == f64::NEG_INFINITY {
+        return "-1 / 0".to_owned();
+    }
     let text = crate::js::number_to_string(value);
     if !text.contains(['e', 'E']) {
         return text;
@@ -209,6 +221,90 @@ pub fn format_lossless_number(value: f64) -> String {
         &digits[..decimal_index],
         &digits[decimal_index..]
     )
+}
+
+/// `formatNumberText(value)`: a numeric field of an automation descriptor
+/// (osc, midi, audio). Numbers use the lossless form; other values keep
+/// their `String()` text.
+fn format_number_text(value: &Value) -> Result<String, JsError> {
+    if let Value::Number(n) = value {
+        Ok(format_lossless_number(*n))
+    } else {
+        to_string(value)
+    }
+}
+
+/// `quotedScanEndsAtClose(value, quote)`: true when the lexer scan of
+/// `"value"` or `'value'` stops at the closing quote. The scan stops at an
+/// unescaped quote or newline, and a backslash always takes the next
+/// character with it.
+fn quoted_scan_ends_at_close(value: &str, quote: char) -> bool {
+    let text: Vec<char> = value.chars().chain(std::iter::once(quote)).collect();
+    let value_len = text.len() - 1;
+    let mut i = 0usize;
+    while i < text.len() && text[i] != quote && text[i] != '\n' {
+        i += if text[i] == '\\' && i + 1 < text.len() { 2 } else { 1 };
+    }
+    i == value_len
+}
+
+/// `stringQuoteFor(value)`: the first quote form whose literal the lexer
+/// reads back as `value`, or `None`. Triple quotes come first for multi-line
+/// values.
+fn string_quote_for(value: &str) -> Option<&'static str> {
+    const TRIPLE: &str = "\"\"\"";
+    let forms: &[&str] = if value.contains('\n') {
+        &[TRIPLE, "\"", "'"]
+    } else {
+        &["\"", "'", TRIPLE]
+    };
+    forms.iter().copied().find(|form| {
+        if *form == TRIPLE {
+            let text = format!("{value}{TRIPLE}");
+            text.find(TRIPLE).is_some_and(|i| i == value.len())
+        } else {
+            quoted_scan_ends_at_close(value, form.chars().next().expect("single-char form"))
+        }
+    })
+}
+
+/// `formatStringLiteral(value)`: a string value as a DSL string literal.
+///
+/// The lexer keeps the content of a string literal as written and does not
+/// decode escapes, so `"a\"b"` gives the value `a, \, ", b`. The value is
+/// written back with that same content, which compiles to the same value. A
+/// value that no quote form holds (for example it's `"hi"`) gets a backslash
+/// before each double quote and newline that would end a double-quoted
+/// string, and before a last lone backslash. That text then stays the same.
+fn format_string_literal(value: &str) -> String {
+    let mut content = value.to_owned();
+    if string_quote_for(&content).is_none() {
+        content = String::new();
+        let chars: Vec<char> = value.chars().collect();
+        let mut i = 0usize;
+        while i < chars.len() {
+            let ch = chars[i];
+            if ch == '\\' {
+                if i + 1 < chars.len() {
+                    content.push(ch);
+                    content.push(chars[i + 1]);
+                    i += 2;
+                } else {
+                    content.push('\\');
+                    content.push('\\');
+                    i += 1;
+                }
+            } else {
+                if ch == '"' || ch == '\n' {
+                    content.push('\\');
+                }
+                content.push(ch);
+                i += 1;
+            }
+        }
+    }
+    let quote = string_quote_for(&content).expect("the rewritten content has a quote form");
+    format!("{quote}{content}{quote}")
 }
 
 /// `/^[a-zA-Z_][a-zA-Z0-9_]*$/`.
@@ -379,19 +475,19 @@ fn format_oscillator(osc: &Value) -> Result<Value, JsError> {
     // Only include non-default values
     let min = get(osc, "min")?;
     if !strict_equals(&min, &Value::Number(0.0)) {
-        parts.push(format!("min: {}", to_string(&min)?));
+        parts.push(format!("min: {}", format_number_text(&min)?));
     }
     let max = get(osc, "max")?;
     if !strict_equals(&max, &Value::Number(1.0)) {
-        parts.push(format!("max: {}", to_string(&max)?));
+        parts.push(format!("max: {}", format_number_text(&max)?));
     }
     let speed = get(osc, "speed")?;
     if !strict_equals(&speed, &Value::Number(1.0)) {
-        parts.push(format!("speed: {}", to_string(&speed)?));
+        parts.push(format!("speed: {}", format_number_text(&speed)?));
     }
     let offset = get(osc, "offset")?;
     if !strict_equals(&offset, &Value::Number(0.0)) {
-        parts.push(format!("offset: {}", to_string(&offset)?));
+        parts.push(format!("offset: {}", format_number_text(&offset)?));
     }
     let seed = get(osc, "seed")?;
     // Only the noise kinds read the seed
@@ -399,7 +495,7 @@ fn format_oscillator(osc: &Value) -> Result<Value, JsError> {
         && (strict_equals(&get(osc, "oscType")?, &Value::Number(5.0))
             || strict_equals(&get(osc, "oscType")?, &Value::Number(6.0)))
     {
-        parts.push(format!("seed: {}", to_string(&seed)?));
+        parts.push(format!("seed: {}", format_number_text(&seed)?));
     }
     Ok(format!("osc({})", parts.join(", ")).into())
 }
@@ -446,15 +542,15 @@ fn format_midi(midi: &Value) -> Result<Value, JsError> {
     }
     let min = get(midi, "min")?;
     if !strict_equals(&min, &Value::Number(0.0)) {
-        parts.push(format!("min: {}", to_string(&min)?));
+        parts.push(format!("min: {}", format_number_text(&min)?));
     }
     let max = get(midi, "max")?;
     if !strict_equals(&max, &Value::Number(1.0)) {
-        parts.push(format!("max: {}", to_string(&max)?));
+        parts.push(format!("max: {}", format_number_text(&max)?));
     }
     let sensitivity = get(midi, "sensitivity")?;
     if !strict_equals(&sensitivity, &Value::Number(1.0)) {
-        parts.push(format!("sensitivity: {}", to_string(&sensitivity)?));
+        parts.push(format!("sensitivity: {}", format_number_text(&sensitivity)?));
     }
     if let Value::String(name) = get(midi, "name")?
         && !name.is_empty()
@@ -485,11 +581,11 @@ fn format_audio(audio: &Value) -> Result<Value, JsError> {
     // Only include non-default values
     let min = get(audio, "min")?;
     if !strict_equals(&min, &Value::Number(0.0)) {
-        parts.push(format!("min: {}", to_string(&min)?));
+        parts.push(format!("min: {}", format_number_text(&min)?));
     }
     let max = get(audio, "max")?;
     if !strict_equals(&max, &Value::Number(1.0)) {
-        parts.push(format!("max: {}", to_string(&max)?));
+        parts.push(format!("max: {}", format_number_text(&max)?));
     }
     let channel = get(audio, "channel")?;
     if channel.is_integer() && channel.as_f64().is_some_and(|c| c >= 1.0) {
@@ -623,6 +719,12 @@ pub fn format_value(
         return get(&ast, "name");
     }
 
+    // Arrow-function arguments compile to {fn} objects that keep their
+    // parser Func node, which carries the let name when one was used.
+    if is_type(&ast, "Func") {
+        return format_let_expr(&ast, options);
+    }
+
     if let Value::Bool(b) = value {
         return Ok(if *b { "true" } else { "false" }.into());
     }
@@ -708,12 +810,7 @@ pub fn format_value(
         let needs_quoting =
             strict_equals(&spec_type, &"string".into()) || (!is_identifier(s) && !is_enum_path(s));
         if needs_quoting {
-            // Use triple-quotes for multi-line strings
-            if s.contains('\n') {
-                return Ok(format!("\"\"\"{s}\"\"\"").into());
-            }
-            let escaped = s.replace('\\', "\\\\").replace('"', "\\\"");
-            return Ok(format!("\"{escaped}\"").into());
+            return Ok(format_string_literal(s).into());
         }
         return Ok(value.clone());
     }
@@ -854,9 +951,10 @@ fn format_object(
     // Handle String AST node
     if is_type(value, "String") {
         let s = get(value, "value")?;
-        let s = str_method(&s, "value.value", "replace")?;
-        let escaped = s.replace('\\', "\\\\").replace('"', "\\\"");
-        return Ok(format!("\"{escaped}\"").into());
+        // `formatStringLiteral(value.value)`: the parameter is `value`, so the
+        // TypeError names `value.includes`.
+        let s = str_method(&s, "value", "includes")?;
+        return Ok(format_string_literal(s).into());
     }
     // Handle oscillator configuration
     if is_type(value, "Oscillator") {
@@ -1249,11 +1347,21 @@ pub fn format_let_expr(expr: &Value, options: &UnparseOptions<'_>) -> Result<Val
         return format_value(expr, &Value::Null, options, &Value::Undefined);
     };
     match expr_type.as_str() {
-        "Number" => Ok(to_string(&get_opt(expr, "value"))?.into()),
-        "String" => Ok(match jsv::json_stringify(&get_opt(expr, "value")) {
-            Some(s) => s.into(),
-            None => Value::Undefined,
-        }),
+        "Number" => {
+            let value = get_opt(expr, "value");
+            Ok(match &value {
+                Value::Number(n) => format_lossless_number(*n),
+                other => to_string(other)?,
+            }
+            .into())
+        }
+        "String" => {
+            let value = get_opt(expr, "value");
+            // `formatStringLiteral(expr.value)`: the parameter is `value`, so
+            // the TypeError names `value.includes`.
+            let s = str_method(&value, "value", "includes")?;
+            Ok(format_string_literal(s).into())
+        }
         "Boolean" => Ok(if get_opt(expr, "value").is_truthy() {
             "true"
         } else {
@@ -1267,11 +1375,8 @@ pub fn format_let_expr(expr: &Value, options: &UnparseOptions<'_>) -> Result<Val
         "Audio" => format_let_audio(expr, options),
         "Call" => Ok(unparse_call(expr, options)?.into()),
         "Chain" => Ok(unparse_chain(&get_opt(expr, "chain"), options)?.into()),
-        "Func" => Ok(format!(
-            "() => {}",
-            to_string(&format_let_expr(&get_opt(expr, "body"), options)?)?
-        )
-        .into()),
+        // The parser keeps the arrow-function body as source text.
+        "Func" => Ok(format!("() => {}", to_string(&get_opt(expr, "src"))?).into()),
         _ => format_value(expr, &Value::Null, options, &Value::Undefined),
     }
 }
@@ -1594,6 +1699,197 @@ fn override_at(overrides: &Value, index: f64) -> Result<Value, JsError> {
     get_v(overrides, &Value::Number(index))
 }
 
+/// `unparseControlFlow(plan, searchNamespaces, options)`: unparse a compiled
+/// control-flow plan (Branch, Break, Continue or Return), or a `let`
+/// (VarAssign) inside a block body.
+///
+/// Conditions and return values come from the parser statement that the
+/// validator keeps as `plan.source`. Block bodies are unparsed as programs;
+/// their lines are not indented, so string literals in them keep their
+/// content. Returns `null` for an unknown plan type.
+fn unparse_control_flow(
+    plan: &Value,
+    search_namespaces: &Value,
+    options: &UnparseOptions<'_>,
+    registry: &Registry,
+) -> Result<Value, JsError> {
+    let source = get_opt(plan, "source");
+    let source_truthy = source.is_truthy();
+    // `body` is the parser block; the comments before its '}' ride on the
+    // parser statement's hidden per-branch members.
+    let block = |plans: &Value, trailing: &Value| -> Result<String, JsError> {
+        let mut compiled = Object::new();
+        compiled.insert("searchNamespaces", search_namespaces.clone());
+        compiled.insert("plans", plans.clone());
+        if trailing.is_truthy() {
+            compiled.insert("trailingComments", trailing.clone());
+        }
+        let mut block_options = options.clone();
+        block_options.omit_search_directive = Rc::new(Value::Bool(true));
+        let text = unparse(&Value::Object(compiled), &Value::Undefined, &block_options, registry)?;
+        if !text.is_empty() {
+            Ok(format!("{text}\n"))
+        } else {
+            Ok(String::new())
+        }
+    };
+    let plan_type = to_string(&get(plan, "type")?)?;
+    let text: Option<String> = if plan_type == "Branch" {
+        let condition = |node: &Value| -> Result<String, JsError> {
+            if node.is_truthy() {
+                to_string(&format_let_expr(node, options)?)
+            } else {
+                to_string(&format_value(
+                    &get(plan, "cond")?,
+                    &Value::Null,
+                    options,
+                    &Value::Undefined,
+                )?)
+            }
+        };
+        let mut text = format!(
+            "if ({}) {{\n{}}}",
+            condition(&get_opt(&source, "condition"))?,
+            block(
+                &or(get_opt(plan, "then"), || Value::Array(Vec::new())),
+                &get_opt(&source, "thenTrailingComments"),
+            )?
+        );
+        let elif = or(get_opt(plan, "elif"), || Value::Array(Vec::new()));
+        let elif_items = iterate(&elif, "plan.elif")?;
+        let elif_sources = if source_truthy {
+            let raw = get_opt(&source, "elif");
+            if raw.is_truthy() {
+                iterate(&raw, "source.elif")?
+            } else {
+                Vec::new()
+            }
+        } else {
+            Vec::new()
+        };
+        for (index, elif_plan) in elif_items.iter().enumerate() {
+            let elif_source = elif_sources.get(index);
+            let condition_text = match elif_source {
+                Some(elif_source) => {
+                    condition(&get_opt(elif_source, "condition"))?
+                }
+                None => to_string(&format_value(
+                    &get(elif_plan, "cond")?,
+                    &Value::Null,
+                    options,
+                    &Value::Undefined,
+                )?)?,
+            };
+            let then_trailing = match elif_source {
+                Some(elif_source) => {
+                    let stash = get_opt(elif_source, "blockTrailingComments");
+                    get_opt(&stash, "then")
+                }
+                None => Value::Undefined,
+            };
+            text.push_str(&format!(
+                " elif ({}) {{\n{}}}",
+                condition_text,
+                block(
+                    &or(get_opt(elif_plan, "then"), || Value::Array(Vec::new())),
+                    &then_trailing,
+                )?
+            ));
+        }
+        let has_else = if source_truthy {
+            get_opt(&source, "else").is_truthy()
+        } else {
+            let else_plan = get_opt(plan, "else");
+            else_plan.is_truthy() && greater_than_zero(&member(&else_plan, "length"))?
+        };
+        if has_else {
+            text.push_str(&format!(
+                " else {{\n{}}}",
+                block(
+                    &or(get_opt(plan, "else"), || Value::Array(Vec::new())),
+                    &get_opt(&source, "elseTrailingComments"),
+                )?
+            ));
+        }
+        Some(text)
+    } else if plan_type == "Break" {
+        Some("break".to_owned())
+    } else if plan_type == "Continue" {
+        Some("continue".to_owned())
+    } else if plan_type == "Return" {
+        let value = if source_truthy {
+            get_opt(&source, "value")
+        } else {
+            get_opt(plan, "value")
+        };
+        Some(if value.is_truthy() {
+            format!("return {}", to_string(&format_let_expr(&value, options)?)?)
+        } else {
+            "return".to_owned()
+        })
+    } else if plan_type == "VarAssign" {
+        // A `let` inside a block body
+        Some(format!(
+            "let {} = {}",
+            to_string(&get(plan, "name")?)?,
+            to_string(&format_let_expr(&get(plan, "expr")?, options)?)?
+        ))
+    } else {
+        None
+    };
+    let Some(text) = text else {
+        return Ok(Value::Null);
+    };
+    // A block-level VarAssign is the parser node itself
+    let comments_from = if source_truthy { &source } else { plan };
+    let mut parts: Vec<String> = Vec::new();
+    if let Some(comments) = leading_comments_of(comments_from)? {
+        for c in iterate(&comments, "leadingComments")? {
+            parts.push(join_elem(&c)?);
+        }
+    }
+    parts.push(text);
+    Ok(Value::from(parts.join("\n")))
+}
+
+/// The `emitVars(at)` helper of `unparse`: the let declarations that come
+/// before plan `at`.
+fn emit_vars_group(
+    lines: &mut Vec<String>,
+    group: Option<&Vec<Value>>,
+    at: f64,
+    plans_len: f64,
+    options: &UnparseOptions<'_>,
+) -> Result<(), JsError> {
+    let Some(group) = group else {
+        return Ok(());
+    };
+    if group.is_empty() {
+        return Ok(());
+    }
+    if !lines.is_empty() && lines.last().map(String::as_str) != Some("") {
+        lines.push(String::new());
+    }
+    for v in group {
+        if let Some(comments) = leading_comments_of(v)? {
+            for c in iterate(&comments, "v.leadingComments")? {
+                lines.push(join_elem(&c)?);
+            }
+        }
+        let expr_str = format_let_expr(&get(&v, "expr")?, options)?;
+        lines.push(format!(
+            "let {} = {}",
+            to_string(&get(&v, "name")?)?,
+            to_string(&expr_str)?
+        ));
+    }
+    // Blank line separator after a let block that comes before a plan
+    if at < plans_len || plans_len == 0.0 {
+        lines.push(String::new());
+    }
+    Ok(())
+}
+
 /// `unparse(compiled, overrides, options)`: the complete DSL source of a compiled
 /// program.
 ///
@@ -1639,35 +1935,125 @@ pub fn unparse(
         lines.push(String::new()); // First blank line after search
     }
 
-    // Emit let declarations
+    // Keep statement order: each let is written before the first remaining
+    // plan that followed it in the source. A let's `planIndex` points into
+    // `compiled.planOrder`, the plans in source order. Without them, every
+    // let comes before the plans.
     let vars = get(compiled, "vars")?;
-    if vars.is_truthy() && has_length(&vars)? {
-        for v in iterate(&vars, "compiled.vars")? {
-            if let Some(comments) = leading_comments_of(&v)? {
-                for c in iterate(&comments, "v.leadingComments")? {
-                    lines.push(join_elem(&c)?);
+    let plans = or(get(compiled, "plans")?, || Value::Array(Vec::new()));
+    // `const remaining = new Set(plans)`: a truthy non-iterable plans throws
+    // before the lets are read.
+    let plan_items: Vec<Value> = if plans.is_truthy() {
+        iterate_anon(&plans)?
+    } else {
+        Vec::new()
+    };
+    let plans_len = plan_items.len() as f64;
+    // `const planOrder = compiled.planOrder || plans`: a truthy planOrder that
+    // is not an array has no usable `.length`, so no scan finds a plan.
+    let order_raw = get_opt(compiled, "planOrder");
+    let plan_order_explicit = order_raw.is_truthy();
+    let plan_order_items: Option<Vec<Value>> = if plan_order_explicit {
+        match order_raw.as_array() {
+            Some(items) => Some(items.clone()),
+            None => None,
+        }
+    } else {
+        Some(plan_items.clone())
+    };
+    // `remaining.has(planOrder[k])` and `plans.indexOf(planOrder[k])` rest on
+    // object identity: the plan a host edited in place is still the object its
+    // planOrder slot holds. Value copies cannot share identity, so the
+    // validator stamps every plan with a hidden `planRef` (its index in
+    // planOrder) that in-place chain edits preserve.
+    let ref_at: Vec<Option<usize>> = match &plan_order_items {
+        Some(order) => {
+            let mut map = vec![None; order.len()];
+            for (j, p) in plan_items.iter().enumerate() {
+                if let Some(r) = get_opt(p, "planRef").as_f64() {
+                    let r = r as usize;
+                    if r < map.len() && map[r].is_none() {
+                        map[r] = Some(j);
+                    }
                 }
             }
-            let expr_str = format_let_expr(&get(&v, "expr")?, &options)?;
-            lines.push(format!(
-                "let {} = {}",
-                to_string(&get(&v, "name")?)?,
-                to_string(&expr_str)?
-            ));
+            map
         }
-        lines.push(String::new()); // blank line separator after let block
+        None => Vec::new(),
+    };
+    let mut vars_before: Vec<Vec<Value>> = vec![Vec::new(); plan_items.len() + 1];
+    if vars.is_truthy() {
+        // `for (const v of compiled.vars || [])`: a truthy non-iterable vars
+        // throws here, after the plans are read.
+        for v in iterate_anon(&vars)? {
+            // `v.planIndex ?? 0`: the hidden member is gone after a host
+            // serializes the compiled program, so the let lands first.
+            let var_plan_index = match get_opt(&v, "planIndex") {
+                Value::Number(n) if n.is_finite() => n,
+                _ => 0.0,
+            };
+            let mut at = plans_len;
+            if !plan_order_explicit {
+                // planOrder falls back to plans itself, so its entries are the
+                // plans by identity and the scan always lands on `planIndex`.
+                at = if var_plan_index.is_finite() {
+                    var_plan_index.clamp(0.0, plans_len)
+                } else {
+                    plans_len
+                };
+            } else if let Some(order) = &plan_order_items {
+                if var_plan_index.is_finite() {
+                    for k in (var_plan_index.max(0.0) as usize)..order.len() {
+                        if let Some(r) = get_opt(&order[k], "planRef").as_f64() {
+                            let r = r as usize;
+                            if let Some(pos) = ref_at.get(r).copied().flatten() {
+                                at = pos as f64;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if plans_len == 0.0 {
+                at = 0.0;
+            }
+            vars_before[at as usize].push(v);
+        }
     }
+    let emit_vars = |lines: &mut Vec<String>, at: f64| -> Result<(), JsError> {
+        let group = vars_before.get(at as usize);
+        emit_vars_group(lines, group, at, plans_len, &options)
+    };
+
+    // Emit the let declarations written before the first plan
+    emit_vars(&mut lines, 0.0)?;
 
     // Track global step index across all plans
     let mut global_step_index = 0.0;
 
-    let plans = or(get(compiled, "plans")?, || Value::Array(Vec::new()));
-    let plan_count = to_number(&member(&plans, "length"))?;
+    let plan_count = plans_len;
     let mut plan_index = 0.0;
     while plan_index < plan_count {
         let plan = get_v(&plans, &Value::Number(plan_index))?;
+        if plan_index > 0.0 {
+            emit_vars(&mut lines, plan_index)?;
+        }
         let chain = get(&plan, "chain")?;
-        if !chain.is_truthy() || strict_equals(&member(&chain, "length"), &Value::Number(0.0)) {
+        if !chain.is_truthy() {
+            // Branch, Break, Continue and Return plans have no chain. The
+            // parser and validator accept them; unparseControlFlow writes
+            // them back as statements.
+            let statement = unparse_control_flow(&plan, &search_namespaces, &options, registry)?;
+            if statement.is_truthy() {
+                lines.push(to_string(&statement)?);
+                if plan_index < plan_count - 1.0 {
+                    lines.push(String::new());
+                }
+            }
+            plan_index += 1.0;
+            continue;
+        }
+        if strict_equals(&member(&chain, "length"), &Value::Number(0.0)) {
             plan_index += 1.0;
             continue;
         }
@@ -1839,10 +2225,10 @@ pub fn unparse(
                 let id = get_opt(&args, "id");
                 let mut parts = Vec::new();
                 if name.is_truthy() {
-                    parts.push(format!("name: \"{}\"", to_string(&name)?));
+                    parts.push(format!("name: {}", format_string_literal(&to_string(&name)?)));
                 }
                 if id.is_truthy() {
-                    parts.push(format!("id: \"{}\"", to_string(&id)?));
+                    parts.push(format!("id: {}", format_string_literal(&to_string(&id)?)));
                 }
                 current_chain.push(ChainElement {
                     code: format!("subchain({}) {{", parts.join(", ")),
@@ -2064,6 +2450,11 @@ pub fn unparse(
         plan_index += 1.0;
     }
 
+    // Emit the let declarations written after the last plan
+    if plan_count > 0.0 {
+        emit_vars(&mut lines, plan_count)?;
+    }
+
     // Add render directive if present (surface name: o0-o7)
     let render = get(compiled, "render")?;
     if render.is_truthy() {
@@ -2204,8 +2595,11 @@ mod tests {
             (0.0, "0"),
             (-0.0, "0"),
             (5e-324, &format!("0.{}5", "0".repeat(323))),
-            (f64::NAN, "NaN"),
-            (f64::INFINITY, "Infinity"),
+            // A value that is not finite has no literal, so it is written as
+            // the division that the parser folds back to the same value.
+            (f64::NAN, "0 / 0"),
+            (f64::INFINITY, "1 / 0"),
+            (f64::NEG_INFINITY, "-1 / 0"),
             (0.8000000780001997, "0.8000000780001997"),
         ] {
             assert_eq!(format_lossless_number(x), s, "{x}");
@@ -2265,10 +2659,9 @@ mod tests {
         assert_eq!(f("perlin", Value::Null), Value::from("perlin"));
         assert_eq!(f("oscKind.sine", Value::Null), Value::from("oscKind.sine"));
         assert_eq!(f("0vjd", Value::Null), Value::from("\"0vjd\""));
-        assert_eq!(
-            f("a \"b\" \\ c", Value::Null),
-            Value::from("\"a \\\"b\\\" \\\\ c\"")
-        );
+        // The `"` scan stops at the unescaped quote, so the single-quote form
+        // holds the value.
+        assert_eq!(f("a \"b\" \\ c", Value::Null), Value::from("'a \"b\" \\ c'"));
         assert_eq!(
             f("two\nlines", Value::Null),
             Value::from("\"\"\"two\nlines\"\"\"")

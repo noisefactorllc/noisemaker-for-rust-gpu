@@ -615,7 +615,30 @@ pub fn expand(
         let chain_scope_id = format!("chain_{plan_index}");
         let volume_size_param = format!("volumeSize_{chain_scope_id}");
 
+        // Branch, Break, Continue and Return plans have no chain. The parser
+        // and validator accept them, but the runtime does not execute them.
         let chain_value = member(plan, "chain")?;
+        if chain_value.as_array().is_none() {
+            let keyword = match member(plan, "type")? {
+                Value::String(s) => match s.as_str() {
+                    "Branch" => "if".to_owned(),
+                    "Break" => "break".to_owned(),
+                    "Continue" => "continue".to_owned(),
+                    "Return" => "return".to_owned(),
+                    other => other.to_owned(),
+                },
+                other => crate::js::value_to_property_key(other),
+            };
+            let mut error = Object::new();
+            error.insert(
+                "message",
+                Value::String(format!(
+                    "The runtime does not yet execute control flow ('{keyword}')"
+                )),
+            );
+            errors.push(Value::Object(error));
+            continue;
+        }
         let chain = iterate(chain_value, "plan.chain")?;
         let chain_len = chain.len();
         for (step_position, step) in chain.iter().enumerate() {

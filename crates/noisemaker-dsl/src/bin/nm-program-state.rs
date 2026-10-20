@@ -289,7 +289,7 @@ impl<'g> Ctx<'g> {
         let (attach, enums, convert, methods) = host_config(host);
         self.methods = MockMethods::from_names(&methods);
         let mock = MockHost {
-            current_dsl: String::new(),
+            current_dsl: Value::String(String::new()),
             enums: self.enums_for(&enums),
             convert: match convert.as_str() {
                 "canvas" => MockConvert::Canvas,
@@ -345,7 +345,7 @@ impl<'g> Ctx<'g> {
         let registry = self.g.registry.clone();
         let mock = self.mock();
         if set_dsl {
-            mock.current_dsl = dsl.to_owned();
+            mock.current_dsl = Value::from(dsl);
         }
         match compile_graph(dsl, &registry, &CompileOptions::default()) {
             Err(e) => {
@@ -391,7 +391,7 @@ impl<'g> Ctx<'g> {
             "host.load" => Ok(enc(&self.host_load(&s("dsl"), true))),
             "host.loadGraph" => Ok(enc(&self.host_load(&s("dsl"), false))),
             "host.setDsl" => {
-                self.mock().current_dsl = s("dsl");
+                self.mock().current_dsl = s("dsl").into();
                 Ok(enc(&Value::Undefined))
             }
             "host.clearPipeline" => {
@@ -574,7 +574,7 @@ impl<'g> Ctx<'g> {
             (
                 "dsl",
                 match st.renderer() {
-                    Some(r) => Value::from(r.current_dsl.as_str()),
+                    Some(r) => r.current_dsl.clone(),
                     None => Value::Null,
                 },
             ),

@@ -971,12 +971,27 @@ impl<H: ProgramHost> ProgramState<H> {
     /// regenerated).
     pub fn to_dsl(&self) -> String {
         let current = match &self.renderer {
-            Some(r) => r.current_dsl(),
-            None => String::new(),
+            Some(r) => r.current_dsl_value(),
+            None => Value::Undefined,
         };
-        if current.is_empty() {
+        // `if (!this._renderer?.currentDsl) return ''`
+        if !current.is_truthy() {
             return String::new();
         }
+        // `compile(currentDsl)` throws for a non-string program (it lexes
+        // nothing, so the parser reports the missing search directive) and
+        // toDsl returns the current program unchanged.
+        let current = match &current {
+            Value::String(s) => s.clone(),
+            _ => {
+                let err = match compile("", &self.registry) {
+                    Ok(_) => return String::new(),
+                    Err(err) => err,
+                };
+                console::warn(&["[ProgramState] Failed to generate DSL:".into(), err.into()]);
+                return to_string(&current).unwrap_or_default();
+            }
+        };
         match self.to_dsl_inner(&current) {
             Ok(dsl) => dsl,
             Err(err) => {
@@ -1103,13 +1118,28 @@ impl<H: ProgramHost> ProgramState<H> {
     /// renderer's program (a chain's starter removes the whole chain, as does
     /// removing its last non-write step), regenerate the DSL and load it.
     pub fn delete_step(&mut self, step_index: f64) -> Result<DeleteStepResult, JsError> {
-        let current_dsl = match &self.renderer {
-            Some(r) => r.current_dsl(),
-            None => String::new(),
+        let current_value = match &self.renderer {
+            Some(r) => r.current_dsl_value(),
+            None => Value::Undefined,
         };
-        if current_dsl.is_empty() {
+        if !current_value.is_truthy() {
             return Ok(DeleteStepResult::failure("no DSL available"));
         }
+        // `compile(currentDsl)` throws for a non-string program (it lexes
+        // nothing, so the parser reports the missing search directive).
+        let current_dsl = match &current_value {
+            Value::String(s) => s.clone(),
+            _ => {
+                let err = match compile("", &self.registry) {
+                    Ok(_) => return Ok(DeleteStepResult::failure("DSL syntax error: empty program".to_string())),
+                    Err(err) => err,
+                };
+                return Ok(DeleteStepResult::failure(format!(
+                    "DSL syntax error: {}",
+                    error_message(&err)?
+                )));
+            }
+        };
 
         let mut compiled = match compile(&current_dsl, &self.registry) {
             Ok(c) => c,
@@ -1272,13 +1302,28 @@ impl<H: ProgramHost> ProgramState<H> {
         after_step_index: f64,
         effect_id: &str,
     ) -> Result<InsertStepResult, JsError> {
-        let current_dsl = match &self.renderer {
-            Some(r) => r.current_dsl(),
-            None => String::new(),
+        let current_value = match &self.renderer {
+            Some(r) => r.current_dsl_value(),
+            None => Value::Undefined,
         };
-        if current_dsl.is_empty() {
+        if !current_value.is_truthy() {
             return Ok(InsertStepResult::failure("no DSL available"));
         }
+        // `compile(currentDsl)` throws for a non-string program (it lexes
+        // nothing, so the parser reports the missing search directive).
+        let current_dsl = match &current_value {
+            Value::String(s) => s.clone(),
+            _ => {
+                let err = match compile("", &self.registry) {
+                    Ok(_) => return Ok(InsertStepResult::failure("DSL syntax error: empty program".to_string())),
+                    Err(err) => err,
+                };
+                return Ok(InsertStepResult::failure(format!(
+                    "DSL syntax error: {}",
+                    error_message(&err)?
+                )));
+            }
+        };
 
         let mut compiled = match compile(&current_dsl, &self.registry) {
             Ok(c) => c,
@@ -2009,12 +2054,11 @@ impl<H: ProgramHost> ProgramState<H> {
         out.insert("version", Value::Number(1.0));
         out.insert(
             "dsl",
-            Value::from(
-                self.renderer
-                    .as_ref()
-                    .map(|r| r.current_dsl())
-                    .unwrap_or_default(),
-            ),
+            // `dsl: this._renderer?.currentDsl || ''`
+            match self.renderer.as_ref().map(|r| r.current_dsl_value()) {
+                Some(v) if v.is_truthy() => v,
+                _ => Value::from(""),
+            },
         );
         out.insert("stepStates", Value::Object(step_states));
         out.insert("overrides", Value::Object(overrides));
@@ -2071,9 +2115,37 @@ impl<H: ProgramHost> ProgramState<H> {
         self.media_inputs = restore_data("mediaInputs");
         self.text_inputs = restore_data("textInputs");
 
-        // Load DSL (this rebuilds stepStates from structure)
+        // Load DSL (this rebuilds stepStates from structure). A snapshot can
+        // hold another program than the compiled one, as an undo across an
+        // added or removed step does. Make it the renderer's current program,
+        // so toDsl() and serialize() describe it, and ask the host to
+        // recompile once the state is restored.
         let dsl = member(data, "dsl");
+        let mut program_changed = false;
         if dsl.is_truthy() {
+            if let Some(r) = &mut self.renderer {
+                let current = r.current_dsl_value();
+                if !strict_equals(&current, &dsl) {
+                    // `extractEffectsFromDsl(currentDsl || '')`: a non-string
+                    // or empty current program has no effects.
+                    let current_effects = match &current {
+                        Value::String(s) if !s.is_empty() => {
+                            extract_effects_from_dsl(s, &self.registry)
+                        }
+                        _ => Vec::new(),
+                    };
+                    // `extractEffectsFromDsl(data.dsl)`: a non-string snapshot
+                    // program has no effects.
+                    let dsl_effects = match &dsl {
+                        Value::String(s) => extract_effects_from_dsl(s, &self.registry),
+                        _ => Vec::new(),
+                    };
+                    program_changed = !structures_match(&current_effects, &dsl_effects);
+                    if program_changed {
+                        r.set_current_dsl_value(dsl.clone());
+                    }
+                }
+            }
             self.from_dsl_value(&dsl)?;
         }
 
@@ -2101,6 +2173,9 @@ impl<H: ProgramHost> ProgramState<H> {
         let mut data_out = Object::new();
         data_out.insert("structure", effects_to_value(&self.structure));
         self.emit("load", &Value::Object(data_out));
+        if program_changed {
+            self.emit("recompileNeeded", &Value::Undefined);
+        }
         Ok(())
     }
 

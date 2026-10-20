@@ -1449,6 +1449,12 @@ impl ProgramHost for CanvasRenderer {
         self.current_dsl.clone()
     }
 
+    fn set_current_dsl_value(&mut self, value: Value) {
+        if let Value::String(s) = value {
+            self.set_current_dsl(s);
+        }
+    }
+
     fn enums(&self) -> Rc<Value> {
         self.enums.clone()
     }

@@ -354,6 +354,13 @@ impl V {
         }
     }
 
+    /// `Object.defineProperty(v, key, { value, enumerable: false })`.
+    pub(crate) fn define_hidden(&self, key: &str, value: V) {
+        if let V::Obj(o) = self {
+            o.borrow_mut().hidden.insert(key.to_owned(), value);
+        }
+    }
+
     /// `v[key] = value` (strict mode, as in the reference's ES modules).
     pub(crate) fn set(&self, key: &str, value: V) -> Result<(), JsError> {
         match self {

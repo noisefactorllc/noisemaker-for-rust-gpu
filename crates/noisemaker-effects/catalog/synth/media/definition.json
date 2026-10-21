@@ -58,6 +58,14 @@
     "imageSize": {
       "slot": 4,
       "components": "xy"
+    },
+    "tileOffset": {
+      "slot": 5,
+      "components": "xy"
+    },
+    "fullResolution": {
+      "slot": 5,
+      "components": "zw"
     }
   },
   "globals": {

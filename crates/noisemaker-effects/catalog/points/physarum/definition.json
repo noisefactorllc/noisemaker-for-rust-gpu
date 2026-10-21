@@ -9,6 +9,24 @@
     "sim"
   ],
   "globals": {
+    "diffuseTex": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "diffuseActive",
+      "ui": {
+        "label": "diffuse map",
+        "category": "general"
+      }
+    },
+    "fieldTex": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "fieldActive",
+      "ui": {
+        "label": "field map",
+        "category": "general"
+      }
+    },
     "moveSpeed": {
       "type": "float",
       "default": 1.78,
@@ -135,9 +153,13 @@
         "velTex": "global_vel",
         "rgbaTex": "global_rgba",
         "trailTex": "global_physarum_pheromone",
-        "inputTex": "inputTex"
+        "inputTex": "inputTex",
+        "fieldTex": "fieldTex",
+        "diffuseTex": "diffuseTex"
       },
       "uniforms": {
+        "diffuseActive": "diffuseActive",
+        "fieldActive": "fieldActive",
         "moveSpeed": "moveSpeed",
         "turnSpeed": "turnSpeed",
         "sensorAngle": "sensorAngle",

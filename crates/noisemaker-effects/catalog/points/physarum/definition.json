@@ -9,11 +9,21 @@
     "sim"
   ],
   "globals": {
-    "fieldTex": {
+    "heightTex": {
       "type": "surface",
-      "default": "inputTex",
+      "default": "none",
+      "colorModeUniform": "fieldActive",
       "ui": {
-        "label": "field map",
+        "label": "height map",
+        "category": "general"
+      }
+    },
+    "diffuseTex": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "diffuseActive",
+      "ui": {
+        "label": "diffuse map",
         "category": "general"
       }
     },
@@ -137,15 +147,20 @@
     {
       "name": "agent",
       "program": "agent",
-      "drawBuffers": 3,
+      "drawBuffers": 4,
       "inputs": {
         "xyzTex": "global_xyz",
         "velTex": "global_vel",
         "rgbaTex": "global_rgba",
         "trailTex": "global_physarum_pheromone",
-        "inputTex": "fieldTex"
+        "inputTex": "inputTex",
+        "heightTex": "heightTex",
+        "diffuseTex": "diffuseTex",
+        "baseColorTex": "global_physarum_base_color"
       },
       "uniforms": {
+        "diffuseActive": "diffuseActive",
+        "fieldActive": "fieldActive",
         "moveSpeed": "moveSpeed",
         "turnSpeed": "turnSpeed",
         "sensorAngle": "sensorAngle",
@@ -155,7 +170,8 @@
       "outputs": {
         "outXYZ": "global_xyz",
         "outVel": "global_vel",
-        "outRGBA": "global_rgba"
+        "outRGBA": "global_rgba",
+        "outBaseColor": "global_physarum_base_color"
       }
     },
     {
@@ -197,10 +213,24 @@
     }
   ],
   "textures": {
+    "global_physarum_base_color": {
+      "width": {
+        "param": "stateSize",
+        "inherit": true
+      },
+      "height": {
+        "param": "stateSize",
+        "inherit": true
+      },
+      "format": "rgba8"
+    },
     "global_physarum_pheromone": {
       "width": "100%",
       "height": "100%",
       "format": "rgba16f"
     }
+  },
+  "paramAliases": {
+    "fieldTex": "heightTex"
   }
 }

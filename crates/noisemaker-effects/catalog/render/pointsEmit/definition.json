@@ -9,15 +9,6 @@
     "agents"
   ],
   "globals": {
-    "diffuseTex": {
-      "type": "surface",
-      "default": "inputTex",
-      "ui": {
-        "label": "diffuse map",
-        "category": "general",
-        "resetOnChange": true
-      }
-    },
     "stateSize": {
       "type": "int",
       "default": 256,
@@ -104,7 +95,7 @@
         "xyzTex": "global_xyz",
         "velTex": "global_vel",
         "rgbaTex": "global_rgba",
-        "inputTex": "diffuseTex"
+        "inputTex": "inputTex"
       },
       "uniforms": {
         "layoutMode": "layout",

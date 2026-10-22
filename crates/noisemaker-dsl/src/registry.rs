@@ -66,6 +66,9 @@ pub struct Registry {
     pub enums: Object,
     /// `registerEffectAlias`: old op name -> replacement name.
     pub effect_aliases: IndexMap<String, String>,
+    /// `registerParamAliases(opName, {old: new})`: old parameter name -> new
+    /// parameter name per op (`lang/paramAliases.js`).
+    pub param_aliases: IndexMap<String, Vec<(String, String)>>,
     /// `VALID_NAMESPACES` with descriptions, in registration order. Read it
     /// through [`Registry::valid_namespaces`] and
     /// [`Registry::namespace_descriptions`]; it changes only through
@@ -308,6 +311,19 @@ impl Registry {
             .insert(old_op_name.to_owned(), new_name.to_owned());
     }
 
+    /// `registerParamAliases(opName, aliases)` (`lang/paramAliases.js`): merge
+    /// the mappings into the op's alias map.
+    pub fn register_param_aliases(&mut self, op_name: &str, aliases: Vec<(String, String)>) {
+        let entry = self.param_aliases.entry(op_name.to_owned()).or_default();
+        for (old_name, new_name) in aliases {
+            if let Some(slot) = entry.iter_mut().find(|(k, _)| k == &old_name) {
+                slot.1 = new_name;
+            } else {
+                entry.push((old_name, new_name));
+            }
+        }
+    }
+
     /// The host's per-effect loading sequence (`loadEffect`): attach shaders,
     /// `registerEffectWithRuntime`, merge its choice enums, `registerStarterOpForEffect`.
     ///
@@ -434,6 +450,21 @@ impl Registry {
         op_spec.insert("args", Value::Array(args));
         let op_name = format!("{namespace}.{func}");
         self.register_op(op_name.clone(), Value::Object(op_spec));
+
+        // registerParamAliases(`${namespace}.${func}`, instance.paramAliases)
+        if let Value::Object(aliases) = def.get("paramAliases") {
+            let mappings: Vec<(String, String)> = aliases
+                .iter()
+                .filter_map(|(k, v)| {
+                    v.as_str()
+                        .filter(|s| !s.is_empty())
+                        .map(|s| (k.clone(), s.to_owned()))
+                })
+                .collect();
+            if !mappings.is_empty() {
+                self.register_param_aliases(&op_name, mappings);
+            }
+        }
 
         // registerEffectAlias stores the value; checkEffectAlias prints it
         // through a template literal.

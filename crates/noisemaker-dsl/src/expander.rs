@@ -221,10 +221,15 @@ fn is_surface_ref(name: &str) -> bool {
         })
 }
 
-/// `/^global_(xyz|vel|rgba|points_trail|life_data)$/.test(name)`.
+/// `/^global_(xyz|vel|rgba|points_trail|life_data|[a-z]+_base_color)$/.test(name)`.
 fn is_particle_global(name: &str) -> bool {
-    name.strip_prefix("global_")
-        .is_some_and(|rest| matches!(rest, "xyz" | "vel" | "rgba" | "points_trail" | "life_data"))
+    name.strip_prefix("global_").is_some_and(|rest| {
+        matches!(rest, "xyz" | "vel" | "rgba" | "points_trail" | "life_data")
+            || (rest.ends_with("_base_color")
+                && rest
+                    .strip_suffix("_base_color")
+                    .is_some_and(|b| !b.is_empty() && b.bytes().all(|c| c.is_ascii_lowercase())))
+    })
 }
 
 /// `TEXTURE_ARG_KINDS`.
@@ -465,13 +470,18 @@ fn scope_dim_spec(
             let scoped_param = if is_str(original_param, "volumeSize") {
                 scope.volume_size_param.to_owned()
             } else {
-                format!("{}_{dimension_scope}", js_string(original_param))
+                format!("{}_{}", js_string(original_param), dimension_scope)
             };
-            scoped_param_map_set(
-                scoped_param_map,
-                original_param.clone(),
-                scoped_param.clone(),
-            );
+            // Track this mapping so we can copy uniform values later. An
+            // inherited dimension reads the scope's value and never writes
+            // this effect's own value over it.
+            if !member(dim_spec, "inherit")?.is_truthy() {
+                scoped_param_map_set(
+                    scoped_param_map,
+                    original_param.clone(),
+                    scoped_param.clone(),
+                );
+            }
             let mut out = spread(dim_spec);
             out.insert("param", Value::String(scoped_param));
             return Ok(Value::Object(out));

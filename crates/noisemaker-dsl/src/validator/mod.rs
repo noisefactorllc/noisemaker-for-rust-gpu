@@ -2390,6 +2390,15 @@ impl<'r> Validator<'r> {
         // literal `[…]`); absent until something sets a form.
         let mut arg_sources: Option<V> = None;
         let kw = call.get("kwargs")?;
+        // Resolve deprecated param aliases (`lang/validator.js`): the warnings
+        // fire once per aliased key and the kwargs carry the canonical names.
+        if kw.truthy() {
+            let warnings = aliases::resolve_param_aliases(self.registry, &op_name, &kw)?;
+            for w in warnings {
+                self.push_diag("S007", original, Some(w))?;
+            }
+        }
+        let kw = call.get("kwargs")?;
         let mut seen: HashSet<String> = HashSet::new();
         let spec_args = spec.get("args");
         let spec_args: &[Value] = match spec_args {

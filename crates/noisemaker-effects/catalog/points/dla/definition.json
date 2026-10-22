@@ -9,12 +9,22 @@
     "sim"
   ],
   "globals": {
-    "fieldTex": {
+    "heightTex": {
       "type": "surface",
-      "default": "inputTex",
+      "default": "none",
+      "colorModeUniform": "fieldActive",
       "ui": {
-        "label": "field map",
-        "category": "source"
+        "label": "height map",
+        "category": "chemistry"
+      }
+    },
+    "diffuseTex": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "diffuseActive",
+      "ui": {
+        "label": "diffuse map",
+        "category": "chemistry"
       }
     },
     "stateSize": {
@@ -144,15 +154,20 @@
     {
       "name": "agent",
       "program": "agent",
-      "drawBuffers": 3,
+      "drawBuffers": 4,
       "inputs": {
         "xyzTex": "global_xyz",
         "velTex": "global_vel",
         "rgbaTex": "global_rgba",
         "gridTex": "global_dla_grid",
-        "inputTex": "fieldTex"
+        "inputTex": "inputTex",
+        "heightTex": "heightTex",
+        "diffuseTex": "diffuseTex",
+        "baseColorTex": "global_dla_base_color"
       },
       "uniforms": {
+        "diffuseActive": "diffuseActive",
+        "fieldActive": "fieldActive",
         "stride": "stride",
         "inputWeight": "inputWeight",
         "attrition": "attrition",
@@ -161,7 +176,8 @@
       "outputs": {
         "outXYZ": "global_xyz",
         "outVel": "global_vel",
-        "outRGBA": "global_rgba"
+        "outRGBA": "global_rgba",
+        "outBaseColor": "global_dla_base_color"
       }
     },
     {
@@ -201,10 +217,24 @@
     }
   ],
   "textures": {
+    "global_dla_base_color": {
+      "width": {
+        "param": "stateSize",
+        "inherit": true
+      },
+      "height": {
+        "param": "stateSize",
+        "inherit": true
+      },
+      "format": "rgba8"
+    },
     "global_dla_grid": {
       "width": "100%",
       "height": "100%",
       "format": "rgba16f"
     }
+  },
+  "paramAliases": {
+    "fieldTex": "heightTex"
   }
 }

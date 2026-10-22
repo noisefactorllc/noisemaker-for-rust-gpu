@@ -145,6 +145,7 @@ const DIM_SPEC_KEYS: &[&str] = &[
     "scale",
     "clamp",
     "inputOverride",
+    "inherit",
 ];
 
 const TOP_LEVEL_KEYS: &[&str] = &[
@@ -160,6 +161,7 @@ const TOP_LEVEL_KEYS: &[&str] = &[
     "shaders",
     "uniformLayout",
     "uniformLayouts",
+    "paramAliases",
     "openCategories",
     "defaultProgram",
     "hidden",
@@ -424,6 +426,10 @@ fn validate_dim_spec(spec: &Value, errors: &mut Errors, label: &str) {
                     errors.push(format!(
                         "{label}: \"inputOverride\" must be a non-empty string"
                     ));
+                }
+                let inherit = at(spec, "inherit");
+                if !inherit.is_undefined() && !matches!(inherit, Value::Bool(_)) {
+                    errors.push(format!("{label}: \"inherit\" must be a boolean"));
                 }
                 return;
             }
@@ -1825,6 +1831,31 @@ pub fn validate_definition(definition: Definition<'_>) -> Result<Vec<String>, Js
         }
     }
 
+    // --- param aliases ---
+    if !source.get("paramAliases").is_undefined() {
+        let aliases = source.get("paramAliases");
+        if !is_obj(&aliases) {
+            errors
+                .push("\"paramAliases\" must be an object mapping aliases to global names".into());
+        } else {
+            for (alias, target) in entries(&aliases) {
+                let valid = matches!(&target, Value::String(s) if !s.is_empty());
+                if valid {
+                    if !context.has_global(&target) {
+                        errors.push(format!(
+                            "paramAliases['{alias}'] references unknown global '{}'",
+                            to_string(&target)?
+                        ));
+                    }
+                } else {
+                    errors.push(format!(
+                        "paramAliases['{alias}'] must be a non-empty string"
+                    ));
+                }
+            }
+        }
+    }
+
     // --- top-level unknown-field diagnosis (plain definition objects only) ---
     if diagnose_top_level_unknowns {
         for key in top_level_keys {
@@ -1922,17 +1953,29 @@ mod tests {
         let mut def = valid_definition();
         def.set("globalz", Value::object());
         assert_eq!(errors(&def), vec!["Unknown definition field 'globalz'"]);
-        // Retired parameter-alias metadata is an unknown field now.
+        // Parameter-alias metadata is a known field now: the alias target must
+        // be a declared global.
         let mut def = valid_definition();
         def.set(
             "paramAliases",
             Value::from_json(r#"{"amt": "amount"}"#).unwrap(),
         );
+        assert_eq!(errors(&def), Vec::<String>::new());
+        let mut def = valid_definition();
+        def.set(
+            "paramAliases",
+            Value::from_json(r#"{"amt": "missing"}"#).unwrap(),
+        );
         assert_eq!(
             errors(&def),
-            vec!["Unknown definition field 'paramAliases'"]
+            vec!["paramAliases['amt'] references unknown global 'missing'"]
         );
         // Instances do not diagnose top-level extras.
+        let mut def = valid_definition();
+        def.set(
+            "paramAliases",
+            Value::from_json(r#"{"amt": "amount"}"#).unwrap(),
+        );
         assert!(
             validate_definition(Definition::Instance {
                 own: &def,

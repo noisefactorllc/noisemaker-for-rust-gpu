@@ -9,15 +9,6 @@
     "sim"
   ],
   "globals": {
-    "diffuseTex": {
-      "type": "surface",
-      "default": "none",
-      "colorModeUniform": "diffuseActive",
-      "ui": {
-        "label": "diffuse map",
-        "category": "kernel"
-      }
-    },
     "muK": {
       "type": "float",
       "default": 25,
@@ -171,11 +162,9 @@
         "xyzTex": "global_xyz",
         "velTex": "global_vel",
         "rgbaTex": "global_rgba",
-        "diffuseTex": "diffuseTex",
         "fieldTex": "global_lenia_field"
       },
       "uniforms": {
-        "diffuseActive": "diffuseActive",
         "muG": "muG",
         "sigmaG": "sigmaG",
         "repulsion": "repulsion",

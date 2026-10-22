@@ -17,7 +17,6 @@ struct Uniforms {
     matrixSeed: f32,
     symmetricForces: i32,
     useTypeColor: i32,
-    diffuseActive: f32,
 }
 
 struct Outputs {
@@ -35,7 +34,6 @@ struct Outputs {
 @group(0) @binding(7) var forceMatrix: texture_2d<f32>;
 @group(0) @binding(8) var inputTex: texture_2d<f32>;
 @group(0) @binding(9) var inputSampler: sampler;
-@group(0) @binding(10) var diffuseTex: texture_2d<f32>;
 
 // === HASH FUNCTIONS ===
 
@@ -297,9 +295,7 @@ fn main(@builtin(position) position: vec4f) -> Outputs {
     age += 0.016;
     
     var outColor = rgba;
-    if (u.diffuseActive > 0.5) {
-        outColor = textureSampleLevel(diffuseTex, inputSampler, pos, 0.0);
-    } else if (u.useTypeColor != 0) {
+    if (u.useTypeColor != 0) {
         outColor = vec4f(typeColor(i32(typeId), u.typeCount), 1.0);
     } else {
         // Sample from input texture based on position

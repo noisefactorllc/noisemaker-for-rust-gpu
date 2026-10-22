@@ -11,11 +11,10 @@
   "globals": {
     "diffuseTex": {
       "type": "surface",
-      "default": "none",
-      "colorModeUniform": "diffuseActive",
+      "default": "inputTex",
       "ui": {
         "label": "diffuse map",
-        "category": "types"
+        "category": "source"
       }
     },
     "stateSize": {
@@ -189,11 +188,9 @@
         "rgbaTex": "global_rgba",
         "dataTex": "global_life_data",
         "forceMatrix": "forceMatrix",
-        "inputTex": "inputTex",
-        "diffuseTex": "diffuseTex"
+        "inputTex": "diffuseTex"
       },
       "uniforms": {
-        "diffuseActive": "diffuseActive",
         "typeCount": "typeCount",
         "attractionScale": "attractionScale",
         "repulsionScale": "repulsionScale",

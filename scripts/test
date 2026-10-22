@@ -124,6 +124,71 @@ if (!writableCargoHome(configuredCargoHome)) {
   env.CARGO_HOME = fallback
 }
 
+// ---- focused mode (NM_CHANGED_FILES) ------------------------------------------------
+// The supervisor passes this candidate's changed paths, one per line. Run only
+// the tests that exercise those paths so a focused run stays inside its time
+// budget; with the variable unset the full suite below runs exactly as before.
+const changedFiles = (process.env.NM_CHANGED_FILES || '')
+  .split('\n').map(s => s.trim().replace(ROOT + '/', '')).filter(Boolean)
+if (changedFiles.length > 0) {
+  const catalogTouched = changedFiles.some(p =>
+    p.startsWith('crates/noisemaker-effects/catalog/') || p === 'parity/reference.json')
+  const crates = new Set()
+  for (const p of changedFiles) {
+    const m = p.match(/^crates\/([^/]+)\//)
+    if (m) crates.add(m[1])
+  }
+  if (catalogTouched) {
+    // The catalog freshness gate and the export-kit list are the direct tests
+    // of the catalog data and the parity pin.
+    run('node', ['parity/check_effects.mjs'], { env })
+    run('node', ['tools/generate-kit-compat.mjs', '--check'], { env })
+    crates.add('noisemaker-effects')
+    crates.add('noisemaker-dsl')
+  }
+  const tested = ['noisemaker-effects', 'noisemaker-dsl', 'noisemaker-input',
+    'noisemaker-host'].filter(name => crates.has(name))
+  if (tested.length) {
+    run(cargo, ['test', '--release', ...tested.flatMap(name => ['-p', name])], { env })
+  }
+  // The deeper parity gates need the release binaries. Build them only when a
+  // previous run left them in place, so a cold focused run stays bounded;
+  // exact-source CI still runs the full suite.
+  const hasBin = name => existsSync(join(ROOT, 'target', 'release', name))
+  if (catalogTouched) {
+    if (hasBin('nm-render')) {
+      // Fixture programs that exercise the changed effects' contracts.
+      const effects = new Set()
+      for (const p of changedFiles) {
+        const m = p.match(/^crates\/noisemaker-effects\/catalog\/(?:[^/]+\/)*([^/]+)\/(?:definition\.json|wgsl\/)/)
+        if (m) effects.add(m[1])
+      }
+      const programs = ['programs', 'corpus', 'coverage', 'timed', 'curated'].flatMap(dir =>
+        readdirSync(join(ROOT, 'parity', dir)).filter(f => f.endsWith('.dsl')).sort()
+          .filter(f => {
+            const text = readFileSync(join(ROOT, 'parity', dir, f), 'utf8')
+            return [...effects].some(e => text.includes(e))
+          }).map(f => join(ROOT, 'parity', dir, f)))
+      if (programs.length) {
+        run('node', ['parity/check_frontend.mjs', '--programs', ...programs], {
+          env: { ...env, NM_RENDER: join(ROOT, 'target', 'release', 'nm-render') }
+        })
+      }
+    }
+    if (hasBin('nm-dsl')) {
+      run('node', ['parity/check_dsl_tools.mjs', '--rust-frontend'], {
+        env: { ...env, NM_DSL: join(ROOT, 'target', 'release', 'nm-dsl') }
+      })
+    }
+    if (hasBin('nm-api')) {
+      run('node', ['parity/check_api.mjs'], { env: { ...env, NM_API: join(ROOT, 'target', 'release', 'nm-api') } })
+      run('node', ['parity/check_portable.mjs'], { env: { ...env, NM_API: join(ROOT, 'target', 'release', 'nm-api') } })
+    }
+  }
+  console.log('scripts/test: focused checks passed')
+  process.exit(0)
+}
+
 // ---- gates ---------------------------------------------------------------------------
 run('node', ['parity/check_effects.mjs'], { env })
 run('node', ['tools/generate-kit-compat.mjs', '--check'], { env })

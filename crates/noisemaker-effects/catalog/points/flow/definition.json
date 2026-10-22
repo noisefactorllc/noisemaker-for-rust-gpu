@@ -9,22 +9,12 @@
     "sim"
   ],
   "globals": {
-    "diffuseTex": {
-      "type": "surface",
-      "default": "none",
-      "colorModeUniform": "diffuseActive",
-      "ui": {
-        "label": "diffuse map",
-        "category": "agents"
-      }
-    },
     "fieldTex": {
       "type": "surface",
-      "default": "none",
-      "colorModeUniform": "fieldActive",
+      "default": "inputTex",
       "ui": {
         "label": "field map",
-        "category": "agents"
+        "category": "source"
       }
     },
     "stateSize": {
@@ -126,13 +116,9 @@
         "xyzTex": "global_xyz",
         "velTex": "global_vel",
         "rgbaTex": "global_rgba",
-        "inputTex": "inputTex",
-        "fieldTex": "fieldTex",
-        "diffuseTex": "diffuseTex"
+        "inputTex": "fieldTex"
       },
       "uniforms": {
-        "diffuseActive": "diffuseActive",
-        "fieldActive": "fieldActive",
         "behavior": "behavior",
         "stride": "stride",
         "strideDeviation": "strideDeviation",

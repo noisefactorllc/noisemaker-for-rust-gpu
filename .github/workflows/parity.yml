@@ -6,7 +6,7 @@ name: Parity
 # (parity/sweep.py) and prints one PARITY-SUMMARY line; it exits nonzero when a
 # case is near, failing, skipped or missing. Both engines need a Metal GPU, and
 # the GitHub-hosted macOS runners offer only a paravirtual one, so the sweep runs
-# on the self-hosted Apple M4 runner group noisemaker-gpu. That group admits this
+# on a native Apple M4 Metal host with macOS. That host admits this
 # workflow on main only; no pull request reaches it, and a host without a native
 # Metal device fails the job. Its own concurrency group keeps it apart from the
 # push gate (tests.yml).
@@ -34,8 +34,8 @@ jobs:
   sweep:
     if: github.ref == 'refs/heads/main'
     runs-on:
-      group: noisemaker-gpu
-      labels: [noisemaker-gpu]
+      group: ${{ vars.GPU_RUNNER_GROUP }}
+      labels: ${{ vars.GPU_RUNNER_LABEL }}
     timeout-minutes: 150
     steps:
       - name: Require a native Apple-silicon Metal host

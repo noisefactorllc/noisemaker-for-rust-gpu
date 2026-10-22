@@ -6,7 +6,7 @@ name: Tests
 # the GPU-free crates, and the frontend, DSL tooling, ProgramState, public API,
 # Portable, MIDI, audio and automation gates. The pixel parity sweep renders,
 # so it runs weekly in parity.yml. This job runs on a GitHub-hosted runner;
-# only parity.yml, on main, runs on the self-hosted GPU runner.
+# only parity.yml, on main, runs on the native GPU host.
 
 on:
   push:

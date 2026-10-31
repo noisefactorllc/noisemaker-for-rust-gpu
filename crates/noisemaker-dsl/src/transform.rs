@@ -98,6 +98,11 @@ fn index_mut<'v>(container: &'v mut Value, key: &str) -> Option<&'v mut Value> {
 }
 
 /// `deepClone(obj)`: plain objects and arrays are copied recursively.
+/// The reference walks `Reflect.ownKeys` and redefines every member, so the
+/// private statement-order fields survive (`planIndex` on the statements and
+/// vars, `planOrder` on the program, `planRef` on the plans, `plan.source`);
+/// the unparser reads them to re-emit let declarations in source order during
+/// effect replacement.
 fn deep_clone(value: &Value) -> Value {
     match value {
         Value::Array(items) => Value::Array(items.iter().map(deep_clone).collect()),
@@ -105,6 +110,9 @@ fn deep_clone(value: &Value) -> Value {
             let mut cloned = Object::new();
             for (k, v) in o.iter() {
                 set_plain(&mut cloned, k, deep_clone(v));
+            }
+            for (k, v) in o.hidden_members() {
+                cloned.define_hidden(k.clone(), deep_clone(v));
             }
             Value::Object(cloned)
         }

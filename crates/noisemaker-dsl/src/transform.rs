@@ -1151,6 +1151,85 @@ mod tests {
     }
 
     #[test]
+    fn replacement_roundtrip_preserves_let_bindings_in_source_order() {
+        let mut reg = Registry::new();
+        reg.register_op(
+            "synth.noise",
+            Value::from_json(
+                r#"{"name":"noise","args":[{"name":"scale","type":"float","default":10},{"name":"seed","type":"float","default":1}]}"#,
+            )
+            .unwrap(),
+        );
+        reg.register_op(
+            "synth.voronoi",
+            Value::from_json(
+                r#"{"name":"voronoi","args":[{"name":"scale","type":"float","default":50}]}"#,
+            )
+            .unwrap(),
+        );
+        reg.register_starter_ops(&["synth.noise", "synth.voronoi"]);
+        let source = "search synth\nlet amount = 13\nnoise(scale: amount).write(o0)\n\
+            let amount = 97\nnoise(scale: amount).write(o1)\nrender(o1)";
+        let compiled = crate::compile(source, &reg).unwrap();
+        let original_dsl = crate::unparser::unparse(
+            &compiled,
+            &Value::Undefined,
+            &crate::unparser::UnparseOptions::default(),
+            &reg,
+        )
+        .unwrap();
+        // The step with temp 2 is plan 1's `noise(scale: amount).write(o1)`.
+        let result = replace_effect(
+            &compiled,
+            &Value::Number(2.0),
+            &"voronoi".into(),
+            &Value::from_json(r#"{"scale":31}"#).unwrap(),
+            &Value::Undefined,
+            &reg,
+        )
+        .unwrap();
+        assert_eq!(result.get("success"), &Value::Bool(true));
+        let program = result.get("program");
+        let restored_source = crate::unparser::unparse(
+            program,
+            &Value::Undefined,
+            &crate::unparser::UnparseOptions::default(),
+            &reg,
+        )
+        .unwrap();
+        let restored = crate::compile(&restored_source, &reg).unwrap();
+        let diagnostics = restored.get("diagnostics").at(0);
+        assert_eq!(diagnostics, &Value::Undefined);
+        let plan0_scale = restored
+            .get("plans")
+            .at(0)
+            .get("chain")
+            .at(0)
+            .get("args")
+            .get("scale");
+        assert_eq!(plan0_scale.get("value"), &Value::Number(13.0));
+        let plan1_scale = restored
+            .get("plans")
+            .at(1)
+            .get("chain")
+            .at(0)
+            .get("args")
+            .get("scale");
+        assert_eq!(plan1_scale, &Value::Number(31.0));
+        // Replacement does not mutate the input program.
+        assert_eq!(
+            crate::unparser::unparse(
+                &compiled,
+                &Value::Undefined,
+                &crate::unparser::UnparseOptions::default(),
+                &reg,
+            )
+            .unwrap(),
+            original_dsl,
+        );
+    }
+
+    #[test]
     fn compatible_replacements_classify_ops() {
         let reg = registry();
         let result =

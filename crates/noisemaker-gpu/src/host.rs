@@ -681,6 +681,18 @@ impl CanvasRenderer {
         self.loop_start = Instant::now();
     }
 
+    /// The instant the render loop's normalized time counts from.
+    pub fn loop_start(&self) -> Instant {
+        self.loop_start
+    }
+
+    /// Continue the render loop's normalized time from `loop_start`. A rebuilt
+    /// pipeline keeps the running loop's clock: the rebuild replaces the
+    /// pipeline, not the page's animation clock.
+    pub fn set_loop_start(&mut self, loop_start: Instant) {
+        self.loop_start = loop_start;
+    }
+
     /// `setUniform(name, value)`.
     pub fn set_uniform(&mut self, name: &str, value: Value) -> Result<(), RenderError> {
         match self.pipeline_mut() {

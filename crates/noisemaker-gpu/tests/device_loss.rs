@@ -5,7 +5,8 @@
 //! program on a fresh canvas when it resolves (test_webgpu_device_loss_recovery.mjs
 //! covers `GPUDevice.destroy()`, a retired device and a GPU process exit).
 //! These tests cover the watch itself: a live device reports no loss, and a
-//! destroyed device reports its loss with the WebGPU reason.
+//! destroyed device reports its loss with the WebGPU reason. The recovery the
+//! watch drives is covered in device_loss_recovery.rs.
 
 use std::time::{Duration, Instant};
 

@@ -17,10 +17,7 @@
 //! page; the loop time keeps running. Saving the DSL file recompiles it; a
 //! program that does not compile is reported on standard error with the DSL
 //! error formatter while the last good program keeps running. Escape or
-//! closing the window quits. A lost GPU device (its destroy, a GPU process
-//! exit, a driver reset) stops the loop and rebuilds the program on a fresh
-//! canvas in the dead one's place, as the reference rebuilds after a WebGPU
-//! device loss.
+//! closing the window quits.
 //!
 //! `synth/media` steps show the demo's test card, or the `--media` PNG.
 //! `--exit-after SECONDS` quits after that long, for scripted runs;
@@ -131,6 +128,10 @@ struct Running {
     visible: bool,
     /// Frames presented to the window.
     presented: u64,
+    /// The program the renderer should run (the reference's `_currentDsl`):
+    /// set before a compile, restored when the compile fails, so the running
+    /// program stays the last good one.
+    current_dsl: String,
     /// The device-loss watch of the pipeline's device (`device.lost`).
     loss: DeviceLossWatch,
     /// The device was lost (its message): the loop is stopped and the rebuild
@@ -152,13 +153,14 @@ impl Running {
                     .with_inner_size(LogicalSize::new(args.size, args.size)),
             )
             .map_err(|e| format!("window: {e}"))?;
-        Running::on_window(Arc::new(window), args)
+        Running::on_window(Arc::new(window), args, true)
     }
 
     /// The window's GPU context: a fresh instance, surface, device, renderer
     /// and program on it, the way `_replaceLostContext` builds a fresh canvas
-    /// in place of one whose context or device is lost.
-    fn on_window(window: Arc<Window>, args: &Args) -> Result<Running, String> {
+    /// in place of one whose context or device is lost. `load` loads the DSL
+    /// file; a recovery loads its program itself.
+    fn on_window(window: Arc<Window>, args: &Args, load: bool) -> Result<Running, String> {
         let instance = wgpu::Instance::default();
         let surface = instance
             .create_surface(window.clone())
@@ -238,8 +240,11 @@ impl Running {
             started: Instant::now(),
             visible: true,
             presented: 0,
+            current_dsl: String::new(),
         };
-        running.reload(&args.program, true);
+        if load {
+            running.reload(&args.program, true);
+        }
         Ok(running)
     }
 
@@ -270,6 +275,10 @@ impl Running {
         }
         self.source = source;
         let started = Instant::now();
+        // The reference's `_currentDsl`: set before the compile, restored when
+        // the compile fails, so the running program stays the last good one.
+        let previous_dsl = std::mem::take(&mut self.current_dsl);
+        self.current_dsl = self.source.clone();
         let result = self
             .host
             .rebuild_pipeline_from_dsl(&self.source, true)
@@ -284,8 +293,33 @@ impl Running {
                 );
             }
             Err(e) => {
+                self.current_dsl = previous_dsl;
                 self.failed = true;
                 report(&self.source, &e);
+            }
+        }
+    }
+
+    /// Compile the current program (`_currentDsl`): what a device-loss
+    /// recovery rebuilds when a good program was running.
+    fn load_current_dsl(&mut self) {
+        self.modified = None;
+        let started = Instant::now();
+        let result = self
+            .host
+            .rebuild_pipeline_from_dsl(&self.current_dsl, true)
+            .and_then(|()| self.host.settle());
+        match result {
+            Ok(()) => {
+                self.failed = false;
+                eprintln!(
+                    "viewer: restored the program ({:.0} ms)",
+                    started.elapsed().as_secs_f64() * 1000.0
+                );
+            }
+            Err(e) => {
+                self.failed = true;
+                report(&self.current_dsl, &e);
             }
         }
     }
@@ -448,30 +482,44 @@ impl Viewer {
     /// `_scheduleContextRecovery`'s rebuild, after a lost WebGPU device: stop
     /// on the dead device, then build the program on a fresh canvas (a fresh
     /// instance, surface and device in the old ones' place) and resume the
-    /// loop. The reference never rebuilds after a loss in the program's first
-    /// two frames.
-    fn recover(&mut self, event_loop: &ActiveEventLoop) {
+    /// loop. The scheduled recovery never rebuilds after a loss in the
+    /// program's first two frames; a recovery driven by a changed program
+    /// does, as the reference's next compile recovers on a fresh canvas.
+    /// `load_file` loads the DSL file; the scheduled recovery restores the
+    /// last good program. The render loop's clock, its loop duration and the
+    /// current program carry over: the rebuild replaces the pipeline, not the
+    /// page's animation clock.
+    fn recover(&mut self, event_loop: &ActiveEventLoop, load_file: bool) {
         let Some(mut old) = self.running.take() else {
             return;
         };
-        if old.lost_before_second_frame {
+        if old.lost_before_second_frame && !load_file {
             eprintln!(
                 "viewer: [Canvas] Not rebuilding the program: the WebGPU device was lost while it drew its first frame, so it may have stalled the GPU"
             );
-            // The scheduled recovery declined once. A later compile still
-            // recovers on a fresh canvas (the reference's _replaceLostContext
-            // does not re-check this guard), so a changed DSL file rebuilds.
             old.recover_at = None;
-            old.lost_before_second_frame = false;
             self.running = Some(old);
             return;
         }
+        let loop_start = old.host.renderer().loop_start();
+        let loop_duration = old.host.renderer().loop_duration();
+        let current_dsl = old.current_dsl.clone();
+        let started = old.started;
         let _ = old.host.renderer_mut().dispose();
-        match Running::on_window(old.window.clone(), &self.args) {
-            Ok(running) => {
+        match Running::on_window(old.window.clone(), &self.args, false) {
+            Ok(mut running) => {
+                running.started = started;
+                running.current_dsl = current_dsl;
+                running.host.renderer_mut().set_loop_duration(loop_duration);
+                running.host.renderer_mut().set_loop_start(loop_start);
                 eprintln!(
                     "viewer: [Canvas] Pipeline rebuilt on a fresh canvas after an unrestored context loss"
                 );
+                if load_file || running.current_dsl.is_empty() {
+                    running.reload(&self.args.program, true);
+                } else {
+                    running.load_current_dsl();
+                }
                 running.window.request_redraw();
                 self.running = Some(running);
             }
@@ -581,7 +629,7 @@ impl ApplicationHandler for Viewer {
         }
         if let Some(at) = recover_at {
             if Instant::now() >= at {
-                self.recover(event_loop);
+                self.recover(event_loop, false);
             } else {
                 // The device is lost: no frames present until the rebuild is
                 // due.
@@ -596,7 +644,7 @@ impl ApplicationHandler for Viewer {
             let changed = running.dsl_file_changed(&self.args.program);
             event_loop.set_control_flow(ControlFlow::WaitUntil(Instant::now() + WATCH_INTERVAL));
             if changed {
-                self.recover(event_loop);
+                self.recover(event_loop, true);
             }
             return;
         }

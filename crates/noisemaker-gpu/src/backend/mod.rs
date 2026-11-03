@@ -22,6 +22,7 @@ mod tint;
 
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
+use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 
 use indexmap::IndexMap;
@@ -346,6 +347,29 @@ impl Default for DeviceOptions {
     }
 }
 
+/// The loss of a WebGPU device, as the WebGPU API reports it in
+/// `device.lost.then(info)`.
+#[derive(Debug)]
+pub struct DeviceLoss {
+    /// Why the device was lost (an explicit destroy, or an unknown reason:
+    /// a driver reset, a GPU process exit).
+    pub reason: wgpu::DeviceLostReason,
+    /// The device's own loss message, when it gave one.
+    pub message: String,
+}
+
+/// `device.lost` of a device: the watch [`GpuDevice::watch_loss`] returns.
+pub struct DeviceLossWatch {
+    receiver: mpsc::Receiver<DeviceLoss>,
+}
+
+impl DeviceLossWatch {
+    /// The device's loss, when it was lost since the last poll, else `None`.
+    pub fn lost(&mut self) -> Option<DeviceLoss> {
+        self.receiver.try_recv().ok()
+    }
+}
+
 /// A device created the way `createPipeline` creates one for the WebGPU backend.
 #[derive(Clone)]
 pub struct GpuDevice {
@@ -383,6 +407,20 @@ impl GpuDevice {
             ShaderCompiler::Tint => unreachable!("GpuDevice::create selects Tint only on Metal"),
         };
         backend
+    }
+
+    /// `device.lost` of a WebGPU device: watch for the loss of this device. A
+    /// device is lost when its `destroy` is called, a driver resets, or the
+    /// GPU process exits; the loss is final, no event restores the device, and
+    /// the canvas gets none either. The watch yields the loss once, on any
+    /// thread wgpu fires the callback on.
+    pub fn watch_loss(&self) -> DeviceLossWatch {
+        let (sender, receiver) = mpsc::channel();
+        self.device
+            .set_device_lost_callback(move |reason, message| {
+                let _ = sender.send(DeviceLoss { reason, message });
+            });
+        DeviceLossWatch { receiver }
     }
 
     /// `createPipeline`'s WebGPU device: request an adapter, enable

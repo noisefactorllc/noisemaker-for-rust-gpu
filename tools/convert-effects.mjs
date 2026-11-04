@@ -167,7 +167,7 @@ async function main () {
   for (const meshPath of [...meshes].sort()) {
     const dest = join(opts.out, meshPath)
     mkdirSync(dirname(dest), { recursive: true })
-    copyFileSync(join(SHADERS_DIR, meshPath), dest)
+    copyFileSync(join(REFERENCE_ROOT, meshPath), dest)
   }
   // The demo's text fonts (filter/text draws its default family, Nunito, from
   // these files) with the license that allows redistributing them.

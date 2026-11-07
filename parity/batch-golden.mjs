@@ -521,7 +521,11 @@ async function applyMeshPlan (page, plan) {
   const results = await page.evaluate(async ({ objText, builtins }) => {
     const r = window.__noisemakerCanvasRenderer
     const out = []
-    for (const b of builtins) out.push(await r.loadOBJFromURL(`${r._basePath}/${b.path}`, b.meshId))
+    // Built-in mesh paths ("share/meshes/x.obj") resolve against the reference's repository
+    // root, as its source-tree demo page two levels below resolves them; the shaders tree no
+    // longer links to share.
+    const meshBase = new URL('../..', location.href).href.replace(/\/$/, '')
+    for (const b of builtins) out.push(await r.loadOBJFromURL(`${meshBase}/${b.path}`, b.meshId))
     if (objText !== null) out.push(await r.loadOBJFromString(objText, 'mesh0'))
     else if (builtins.length === 0) out.push(await r.loadOBJFromString('', 'mesh0'))
     return out

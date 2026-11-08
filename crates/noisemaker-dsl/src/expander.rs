@@ -11,6 +11,8 @@
 //! non-integral palette index) are raised at the same point with the same message.
 
 use std::borrow::Cow;
+use std::collections::{HashMap, HashSet};
+use std::rc::Rc;
 
 use indexmap::IndexMap;
 
@@ -208,6 +210,25 @@ fn iterate<'a>(value: &'a Value, expr: &str) -> Result<Cow<'a, [Value]>, JsError
     }
 }
 
+/// `for (const pass of effect.passes || [])`: the iterated elements, or the
+/// TypeError the reference raises for a non-iterable `effect.passes` (an
+/// `||` expression the runtime cannot name).
+fn for_of_passes(passes: &Value) -> Result<Cow<'_, [Value]>, JsError> {
+    match passes {
+        Value::Array(_) | Value::String(_) => iterate(passes, "effect.passes"),
+        Value::Number(n) => Err(JsError::type_error(format!(
+            "number {} is not iterable (cannot read property Symbol(Symbol.iterator))",
+            js_string(&Value::Number(*n))
+        ))),
+        Value::Bool(b) => Err(JsError::type_error(format!(
+            "boolean {b} is not iterable (cannot read property Symbol(Symbol.iterator))"
+        ))),
+        _ => Err(JsError::type_error(
+            "object is not iterable (cannot read property Symbol(Symbol.iterator))",
+        )),
+    }
+}
+
 // --- Patterns --------------------------------------------------------------------
 
 /// `SURFACE_REF_PATTERN.test(name)`: `/^(?:o|vol|geo|xyz|vel|rgba)[0-7]$/`.
@@ -355,6 +376,129 @@ fn resolve_global_surface_ref(name: &str) -> String {
     name.into()
 }
 
+/// `collectGlobalTextureUsers(chain)`: for every `global_` texture reference,
+/// the number of distinct effects in the chain that reference it. Steps that
+/// are builtin, skipped with `_skip: true`, or whose effect is missing from
+/// the registry contribute nothing, as the reference's filter does.
+fn collect_global_texture_users(
+    chain: &[Value],
+    registry: &Registry,
+) -> Result<HashMap<String, HashSet<usize>>, JsError> {
+    let mut users: HashMap<String, HashSet<usize>> = HashMap::new();
+    for step in chain {
+        if member(step, "builtin")?.is_truthy() {
+            continue;
+        }
+        if is_true(opt_member(opt_member(step, "args"), "_skip")) {
+            continue;
+        }
+        let Value::String(name) = opt_member(step, "op") else {
+            continue;
+        };
+        let Some(effect) = registry.get_effect(name) else {
+            continue;
+        };
+        let effect_ptr = Rc::as_ptr(effect) as usize;
+        let def = &effect.def;
+        let mut refs: Vec<Value> = Vec::new();
+        for source in [opt_member(def, "textures"), opt_member(def, "textures3d")] {
+            if source.is_truthy() {
+                refs.extend(js_keys(source).into_iter().map(Value::String));
+            }
+        }
+        let globals = opt_member(def, "globals");
+        if globals.is_truthy() {
+            for (_, spec) in js_entries(globals) {
+                // `spec.default` (a member read: throws on a nullish spec).
+                refs.push(member(&spec, "default")?.clone());
+            }
+        }
+        for key in [
+            "outputTex",
+            "outputTex3d",
+            "outputGeo",
+            "outputXyz",
+            "outputVel",
+            "outputRgba",
+        ] {
+            refs.push(opt_member(def, key).clone());
+        }
+        let passes = opt_member(def, "passes");
+        if passes.is_truthy() {
+            // `for (const pass of effect.passes || [])`.
+            for pass in for_of_passes(passes)?.iter() {
+                let inputs = member(pass, "inputs")?;
+                if inputs.is_truthy() {
+                    refs.extend(js_values(inputs));
+                }
+                let outputs = member(pass, "outputs")?;
+                if outputs.is_truthy() {
+                    refs.extend(js_values(outputs));
+                }
+            }
+        }
+        for r in refs {
+            if let Value::String(s) = &r
+                && s.starts_with("global_")
+            {
+                users.entry(s.clone()).or_default().insert(effect_ptr);
+            }
+        }
+    }
+    Ok(users)
+}
+
+/// `isPrivateGlobal(texName)`: the texture is owned by this effect and exactly
+/// one effect in the chain references it.
+fn is_private_global_tex(
+    tex_name: &str,
+    owned: &HashSet<String>,
+    users: &HashMap<String, HashSet<usize>>,
+) -> bool {
+    owned.contains(tex_name) && users.get(tex_name).is_some_and(|set| set.len() == 1)
+}
+
+/// `claimSizeParam(scopedParam, isPrivate)`: the first node to size private
+/// state from a param keeps the legacy chain-scoped name; any other node, of
+/// the same or another effect, gets its own node-scoped name.
+fn claim_size_param(
+    scoped_param: String,
+    is_private: bool,
+    owners: &mut HashMap<String, String>,
+    node_id: &str,
+) -> String {
+    let owner = owners.get(&scoped_param).cloned();
+    if owner.is_none() {
+        owners.insert(scoped_param.clone(), node_id.to_owned());
+    }
+    if is_private
+        && let Some(owner) = owner
+        && owner != node_id
+    {
+        format!("{scoped_param}_{node_id}")
+    } else {
+        scoped_param
+    }
+}
+
+/// `chainSizeParam(scopedParam, inherit)`: particle-scoped and inherited
+/// dimensions keep their scope; chain-scoped dimensions of private state claim
+/// a node scope.
+#[allow(clippy::too_many_arguments)]
+fn chain_size_param(
+    scoped_param: String,
+    inherit: bool,
+    should_scope_as_particle: bool,
+    is_private_tex: bool,
+    owners: &mut HashMap<String, String>,
+    node_id: &str,
+) -> String {
+    if should_scope_as_particle || inherit {
+        return scoped_param;
+    }
+    claim_size_param(scoped_param, is_private_tex, owners, node_id)
+}
+
 /// `resolveEnum(path)` of `expand`: walk the standard enums (`stdEnums` of
 /// `lang/std_enums.js`, never the merged effect enums) and return the leaf's
 /// `value`, or `None` (the reference's `null`).
@@ -406,18 +550,19 @@ fn scope_particle_tex(tex_name: &str, particle_pipeline_id: Option<&str>) -> Str
 }
 
 /// `scopeChainTex(texName)`: particle scoping takes priority; every other
-/// `global_` texture is scoped to the chain.
+/// `global_` texture gets the scope its caller resolves (`globalScope` in the
+/// reference: private instance state or the shared chain scope).
 fn scope_chain_tex(
     tex_name: &str,
     particle_pipeline_id: Option<&str>,
-    chain_scope_id: &str,
+    global_scope_id: &str,
 ) -> String {
     let particle_result = scope_particle_tex(tex_name, particle_pipeline_id);
     if particle_result != tex_name {
         return particle_result;
     }
     if tex_name.starts_with("global_") {
-        return format!("{tex_name}_{chain_scope_id}");
+        return format!("{tex_name}_{global_scope_id}");
     }
     tex_name.into()
 }
@@ -445,6 +590,8 @@ struct DimScope<'a> {
     particle_pipeline_id: Option<&'a str>,
     scope_suffix: &'a str,
     volume_size_param: &'a str,
+    should_scope_as_particle: bool,
+    is_private_tex: bool,
 }
 
 /// `scopeDimSpec(dimSpec)`: scope a dimension spec's param reference to this
@@ -453,24 +600,34 @@ fn scope_dim_spec(
     dim_spec: &Value,
     scope: &DimScope<'_>,
     scoped_param_map: &mut ScopedParamMap,
+    size_param_owners: &mut HashMap<String, String>,
+    node_id: &str,
 ) -> Result<Value, JsError> {
     if is_object_type(dim_spec) || dim_spec.is_null() {
         // `typeof dimSpec === 'object' && dimSpec.param !== undefined` (reads
         // `null.param` for a null dimension, as the reference does).
         let original_param = member(dim_spec, "param")?;
         if !original_param.is_undefined() {
-            let dimension_scope = if is_str(original_param, "stateSize")
+            let scoped_param = if is_str(original_param, "volumeSize") {
+                scope.volume_size_param.to_owned()
+            } else if is_str(original_param, "stateSize")
                 && scope.particle_pipeline_id.is_some()
                 && !scope.tex_name.starts_with("global_")
             {
-                scope.particle_pipeline_id.unwrap_or_default()
+                format!(
+                    "{}_{}",
+                    js_string(original_param),
+                    scope.particle_pipeline_id.unwrap_or_default()
+                )
             } else {
-                scope.scope_suffix
-            };
-            let scoped_param = if is_str(original_param, "volumeSize") {
-                scope.volume_size_param.to_owned()
-            } else {
-                format!("{}_{}", js_string(original_param), dimension_scope)
+                chain_size_param(
+                    format!("{}_{}", js_string(original_param), scope.scope_suffix),
+                    member(dim_spec, "inherit")?.is_truthy(),
+                    scope.should_scope_as_particle,
+                    scope.is_private_tex,
+                    size_param_owners,
+                    node_id,
+                )
             };
             // Track this mapping so we can copy uniform values later. An
             // inherited dimension reads the scope's value and never writes
@@ -488,7 +645,14 @@ fn scope_dim_spec(
         }
         let original_param = member(dim_spec, "screenDivide")?;
         if !original_param.is_undefined() {
-            let scoped_param = format!("{}_{}", js_string(original_param), scope.scope_suffix);
+            let scoped_param = chain_size_param(
+                format!("{}_{}", js_string(original_param), scope.scope_suffix),
+                false,
+                scope.should_scope_as_particle,
+                scope.is_private_tex,
+                size_param_owners,
+                node_id,
+            );
             scoped_param_map_set(
                 scoped_param_map,
                 original_param.clone(),
@@ -583,8 +747,22 @@ struct StepContext<'a> {
     effect_def: &'a Value,
     node_id: &'a str,
     chain_scope_id: &'a str,
+    instance_scope_id: &'a str,
+    owned_textures: &'a HashSet<String>,
+    global_texture_users: &'a HashMap<String, HashSet<usize>>,
     particle_pipeline_id: Option<&'a str>,
     std_enums: &'a Value,
+}
+
+impl StepContext<'_> {
+    /// `globalScope(texName)`: private instance state or the shared chain scope.
+    fn global_scope(&self, tex_name: &str) -> &str {
+        if is_private_global_tex(tex_name, self.owned_textures, self.global_texture_users) {
+            self.instance_scope_id
+        } else {
+            self.chain_scope_id
+        }
+    }
 }
 
 /// `expand(compilationResult, options)`: expand the logical graph (plans) into a
@@ -651,6 +829,10 @@ pub fn expand(
         }
         let chain = iterate(chain_value, "plan.chain")?;
         let chain_len = chain.len();
+        let global_texture_users = collect_global_texture_users(&chain, registry)?;
+        let mut seen_effects: HashSet<usize> = HashSet::new();
+        // Chain-scoped sizing param -> first node that sizes from it.
+        let mut size_param_owners: HashMap<String, String> = HashMap::new();
         for (step_position, step) in chain.iter().enumerate() {
             let builtin = member(step, "builtin")?.is_truthy();
             let op = member(step, "op")?;
@@ -888,6 +1070,64 @@ pub fn expand(
             // A unique id for this effect instance.
             let node_id = format!("node_{}", js_string(member(step, "temp")?));
 
+            // Preserve legacy IDs for the first instance. Repeated private state
+            // gets a node suffix; cooperating effects retain the shared chain scope.
+            let effect_ptr = Rc::as_ptr(effect) as usize;
+            let instance_scope_id = if seen_effects.contains(&effect_ptr) {
+                format!("{chain_scope_id}_{node_id}")
+            } else {
+                chain_scope_id.clone()
+            };
+            seen_effects.insert(effect_ptr);
+            let mut owned_textures: HashSet<String> = HashSet::new();
+            let own_textures = member(effect_def, "textures")?;
+            if own_textures.is_truthy() {
+                owned_textures.extend(js_keys(own_textures));
+            }
+            let own_textures3d = member(effect_def, "textures3d")?;
+            if own_textures3d.is_truthy() {
+                owned_textures.extend(js_keys(own_textures3d));
+            }
+            let own_passes = member(effect_def, "passes")?;
+            if own_passes.is_truthy() {
+                // `...(effectDef.passes || []).flatMap(pass => Object.values(pass.outputs || {}))`:
+                // flatMap flattens the callback's arrays one level.
+                let Value::Array(pass_list) = own_passes else {
+                    return Err(JsError::type_error(
+                        "(effectDef.passes || []).flatMap is not a function or its return value is not iterable",
+                    ));
+                };
+                for pass in pass_list {
+                    let outputs = member(pass, "outputs")?;
+                    if !outputs.is_truthy() {
+                        continue;
+                    }
+                    for value in js_values(outputs) {
+                        match value {
+                            Value::Array(items) => {
+                                owned_textures.extend(items.into_iter().filter_map(|v| match v {
+                                    Value::String(s) => Some(s),
+                                    _ => None,
+                                }))
+                            }
+                            Value::String(s) => {
+                                owned_textures.insert(s);
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+            // Read-only globals can be external uploads, whose bindings retain
+            // chain IDs.
+            let global_scope = |tex_name: &str| -> String {
+                if is_private_global_tex(tex_name, &owned_textures, &global_texture_users) {
+                    instance_scope_id.clone()
+                } else {
+                    chain_scope_id.clone()
+                }
+            };
+
             // Scoped params of this node's textures ('stateSize' -> 'stateSize_node_1').
             let mut scoped_param_map: ScopedParamMap = Vec::new();
 
@@ -972,12 +1212,7 @@ pub fn expand(
                         is_particle_tex && particle_pipeline_id.is_some();
                     let should_scope_as_chain = tex_name.starts_with("global_") && !is_particle_tex;
                     let virtual_tex_id = if tex_name.starts_with("global_") {
-                        if should_scope_as_particle {
-                            format!("{tex_name}_{}", particle_pipeline_id.unwrap_or_default())
-                        } else {
-                            // Chain-scope all non-particle global textures.
-                            format!("{tex_name}_{chain_scope_id}")
-                        }
+                        scope_chain_tex(&tex_name, particle_pipeline_id, &global_scope(&tex_name))
                     } else {
                         // Node-local texture - add node prefix.
                         format!("{node_id}_{tex_name}")
@@ -999,15 +1234,35 @@ pub fn expand(
                         } else {
                             chain_scope_id.as_str()
                         };
+                        let is_private_tex = !tex_name.starts_with("global_")
+                            || is_private_global_tex(
+                                &tex_name,
+                                &owned_textures,
+                                &global_texture_users,
+                            );
                         let scope = DimScope {
                             tex_name: &tex_name,
                             particle_pipeline_id,
                             scope_suffix,
                             volume_size_param: &volume_size_param,
+                            should_scope_as_particle,
+                            is_private_tex,
                         };
-                        let width = scope_dim_spec(spec_width, &scope, &mut scoped_param_map)?;
+                        let width = scope_dim_spec(
+                            spec_width,
+                            &scope,
+                            &mut scoped_param_map,
+                            &mut size_param_owners,
+                            &node_id,
+                        )?;
                         resolved_spec.insert("width", width);
-                        let height = scope_dim_spec(spec_height, &scope, &mut scoped_param_map)?;
+                        let height = scope_dim_spec(
+                            spec_height,
+                            &scope,
+                            &mut scoped_param_map,
+                            &mut size_param_owners,
+                            &node_id,
+                        )?;
                         resolved_spec.insert("height", height);
                     }
                     texture_specs.insert(virtual_tex_id, Value::Object(resolved_spec));
@@ -1019,7 +1274,7 @@ pub fn expand(
             if textures3d.is_truthy() {
                 for (tex_name, spec) in js_entries(textures3d) {
                     let virtual_tex_id = if tex_name.starts_with("global_") {
-                        scope_chain_tex(&tex_name, particle_pipeline_id, &chain_scope_id)
+                        scope_chain_tex(&tex_name, particle_pipeline_id, &global_scope(&tex_name))
                     } else {
                         format!("{node_id}_{tex_name}")
                     };
@@ -1151,6 +1406,9 @@ pub fn expand(
                 effect_def,
                 node_id: &node_id,
                 chain_scope_id: &chain_scope_id,
+                instance_scope_id: &instance_scope_id,
+                owned_textures: &owned_textures,
+                global_texture_users: &global_texture_users,
                 particle_pipeline_id,
                 std_enums: &std_enums,
             };
@@ -1203,7 +1461,7 @@ pub fn expand(
                         scope_chain_tex(
                             &js_string(output_tex),
                             particle_pipeline_id,
-                            &chain_scope_id,
+                            &global_scope(&js_string(output_tex)),
                         )
                     } else {
                         format!("{node_id}_{}", js_string(output_tex))
@@ -1248,7 +1506,7 @@ pub fn expand(
                         scope_chain_tex(
                             &js_string(output_tex3d),
                             particle_pipeline_id,
-                            &chain_scope_id,
+                            &global_scope(&js_string(output_tex3d)),
                         )
                     } else {
                         format!("{node_id}_{}", js_string(output_tex3d))
@@ -1300,7 +1558,8 @@ pub fn expand(
                     }
                 } else {
                     let virtual_id = if starts_with(tex_name, "texName", "global_")? {
-                        scope_chain_tex(&js_string(tex_name), particle_pipeline_id, &chain_scope_id)
+                        let name = js_string(tex_name);
+                        scope_chain_tex(&name, particle_pipeline_id, &global_scope(&name))
                     } else {
                         format!("{node_id}_{}", js_string(tex_name))
                     };
@@ -1827,7 +2086,7 @@ fn expand_pass(
                 Value::String(scope_chain_tex(
                     &js_string(&tex_ref),
                     ctx.particle_pipeline_id,
-                    ctx.chain_scope_id,
+                    ctx.global_scope(&js_string(&tex_ref)),
                 ))
             } else if starts_with(&tex_ref, "texRef", "feedback_")? {
                 tex_ref.clone()
@@ -2003,7 +2262,7 @@ fn map_input(
                 return Ok(Some(Value::String(scope_chain_tex(
                     &js_string(default_val),
                     ctx.particle_pipeline_id,
-                    ctx.chain_scope_id,
+                    ctx.global_scope(&js_string(default_val)),
                 ))));
             }
             return Ok(Some(default_val.clone()));
@@ -2014,7 +2273,7 @@ fn map_input(
         return Ok(Some(Value::String(scope_chain_tex(
             &tex_ref_key,
             ctx.particle_pipeline_id,
-            ctx.chain_scope_id,
+            ctx.global_scope(&tex_ref_key),
         ))));
     }
     if is_str(tex_ref, "outputTex") {

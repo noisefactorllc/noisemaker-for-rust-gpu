@@ -116,8 +116,14 @@ const effects = [
   { keys: ['test.numOutputXyz'], def: { name: 'N', namespace: 'test', func: 'numOutputXyz', outputXyz: 7, passes: [] } },
   { keys: ['test.nullDim'], def: { name: 'N', namespace: 'test', func: 'nullDim', textures: { global_t: { width: null } }, passes: [] } },
   { keys: ['test.media'], def: { name: 'Md', namespace: 'test', func: 'media', externalTexture: 'imageTex', passes: [{ program: 'p', inputs: { imageTex: 'imageTex', again: 'imageTex' }, outputs: { color: 'outputTex' } }, { program: 'p', inputs: { imageTex: 'imageTex' }, outputs: { color: 'outputTex' } }], shaders: sh('p') } },
-  { keys: ['test.volSize'], def: { name: 'VS', namespace: 'test', func: 'volSize', globals: { volumeSize: { type: 'int', default: 16, uniform: 'volumeSize' } }, textures: { cache: { width: { param: 'volumeSize', default: 16 }, height: { param: 'volumeSize', power: 2 } } }, passes: [{ program: 'p', inputs: { v: 'inputTex3d' }, outputs: { color: 'outputTex3d', g: 'geoOut' } }], outputGeo: 'geoOut', shaders: sh('p') } }
-]
+  { keys: ['test.volSize'], def: { name: 'VS', namespace: 'test', func: 'volSize', globals: { volumeSize: { type: 'int', default: 16, uniform: 'volumeSize' } }, textures: { cache: { width: { param: 'volumeSize', default: 16 }, height: { param: 'volumeSize', power: 2 } } }, passes: [{ program: 'p', inputs: { v: 'inputTex3d' }, outputs: { color: 'outputTex3d', g: 'geoOut' } }], outputGeo: 'geoOut', shaders: sh('p') } },
+ { keys: ['test.stateful'], def: {
+ name: 'Stateful', namespace: 'test', func: 'stateful',
+ globals: { stateSize: { type: 'int', default: 64, uniform: 'stateSize' } },
+ textures: { global_state: { width: { param: 'stateSize', default: 64 }, height: { param: 'stateSize', default: 64 }, format: 'rgba32f' } },
+ passes: [{ program: 'p', inputs: { prev: 'global_state' }, outputs: { next: 'global_state', color: 'outputTex' } }],
+ shaders: sh('p') } }
+ ]
 const step = (op, temp, from, args = {}, extra = {}) => ({ op, args, from, temp, ...extra })
 const w = (temp, from, name, kind = 'output') => ({ op: '_write', args: { tex: { kind, name } }, from, temp, builtin: true })
 const plan = (chain, write = { kind: 'output', name: 'o0' }, extra = {}) => ({ chain, write, write3d: null, final: chain.length && chain[chain.length - 1] ? chain[chain.length - 1].temp : null, states: [], ...extra })
@@ -202,6 +208,8 @@ const cases = [
   { name: 'diag_length_string', input: { plans: [], diagnostics: { length: '0' }, render: 'o0' } },
   { name: 'diag_missing', input: { plans: [], render: 'o0' } },
   { name: 'render_object', input: prog([plan([step('test.noFunc', 0, null), w(1, 0, 'o0')])], { weird: true }) },
+  { name: 'stateful_instances', input: prog([plan([step('test.stateful', 0, null), step('test.stateful', 1, 0), w(2, 1, 'o0')])]) },
+  { name: 'stateful_single_instance', input: prog([plan([step('test.stateful', 0, null), w(1, 0, 'o0')])]) },
   { name: 'temp_args', input: prog([plan([step('test.vol', 0, null), step('test.globalInputs', 1, null, { a: { kind: 'temp', index: 0 }, b: { kind: 'temp', index: 9 }, c: { kind: 'temp', index: 1 } }), w(2, 1, 'o0')])]) },
   { name: 'step_without_from', input: prog([plan([{ op: 'test.noFunc', args: {}, temp: 0 }, w(1, 0, 'o0')])]) },
   { name: 'skip_variants', input: prog([plan([step('test.agents', 0, null), step('test.vol', 1, 0, { _skip: 1 }), step('test.vol', 2, 1, { _skip: true }), { op: '_subchain_begin', args: {}, from: 2, temp: 3, builtin: true }, { op: '_subchain_end', args: {}, from: 3, temp: 4, builtin: true }, w(5, 4, 'o0')])]) }

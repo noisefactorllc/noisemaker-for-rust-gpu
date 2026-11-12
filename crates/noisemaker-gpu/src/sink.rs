@@ -408,9 +408,7 @@ mod tests {
             }))
             .unwrap();
         manager
-            .add(Box::new(SilentSink {
-                fail: fail.clone(),
-            }))
+            .add(Box::new(SilentSink { fail: fail.clone() }))
             .unwrap();
         manager
             .add(Box::new(ThrowingReporter {

@@ -39,9 +39,18 @@ pub trait Sink {
         timestamp: f64,
     ) -> Result<Option<bool>, String>;
     fn close(&mut self) -> Result<(), String>;
-    /// `deferRender()`: ask the renderer to skip the next frame.
-    fn defer_render(&mut self) -> Option<bool> {
-        None
+    /// `deferRender()`: ask the renderer to skip the next frame. A sink whose
+    /// deferRender fails is counted as failed, reported, and does not defer
+    /// rendering.
+    fn defer_render(&mut self) -> Result<Option<bool>, String> {
+        Ok(None)
+    }
+    /// `onError(error)`: an optional hook that receives each error this sink
+    /// threw from `configure`, `deferRender` or `submit`, for example to end
+    /// an output whose new size it cannot send. A failing report stays
+    /// isolated from rendering and from the other sinks.
+    fn on_error(&mut self, _error: &str) -> Result<(), String> {
+        Ok(())
     }
 }
 
@@ -85,7 +94,16 @@ pub struct SinkStats {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct SinkId(u64);
 
-/// `SinkManager`.
+/// `reportSinkError` (runtime/pipeline.js): pass an isolated sink failure to
+/// the sink that threw it, through its optional `onError` hook. Rendering and
+/// the other sinks continue either way.
+fn report_sink_error(sink: &mut dyn Sink, error: &str) {
+    let _ = sink.on_error(error);
+}
+
+/// `SinkManager`. A failure a sink throws in `configure`, `deferRender` or
+/// `submit` is counted and reported to that sink's own `on_error`
+/// (`reportSinkError`); the pipeline gives its manager that reporter.
 #[derive(Default)]
 pub struct SinkManager {
     sinks: Vec<(SinkId, Box<dyn Sink>, SinkStats)>,
@@ -127,20 +145,30 @@ impl SinkManager {
         }
         self.descriptor = Some(descriptor.clone());
         for (_, sink, stats) in &mut self.sinks {
-            if sink.configure(descriptor).is_err() {
+            if let Err(e) = sink.configure(descriptor) {
                 stats.failed += 1;
+                report_sink_error(sink.as_mut(), &e);
             }
         }
     }
 
-    /// `shouldDeferRender()`.
+    /// `shouldDeferRender()`. A sink whose deferRender fails is counted as
+    /// failed, reported, and does not defer rendering.
     pub fn should_defer_render(&mut self) -> bool {
         if self.closed {
             return false;
         }
-        self.sinks
-            .iter_mut()
-            .any(|(_, sink, _)| sink.defer_render() == Some(true))
+        for (_, sink, stats) in &mut self.sinks {
+            match sink.defer_render() {
+                Ok(Some(true)) => return true,
+                Ok(_) => {}
+                Err(e) => {
+                    stats.failed += 1;
+                    report_sink_error(sink.as_mut(), &e);
+                }
+            }
+        }
+        false
     }
 
     /// `submit(textureId, timestamp)`.
@@ -153,7 +181,10 @@ impl SinkManager {
                 Ok(Some(true)) => stats.accepted += 1,
                 Ok(Some(false)) => stats.dropped += 1,
                 Ok(None) => {}
-                Err(_) => stats.failed += 1,
+                Err(e) => {
+                    stats.failed += 1;
+                    report_sink_error(sink.as_mut(), &e);
+                }
             }
         }
     }
@@ -219,6 +250,281 @@ pub const CUBE_FACE_BASES: [[f64; 9]; 6] = {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    type Log = Rc<RefCell<Vec<String>>>;
+    type Flag = Rc<RefCell<bool>>;
+
+    /// A sink that fails in `configure` when its flag is set. (Its submit
+    /// failures are covered by the GPU-gated host test, which can call
+    /// `submit`.)
+    #[derive(Default)]
+    struct FailingSink {
+        fail: Flag,
+        reports: Log,
+    }
+
+    impl Sink for FailingSink {
+        fn configure(&mut self, _: &SinkDescriptor) -> Result<(), String> {
+            if *self.fail.borrow() {
+                return Err("configure failed".into());
+            }
+            Ok(())
+        }
+
+        fn submit(
+            &mut self,
+            _: &mut WebGpuBackend,
+            _: &str,
+            _: f64,
+        ) -> Result<Option<bool>, String> {
+            Ok(Some(true))
+        }
+
+        fn close(&mut self) -> Result<(), String> {
+            Ok(())
+        }
+
+        fn on_error(&mut self, error: &str) -> Result<(), String> {
+            self.reports.borrow_mut().push(error.to_owned());
+            Ok(())
+        }
+    }
+
+    /// A sink without `on_error` behavior: default hook, no report.
+    #[derive(Default)]
+    struct SilentSink {
+        fail: Flag,
+    }
+
+    impl Sink for SilentSink {
+        fn configure(&mut self, _: &SinkDescriptor) -> Result<(), String> {
+            if *self.fail.borrow() {
+                return Err("silent configure failed".into());
+            }
+            Ok(())
+        }
+
+        fn submit(
+            &mut self,
+            _: &mut WebGpuBackend,
+            _: &str,
+            _: f64,
+        ) -> Result<Option<bool>, String> {
+            Ok(Some(true))
+        }
+
+        fn close(&mut self) -> Result<(), String> {
+            Ok(())
+        }
+    }
+
+    /// A sink whose reporter fails: the report stays isolated.
+    #[derive(Default)]
+    struct ThrowingReporter {
+        fail: Flag,
+        calls: Rc<RefCell<usize>>,
+    }
+
+    impl Sink for ThrowingReporter {
+        fn configure(&mut self, _: &SinkDescriptor) -> Result<(), String> {
+            if *self.fail.borrow() {
+                return Err("configure failed again".into());
+            }
+            Ok(())
+        }
+
+        fn submit(
+            &mut self,
+            _: &mut WebGpuBackend,
+            _: &str,
+            _: f64,
+        ) -> Result<Option<bool>, String> {
+            Ok(Some(true))
+        }
+
+        fn close(&mut self) -> Result<(), String> {
+            Ok(())
+        }
+
+        fn on_error(&mut self, _: &str) -> Result<(), String> {
+            *self.calls.borrow_mut() += 1;
+            Err("reporter failed".into())
+        }
+    }
+
+    /// A sink that does not fail records the calls it sees.
+    struct HealthySink {
+        calls: Log,
+    }
+
+    impl Sink for HealthySink {
+        fn configure(&mut self, d: &SinkDescriptor) -> Result<(), String> {
+            self.calls
+                .borrow_mut()
+                .push(format!("configure {}x{}", d.width, d.height));
+            Ok(())
+        }
+
+        fn submit(
+            &mut self,
+            _: &mut WebGpuBackend,
+            _: &str,
+            _: f64,
+        ) -> Result<Option<bool>, String> {
+            Ok(Some(true))
+        }
+
+        fn close(&mut self) -> Result<(), String> {
+            Ok(())
+        }
+
+        fn on_error(&mut self, error: &str) -> Result<(), String> {
+            self.calls.borrow_mut().push(format!("onError {error}"));
+            Ok(())
+        }
+    }
+
+    fn descriptor(width: f64, height: f64) -> SinkDescriptor {
+        SinkDescriptor {
+            width,
+            height,
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn a_configure_failure_reaches_only_the_sink_that_threw_it() {
+        let failed_reports: Log = Default::default();
+        let reporter_calls: Rc<RefCell<usize>> = Default::default();
+        let healthy_calls: Log = Default::default();
+        let fail: Flag = Default::default();
+        let mut manager = SinkManager::default();
+        manager
+            .add(Box::new(FailingSink {
+                fail: fail.clone(),
+                reports: failed_reports.clone(),
+            }))
+            .unwrap();
+        manager
+            .add(Box::new(SilentSink {
+                fail: fail.clone(),
+            }))
+            .unwrap();
+        manager
+            .add(Box::new(ThrowingReporter {
+                fail: fail.clone(),
+                calls: reporter_calls.clone(),
+            }))
+            .unwrap();
+        manager
+            .add(Box::new(HealthySink {
+                calls: healthy_calls.clone(),
+            }))
+            .unwrap();
+        *fail.borrow_mut() = true;
+
+        manager.configure(&descriptor(640.0, 480.0));
+
+        assert_eq!(*failed_reports.borrow(), vec!["configure failed"]);
+        assert_eq!(*reporter_calls.borrow(), 1);
+        assert_eq!(
+            *healthy_calls.borrow(),
+            vec!["configure 640x480".to_owned()]
+        );
+        let stats = manager.stats();
+        assert_eq!(
+            stats,
+            vec![
+                SinkStats {
+                    accepted: 0,
+                    dropped: 0,
+                    failed: 1
+                },
+                SinkStats {
+                    accepted: 0,
+                    dropped: 0,
+                    failed: 1
+                },
+                SinkStats {
+                    accepted: 0,
+                    dropped: 0,
+                    failed: 1
+                },
+                SinkStats::default(),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_failing_defer_render_is_reported_and_does_not_defer() {
+        let reports: Log = Default::default();
+        let mut manager = SinkManager::default();
+        struct FailingDefer {
+            reports: Log,
+        }
+        impl Sink for FailingDefer {
+            fn configure(&mut self, _: &SinkDescriptor) -> Result<(), String> {
+                Ok(())
+            }
+            fn submit(
+                &mut self,
+                _: &mut WebGpuBackend,
+                _: &str,
+                _: f64,
+            ) -> Result<Option<bool>, String> {
+                Ok(Some(true))
+            }
+            fn close(&mut self) -> Result<(), String> {
+                Ok(())
+            }
+            fn defer_render(&mut self) -> Result<Option<bool>, String> {
+                Err("defer probe failed".into())
+            }
+            fn on_error(&mut self, error: &str) -> Result<(), String> {
+                self.reports.borrow_mut().push(error.to_owned());
+                Ok(())
+            }
+        }
+        manager
+            .add(Box::new(FailingDefer {
+                reports: reports.clone(),
+            }))
+            .unwrap();
+
+        assert!(!manager.should_defer_render());
+        assert_eq!(*reports.borrow(), vec!["defer probe failed"]);
+        assert_eq!(
+            manager.stats_of(SinkId(0)).map(|s| s.failed),
+            Some(1),
+            "the defer failure counts, the sink that deferred does not defer"
+        );
+
+        // A sink that defers still defers the frame.
+        struct DeferringSink;
+        impl Sink for DeferringSink {
+            fn configure(&mut self, _: &SinkDescriptor) -> Result<(), String> {
+                Ok(())
+            }
+            fn submit(
+                &mut self,
+                _: &mut WebGpuBackend,
+                _: &str,
+                _: f64,
+            ) -> Result<Option<bool>, String> {
+                Ok(Some(true))
+            }
+            fn close(&mut self) -> Result<(), String> {
+                Ok(())
+            }
+            fn defer_render(&mut self) -> Result<Option<bool>, String> {
+                Ok(Some(true))
+            }
+        }
+        manager.add(Box::new(DeferringSink)).unwrap();
+        assert!(manager.should_defer_render());
+    }
 
     #[test]
     fn cube_bases_are_right_handed() {

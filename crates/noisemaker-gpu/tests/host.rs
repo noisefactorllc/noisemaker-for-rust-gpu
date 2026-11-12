@@ -12,7 +12,7 @@ use noisemaker_gpu::dsl::program_state::ProgramState;
 use noisemaker_gpu::frame_export::{ExportedFrame, FrameExportOptions};
 use noisemaker_gpu::host::{CanvasRenderer, CanvasRendererOptions, CompileOptions, cube_export};
 use noisemaker_gpu::png_io::Rgba8Image;
-use noisemaker_gpu::sink::{Sink, SinkDescriptor};
+use noisemaker_gpu::sink::{Sink, SinkDescriptor, SinkStats};
 use noisemaker_gpu::{
     GpuDevice, Object, Orientation, Presenter, RenderError, Value, WebGpuBackend,
 };
@@ -461,6 +461,213 @@ fn sinks_receive_presented_frames() {
             "close".to_owned()
         ]
     );
+}
+
+type Flag = Rc<RefCell<bool>>;
+type Log = Rc<RefCell<Vec<String>>>;
+
+/// A sink whose configure, deferRender or submit fails while `fail` is set,
+/// and whose `on_error` records what the manager reports to it.
+struct FailingSink {
+    fail: Flag,
+    reports: Log,
+}
+
+impl Sink for FailingSink {
+    fn configure(&mut self, _: &SinkDescriptor) -> Result<(), String> {
+        if *self.fail.borrow() {
+            return Err("configure failed".into());
+        }
+        Ok(())
+    }
+    fn defer_render(&mut self) -> Result<Option<bool>, String> {
+        if *self.fail.borrow() {
+            return Err("defer probe failed".into());
+        }
+        Ok(None)
+    }
+    fn submit(&mut self, _: &mut WebGpuBackend, _: &str, _: f64) -> Result<Option<bool>, String> {
+        if *self.fail.borrow() {
+            return Err("submit failed".into());
+        }
+        Ok(Some(true))
+    }
+    fn close(&mut self) -> Result<(), String> {
+        Ok(())
+    }
+    fn on_error(&mut self, error: &str) -> Result<(), String> {
+        self.reports.borrow_mut().push(error.to_owned());
+        Ok(())
+    }
+}
+
+/// A sink without an `on_error` override: default hook, no report.
+struct SilentSink {
+    fail: Flag,
+}
+
+impl Sink for SilentSink {
+    fn configure(&mut self, _: &SinkDescriptor) -> Result<(), String> {
+        if *self.fail.borrow() {
+            return Err("silent configure failed".into());
+        }
+        Ok(())
+    }
+    fn submit(&mut self, _: &mut WebGpuBackend, _: &str, _: f64) -> Result<Option<bool>, String> {
+        if *self.fail.borrow() {
+            return Err("silent submit failed".into());
+        }
+        Ok(Some(true))
+    }
+    fn close(&mut self) -> Result<(), String> {
+        Ok(())
+    }
+}
+
+/// A sink whose reporter fails: the report stays isolated from rendering.
+struct ThrowingReporter {
+    fail: Flag,
+    calls: Rc<RefCell<usize>>,
+}
+
+impl Sink for ThrowingReporter {
+    fn configure(&mut self, _: &SinkDescriptor) -> Result<(), String> {
+        if *self.fail.borrow() {
+            return Err("configure failed again".into());
+        }
+        Ok(())
+    }
+    fn submit(&mut self, _: &mut WebGpuBackend, _: &str, _: f64) -> Result<Option<bool>, String> {
+        Ok(Some(true))
+    }
+    fn close(&mut self) -> Result<(), String> {
+        Ok(())
+    }
+    fn on_error(&mut self, _: &str) -> Result<(), String> {
+        *self.calls.borrow_mut() += 1;
+        Err("reporter failed".into())
+    }
+}
+
+/// A sink that does not fail records the calls it sees.
+struct HealthySink {
+    calls: Log,
+}
+
+impl Sink for HealthySink {
+    fn configure(&mut self, d: &SinkDescriptor) -> Result<(), String> {
+        self.calls
+            .borrow_mut()
+            .push(format!("configure {}x{}", d.width, d.height));
+        Ok(())
+    }
+    fn defer_render(&mut self) -> Result<Option<bool>, String> {
+        self.calls.borrow_mut().push("deferRender".into());
+        Ok(Some(false))
+    }
+    fn submit(&mut self, _: &mut WebGpuBackend, _: &str, _: f64) -> Result<Option<bool>, String> {
+        self.calls.borrow_mut().push("submit".into());
+        Ok(Some(true))
+    }
+    fn close(&mut self) -> Result<(), String> {
+        Ok(())
+    }
+    fn on_error(&mut self, error: &str) -> Result<(), String> {
+        self.calls.borrow_mut().push(format!("onError {error}"));
+        Ok(())
+    }
+}
+
+#[test]
+fn a_sink_receives_its_own_isolated_configure_defer_and_submit_errors() {
+    let device = device();
+    let mut r = renderer(&device, 8);
+    compile(&mut r, SOLID);
+    let fail: Flag = Default::default();
+    let reports: Log = Default::default();
+    let reporter_calls: Rc<RefCell<usize>> = Default::default();
+    let healthy_calls: Log = Default::default();
+    r.add_sink(Box::new(FailingSink {
+        fail: fail.clone(),
+        reports: reports.clone(),
+    }))
+    .unwrap();
+    r.add_sink(Box::new(SilentSink { fail: fail.clone() }))
+        .unwrap();
+    r.add_sink(Box::new(ThrowingReporter {
+        fail: fail.clone(),
+        calls: reporter_calls.clone(),
+    }))
+    .unwrap();
+    r.add_sink(Box::new(HealthySink {
+        calls: healthy_calls.clone(),
+    }))
+    .unwrap();
+    // The add-time configure (at 8x8) precedes the failing resize.
+    healthy_calls.borrow_mut().clear();
+    *fail.borrow_mut() = true;
+
+    r.resize(16, 16).unwrap();
+    let deferred = r.pipeline_mut().unwrap().should_defer_render();
+    assert!(!deferred, "a throwing deferRender must not defer the frame");
+    r.render(0.25).unwrap();
+
+    assert_eq!(
+        *reports.borrow(),
+        vec![
+            "configure failed".to_owned(),
+            "defer probe failed".to_owned(),
+            "submit failed".to_owned()
+        ],
+        "each error reaches only the sink that threw it"
+    );
+    assert_eq!(
+        *reporter_calls.borrow(),
+        1,
+        "the throwing reporter receives its configure error once, isolated"
+    );
+    assert_eq!(
+        *healthy_calls.borrow(),
+        vec![
+            "configure 16x16".to_owned(),
+            "deferRender".to_owned(),
+            "submit".to_owned()
+        ],
+        "a sink that does not fail sees the same calls"
+    );
+    let stats = r.pipeline().unwrap().sink_manager.stats();
+    // The pipeline's built-in canvas sink is first; the four registered sinks follow.
+    assert_eq!(
+        &stats[1..],
+        &[
+            SinkStats {
+                accepted: 0,
+                dropped: 0,
+                failed: 3
+            },
+            SinkStats {
+                accepted: 0,
+                dropped: 0,
+                failed: 2
+            },
+            SinkStats {
+                accepted: 1,
+                dropped: 0,
+                failed: 1
+            },
+            SinkStats {
+                accepted: 1,
+                dropped: 0,
+                failed: 0
+            }
+        ]
+    );
+    // The resize completed after the reported sink errors.
+    let p = r.pipeline().unwrap();
+    let name = p.graph.render_surface_name().unwrap_or("o0").to_owned();
+    let read = p.surfaces[&name].read.clone().unwrap();
+    let texture = p.backend.textures.get(&read).unwrap();
+    assert_eq!((texture.width, texture.height), (16.0, 16.0));
 }
 
 #[test]

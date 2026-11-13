@@ -146,10 +146,19 @@ if (changedFiles.length > 0) {
     crates.add('noisemaker-effects')
     crates.add('noisemaker-dsl')
   }
+  const packageFor = { 'noisemaker-gpu': 'noisemaker-for-rust-gpu' }
   const tested = ['noisemaker-effects', 'noisemaker-dsl', 'noisemaker-input',
     'noisemaker-host'].filter(name => crates.has(name))
+    .map(name => packageFor[name] || name)
   if (tested.length) {
     run(cargo, ['test', '--release', ...tested.flatMap(name => ['-p', name])], { env })
+  }
+  if (crates.has('noisemaker-gpu')) {
+    // The gpu crate's unit tests (its --lib target) are the tests of its src
+    // paths; its integration tests are GPU-gated and stay outside this
+    // entrypoint, like in full mode. The dev profile keeps a cold run inside
+    // the focused time budget (release compiles the wgpu stack slower).
+    run(cargo, ['test', '-p', packageFor['noisemaker-gpu'], '--lib'], { env })
   }
   // The deeper parity gates need the release binaries. Build them only when a
   // previous run left them in place, so a cold focused run stays bounded;

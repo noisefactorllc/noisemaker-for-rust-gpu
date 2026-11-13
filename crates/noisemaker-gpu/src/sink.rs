@@ -456,6 +456,73 @@ mod tests {
     }
 
     #[test]
+    fn an_add_configure_failure_is_not_registered() {
+        let failed_reports: Log = Default::default();
+        let fail: Flag = Default::default();
+        let mut manager = SinkManager::default();
+        manager.configure(&descriptor(640.0, 480.0));
+        *fail.borrow_mut() = true;
+
+        let error = manager
+            .add(Box::new(FailingSink {
+                fail: fail.clone(),
+                reports: failed_reports.clone(),
+            }))
+            .unwrap_err();
+
+        assert_eq!(error, "configure failed");
+        assert!(
+            manager.stats().is_empty(),
+            "a sink whose configure fails in add is not registered"
+        );
+    }
+
+    #[test]
+    fn a_defer_failure_is_reported_even_when_the_reporter_fails() {
+        let reports: Log = Default::default();
+        let mut manager = SinkManager::default();
+        struct BrokenReporterDefer {
+            reports: Log,
+        }
+        impl Sink for BrokenReporterDefer {
+            fn configure(&mut self, _: &SinkDescriptor) -> Result<(), String> {
+                Ok(())
+            }
+            fn submit(
+                &mut self,
+                _: &mut WebGpuBackend,
+                _: &str,
+                _: f64,
+            ) -> Result<Option<bool>, String> {
+                Ok(Some(true))
+            }
+            fn close(&mut self) -> Result<(), String> {
+                Ok(())
+            }
+            fn defer_render(&mut self) -> Result<Option<bool>, String> {
+                Err("defer probe failed".into())
+            }
+            fn on_error(&mut self, error: &str) -> Result<(), String> {
+                self.reports.borrow_mut().push(error.to_owned());
+                Err("reporter failed".into())
+            }
+        }
+        manager
+            .add(Box::new(BrokenReporterDefer {
+                reports: reports.clone(),
+            }))
+            .unwrap();
+
+        assert!(!manager.should_defer_render());
+        assert_eq!(*reports.borrow(), vec!["defer probe failed"]);
+        assert_eq!(
+            manager.stats_of(SinkId(0)).map(|s| s.failed),
+            Some(1),
+            "the defer failure counts even when onError also fails"
+        );
+    }
+
+    #[test]
     fn a_failing_defer_render_is_reported_and_does_not_defer() {
         let reports: Log = Default::default();
         let mut manager = SinkManager::default();

@@ -913,20 +913,32 @@ impl CanvasRenderer {
     }
 
     /// Compile a new program, retaining the live graph and resources on failure.
-    /// Successful reloads preserve sinks and compatible textures, reset the frame
-    /// count and uniform bindings, and re-upload cached meshes.
+    /// A rejected compile keeps the previous pipeline, so `current_dsl()` returns
+    /// to the source of that pipeline, matching the reference's `previousDsl`
+    /// handling. Successful reloads preserve sinks and compatible textures, reset
+    /// the frame count and uniform bindings, and re-upload cached meshes.
     pub fn compile(&mut self, dsl: &str, options: &CompileOptions) -> Result<(), RenderError> {
         self.flush_program_passes();
+        let previous_dsl = self.current_dsl.clone();
         self.current_dsl = dsl.to_owned();
-        if let Some(pipeline) = self.pipeline.as_mut() {
-            let graph = compile_runtime_graph(&self.registry, dsl, &options.shader_overrides)?;
-            pipeline.recompile_graph(graph)?;
+        let result = if let Some(pipeline) = self.pipeline.as_mut() {
+            compile_runtime_graph(&self.registry, dsl, &options.shader_overrides)
+                .and_then(|graph| pipeline.recompile_graph(graph))
         } else {
-            let mut pipeline = self.create_runtime(dsl, options)?;
-            pipeline.set_midi_state(self.midi_state.clone());
-            pipeline.set_audio_state(self.audio_state.clone());
-            self.pipeline = Some(pipeline);
+            match self.create_runtime(dsl, options) {
+                Ok(mut pipeline) => {
+                    pipeline.set_midi_state(self.midi_state.clone());
+                    pipeline.set_audio_state(self.audio_state.clone());
+                    self.pipeline = Some(pipeline);
+                    Ok(())
+                }
+                Err(err) => Err(err),
+            }
+        };
+        if result.is_err() {
+            self.current_dsl = previous_dsl;
         }
+        result?;
         self.frame_count = 0;
         self.uniform_bindings.clear();
         self.reupload_cached_meshes();

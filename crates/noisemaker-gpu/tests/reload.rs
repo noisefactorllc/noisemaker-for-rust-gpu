@@ -92,6 +92,7 @@ fn invalid_shader_reload_preserves_last_good_render_and_recovers() {
         renderer.pipeline().unwrap().graph.source.as_str(),
         Some(RED)
     );
+    assert_eq!(renderer.current_dsl(), RED);
     assert!(Rc::ptr_eq(
         &texture,
         &renderer.pipeline().unwrap().backend.textures["global_o0_read"]
@@ -104,6 +105,7 @@ fn invalid_shader_reload_preserves_last_good_render_and_recovers() {
         ));
     }
     renderer.compile(BLUE, &CompileOptions::default()).unwrap();
+    assert_eq!(renderer.current_dsl(), BLUE);
     assert_eq!(&pixels(&mut renderer)[..4], &[0, 0, 255, 255]);
 }
 

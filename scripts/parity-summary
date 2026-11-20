@@ -44,9 +44,10 @@
 #   NM_REFERENCE_ROOT  reference checkout; when unset, the pinned revision of
 #                      parity/reference.json is cloned into parity/.cache
 #   NM_GOLDEN_BACKEND  the reference backend that mints the goldens: webgpu (the
-#                      gate, default) or webgl2 (the upstream report; the
-#                      reference's own WebGPU and WebGL2 output differ on some
-#                      cases, so this run is not a gate)
+#                      gate, default) or webgl2 (the reference's own WebGPU and
+#                      WebGL2 output differ on some cases, so this run's grade is
+#                      gated by scripts/webgl2-attribution, not by this exit code)
+#   NM_PARITY_LEDGER_KEEP  when set, the ledger is copied to this path
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CASE_ARGS=("$@")
@@ -171,6 +172,8 @@ ok = c["executed"] == c["expected"] and c["near"] + c["fail"] + c["missing"] + c
 sys.exit(0 if ok else 1)
 EOF
 SUMMARY_STATUS=$?
+# scripts/webgl2-attribution reads the WebGL2 run's ledger after this script ends.
+if [ -n "${NM_PARITY_LEDGER_KEEP:-}" ]; then cp "$LEDGER" "$NM_PARITY_LEDGER_KEEP"; fi
 if [ "$SUMMARY_STATUS" -ne 0 ]; then exit "$SUMMARY_STATUS"; fi
 if [ "$SWEEP_STATUS" -ne 0 ]; then
   echo "parity-summary: sweep failed (exit $SWEEP_STATUS)" >&2

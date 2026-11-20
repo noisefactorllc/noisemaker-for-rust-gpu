@@ -131,7 +131,7 @@ PARITY-SUMMARY {"expected":2729,"executed":2729,"exact":2707,"strict":5,"near":0
 
 The traced overlays of `fibers`, `scratches` and `strayHair` are drawn on a canvas that the reference pins to Chromium's software rasterizer. `crates/noisemaker-host/src/raster.rs` ports that rasterizer from Skia. The reference reads those canvases back with `getImageData` before it uploads them, and the port converts them as Chromium does (`upload_read_back_rgba8`). Against overlays the reference uploaded, at 256, 512 and 1024 px, it is byte-exact on all 45 measured (`crates/noisemaker-host/tests/overlay_raster.rs`, with `NM_HOST_GOLDENS` naming minter output directories).
 
-WebGPU gates; WebGL2 is reported. The reference's WebGL2 backend is the upstream authority, and the reference requires its WebGPU backend to match it, but on some cases the two still differ. `NM_GOLDEN_BACKEND=webgl2 scripts/parity-summary` grades the same cases against goldens minted on the reference's WebGL2 backend. On an Apple M4 with macOS 26.5, at the pinned commit `6cb1a3c3` on 2026-10-19, 1703 cases are exact, 846 strict, 14 uninformative and 166 failing, and 203 of the 210 effects keep informative evidence of their own. Each of the 166 failing candidates is byte-identical to the reference's own WebGPU output for its case in the gate sweep of the same day, so every failure is a difference between the reference's two backends, not between the port and the reference. That run is a report, never a gate.
+WebGPU gates, and WebGL2 is gated on attribution. The reference's WebGL2 backend is the upstream authority, and the reference requires its WebGPU backend to match it, but on some cases the two still differ. `NM_GOLDEN_BACKEND=webgl2 scripts/parity-summary` grades the same cases against goldens minted on the reference's WebGL2 backend. `scripts/webgl2-attribution` runs that grade after the WebGPU gate of the same job and accepts a WebGL2 case that does not pass only when the port's candidate is pixel-identical to the reference's WebGPU golden for that case: the difference is then between the reference's two backends, not between the port and the reference. Any other WebGL2 difference, and any case without a golden or candidate, fails the Parity workflow (`parity/attribute_webgl2.py`).
 
 ### The other gates
 
@@ -139,7 +139,7 @@ WebGPU gates; WebGL2 is reported. The reference's WebGL2 backend is the upstream
 
 ### Continuous integration
 
-`.github/workflows/tests.yml` runs `cargo fmt --all --check` and `scripts/test` on every push to `main`, on a GitHub-hosted Linux runner. `.github/workflows/parity.yml` runs `scripts/parity-summary` every Monday and on demand, never on push, on a GitHub-hosted Apple-silicon macOS runner, and keeps its log as an artifact. A second step in the same job grades the cases against WebGL2 goldens and keeps that log as its own artifact; it cannot fail the job.
+`.github/workflows/tests.yml` runs `cargo fmt --all --check` and `scripts/test` on every push to `main`, on a GitHub-hosted Linux runner. `.github/workflows/parity.yml` runs `scripts/parity-summary` every Monday and on demand, never on push, on a GitHub-hosted Apple-silicon macOS runner, and keeps its log as an artifact. A second step in the same job grades the cases against WebGL2 goldens, keeps that log as its own artifact, and fails the job on any WebGL2 difference that `scripts/webgl2-attribution` does not attribute to the reference's own backends.
 
 ### Reproducing
 

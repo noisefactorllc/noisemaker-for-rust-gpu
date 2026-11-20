@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# scripts/webgl2-attribution WEBGPU_GOLDENS_DIR [case-id ...]
+#
+# Runs the WebGL2 grade (scripts/parity-summary with NM_GOLDEN_BACKEND=webgl2)
+# and gates it on attribution (parity/attribute_webgl2.py): a WebGL2 case that
+# does not pass is accepted only when the port's candidate is pixel-identical to
+# that case's WebGPU golden, kept in WEBGPU_GOLDENS_DIR from the WebGPU gate run
+# of the same job. That difference is between the reference's own two
+# backends. Anything else fails.
+#
+# Exit 0 when every case passes or is attributed; 1 when a case is not
+# attributed or has no golden or candidate; 2 on an infrastructure failure.
+set -uo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+GOLDENS="${1:?usage: scripts/webgl2-attribution WEBGPU_GOLDENS_DIR [case-id ...]}"
+shift
+if [ -z "$(find "$GOLDENS" -maxdepth 1 -name '*.golden*.png' -print -quit 2>/dev/null)" ]; then
+  echo "webgl2-attribution: no WebGPU goldens in $GOLDENS" >&2
+  exit 2
+fi
+PY=python3
+if ! "$PY" -c 'import numpy, PIL' 2>/dev/null; then PY="$ROOT/parity/.venv/bin/python"; fi
+KEEP="$(mktemp -t nm-webgl2-ledger.XXXXXX)"
+TESTS="$(mktemp -t nm-webgl2-tests.XXXXXX)"
+trap 'rm -f "$KEEP" "$TESTS"' EXIT
+# The gate's own tests print sample refusals; show them only when the tests fail.
+if ! "$PY" "$ROOT/parity/test_attribute_webgl2.py" >"$TESTS" 2>&1; then
+  cat "$TESTS" >&2
+  echo "webgl2-attribution: its own tests failed" >&2
+  exit 2
+fi
+NM_GOLDEN_BACKEND=webgl2 NM_PARITY_LEDGER_KEEP="$KEEP" "$ROOT/scripts/parity-summary" "$@"
+STATUS=$?
+# 0 and 1 are grades, which the attribution below judges. 2 leaves nothing to judge.
+[ "$STATUS" -le 1 ] || exit "$STATUS"
+[ -s "$KEEP" ] || { echo "webgl2-attribution: the WebGL2 run left no ledger" >&2; exit 2; }
+"$PY" "$ROOT/parity/attribute_webgl2.py" --ledger "$KEEP" --webgpu-goldens "$GOLDENS"

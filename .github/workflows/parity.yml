@@ -12,11 +12,12 @@ name: Parity
 # push gate (tests.yml).
 #
 # WebGPU gates: the port renders the reference WGSL and equals the reference's
-# WebGPU output, so the gate isolates port regressions. The reference's WebGL2
-# output is reported, never gated: a second run grades the same cases against
-# WebGL2 goldens (NM_GOLDEN_BACKEND=webgl2) and keeps its log as an artifact.
-# Its failures are differences between the reference's own backends, which no
-# change to this port can resolve, so that step cannot fail the job.
+# WebGPU output, so the gate isolates port regressions. A second run grades the
+# same cases against WebGL2 goldens (NM_GOLDEN_BACKEND=webgl2) and keeps its log
+# as an artifact. scripts/webgl2-attribution gates it: a WebGL2 case that does
+# not pass is accepted only when the candidate is pixel-identical to that case's
+# WebGPU golden, a difference between the reference's own backends. Anything
+# else fails the job.
 
 on:
   schedule:
@@ -96,14 +97,22 @@ jobs:
           path: parity-summary.log
           if-no-files-found: ignore
 
-      - name: WebGL2 grade (report, not a gate)
-        if: always()
-        continue-on-error: true
-        env:
-          NM_GOLDEN_BACKEND: webgl2
+      # The WebGL2 grade below mints its goldens into parity/out over these.
+      - name: Keep the WebGPU goldens
+        if: ${{ !cancelled() }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/webgpu-goldens"
+          find parity/out -maxdepth 1 -name '*.golden*.png' -exec cp {} "$RUNNER_TEMP/webgpu-goldens/" \;
+
+      # A WebGL2 case that does not pass is accepted only when the candidate is
+      # pixel-identical to that case's WebGPU golden from the step above: the
+      # difference is between the reference's own two backends. Anything else fails.
+      - name: WebGL2 grade, gated on attribution to the reference's backends
+        if: ${{ !cancelled() }}
         run: |
           set -o pipefail
-          scripts/parity-summary 2>&1 | tee parity-webgl2.log
+          scripts/webgl2-attribution "$RUNNER_TEMP/webgpu-goldens" 2>&1 | tee parity-webgl2.log
 
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

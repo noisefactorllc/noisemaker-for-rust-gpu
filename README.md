@@ -139,7 +139,7 @@ WebGPU gates, and WebGL2 is gated on attribution. The reference's WebGL2 backend
 
 ### Continuous integration
 
-`.github/workflows/tests.yml` runs `cargo fmt --all --check` and `scripts/test` on every push to `main`, on a GitHub-hosted Linux runner. `.github/workflows/parity.yml` runs `scripts/parity-summary` every Monday and on demand, never on push, on a GitHub-hosted Apple-silicon macOS runner, and keeps its log as an artifact. A second step in the same job grades the cases against WebGL2 goldens, keeps that log as its own artifact, and fails the job on any WebGL2 difference that `scripts/webgl2-attribution` does not attribute to the reference's own backends.
+`.github/workflows/tests.yml` runs `cargo fmt --all --check` and `scripts/test` on every push to `main`, on a GitHub-hosted Linux runner. `.github/workflows/parity.yml` runs `scripts/parity-summary` every Monday and on demand, never on push, on a native Apple-silicon Metal host with macOS (GitHub-hosted macOS runners offer only a paravirtual GPU), and keeps its log as an artifact. A second step in the same job grades the cases against WebGL2 goldens, keeps that log as its own artifact, and fails the job on any WebGL2 difference that `scripts/webgl2-attribution` does not attribute to the reference's own backends.
 
 ### Reproducing
 

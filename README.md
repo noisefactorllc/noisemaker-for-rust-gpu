@@ -121,13 +121,13 @@ The reference is the noisemaker repository at the commit pinned in `parity/refer
 
 The 2729 cases are the shared fixture programs (`parity/programs`, 360), the generated coverage corpus, every effect with its defaults and with each value of its choice parameters and each flipped boolean (`parity/coverage`, 1815), user-defined Portable effects (`parity/portable`, 2), the timed tier of every effect that evolves across frames (`parity/timed`, 169) and the sibling ports' author-curated programs (`parity/curated`, 383). Every catalog effect needs at least one informative exact or strict case of its own.
 
-Fresh sweep on 2026-10-19 at the pinned commit `6cb1a3c3` (Apple M4, macOS 26.5):
+The sweep recorded here ran on 2026-10-19 at `6cb1a3c3`, an earlier pin, on Apple M4 with macOS 26.5. No sweep at the current pin is recorded here.
 
 ```text
 PARITY-SUMMARY {"expected":2729,"executed":2729,"exact":2707,"strict":5,"near":0,"defer":0,"skip":0,"fail":0,"missing":0,"uninformative":17,"effects":210,"effects_evidenced":210}
 ```
 
-2707 cases are exact. The 5 strict cases are the `text()` canvases, which the port rasterizes on the CPU where the reference draws on Chromium's GPU canvas. Each differs from its golden by at most 1 level (SSIM 1.0 to five decimals), and each is exact when the port renders with the host textures the reference page produced (`parity/sweep.py --captured-host-inputs`). No case is near or failing. The 17 uninformative cases (goldens without structure) are exact but excluded from the evidence. All 210 catalog effects have informative exact or strict evidence of their own.
+In that sweep, 2707 cases were exact. The 5 strict cases were the `text()` canvases, which the port rasterizes on the CPU where the reference draws on Chromium's GPU canvas. Each differed from its golden by at most 1 level (SSIM 1.0 to five decimals), and each was exact when the port rendered with the host textures the reference page produced (`parity/sweep.py --captured-host-inputs`). No case was near or failing. The 17 uninformative cases (goldens without structure) were exact but excluded from the evidence. All 210 catalog effects had informative exact or strict evidence of their own.
 
 The traced overlays of `fibers`, `scratches` and `strayHair` are drawn on a canvas that the reference pins to Chromium's software rasterizer. `crates/noisemaker-host/src/raster.rs` ports that rasterizer from Skia. The reference reads those canvases back with `getImageData` before it uploads them, and the port converts them as Chromium does (`upload_read_back_rgba8`). Against overlays the reference uploaded, at 256, 512 and 1024 px, it is byte-exact on all 45 measured (`crates/noisemaker-host/tests/overlay_raster.rs`, with `NM_HOST_GOLDENS` naming minter output directories).
 

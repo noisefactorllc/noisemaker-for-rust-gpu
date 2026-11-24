@@ -104,7 +104,8 @@ fn compile_creates_then_recompile_keeps_the_pipeline_and_its_surfaces() {
     assert!(!err.to_string().is_empty());
     assert_eq!(
         r.current_dsl(),
-        "search synth\nnope().write(o0)\nrender(o0)"
+        SOLID_BLUE,
+        "a rejected compile keeps the accepted DSL current"
     );
     r.render(0.25).unwrap();
     assert_eq!(&output(&mut r)[..4], &[0, 0, 255, 255]);

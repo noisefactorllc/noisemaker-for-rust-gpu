@@ -3,6 +3,8 @@
 //
 // Runs every check that needs no GPU, against the pinned reference revision
 // (parity/reference.json):
+//   - the workflow contract (scripts/workflow-contract.test.mjs): the test jobs
+//     admit 2.x, and every release, notice or dispatch job runs only for main;
 //   - the catalog freshness gate (parity/check_effects.mjs): definitions, WGSL,
 //     manifest, meshes, palettes, strings, the demo font and the demo's test
 //     card byte-identical to the reference;
@@ -199,6 +201,7 @@ if (changedFiles.length > 0) {
 }
 
 // ---- gates ---------------------------------------------------------------------------
+run('node', ['--test', 'scripts/workflow-contract.test.mjs'], { env })
 run('node', ['parity/check_effects.mjs'], { env })
 run('node', ['tools/generate-kit-compat.mjs', '--check'], { env })
 run('node', ['tools/generate-coverage.mjs', '--check'], { env })

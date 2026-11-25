@@ -33,7 +33,7 @@ concurrency:
 
 jobs:
   sweep:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/2.x'
     runs-on:
       group: ${{ vars.GPU_RUNNER_GROUP }}
       labels: ${{ vars.GPU_RUNNER_LABEL }}

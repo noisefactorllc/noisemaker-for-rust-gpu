@@ -1,6 +1,6 @@
 name: Tests
 
-# The push gate: scripts/test on every push to main. It runs every check that
+# The push gate: scripts/test on every push to main or 2.x. It runs every check that
 # needs no GPU against the reference revision pinned in parity/reference.json:
 # the catalog, coverage-corpus and kit-list freshness gates, the Rust tests of
 # the GPU-free crates, and the frontend, DSL tooling, ProgramState, public API,
@@ -10,7 +10,7 @@ name: Tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, 2.x]
     paths-ignore:
       - "**.md"
   workflow_dispatch:

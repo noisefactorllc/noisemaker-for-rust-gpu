@@ -61,6 +61,233 @@ fn slot_layout_uniforms_reach_the_shader() {
 }
 
 #[test]
+fn frame_delta_preserves_zero_and_loop_seams() {
+    let source = r#"
+        @group(0) @binding(0) var<uniform> deltaTime: f32;
+        @fragment fn main() -> @location(0) vec4<f32> {
+            return vec4<f32>(deltaTime * 10.0, 0.0, 0.0, 1.0);
+        }"#;
+    let graph = graph(
+        r#"[{"id":"p","program":"prog","inputs":{},"outputs":{"color":"global_o0"},"uniforms":{}}]"#,
+        &format!(r#"{{"prog":{{"wgsl":{}}}}}"#, wgsl(source)),
+        "{}",
+    );
+    let device = device();
+    let mut renderer = Renderer::new(&device, graph, 4, 4, RendererOptions::default()).unwrap();
+    renderer.render(0.3).unwrap();
+    assert_eq!(&renderer.read_output().unwrap().data[..4], &[0, 0, 0, 255]);
+    renderer.pipeline_mut().sync_time(0.0);
+    renderer.render(0.05).unwrap();
+    assert_eq!(
+        &renderer.read_output().unwrap().data[..4],
+        &[128, 0, 0, 255]
+    );
+    renderer.pipeline_mut().sync_time(0.98);
+    renderer.render(0.02).unwrap();
+    assert_eq!(
+        &renderer.read_output().unwrap().data[..4],
+        &[102, 0, 0, 255]
+    );
+    renderer.render(0.02).unwrap();
+    assert_eq!(&renderer.read_output().unwrap().data[..4], &[0, 0, 0, 255]);
+    assert_eq!(renderer.device_errors(), 0);
+}
+
+#[test]
+fn cubemap_faces_are_top_row_first_and_restore_size() {
+    let source = r#"@group(0) @binding(0) var<uniform> resolution: vec2<f32>;
+    @fragment fn main(@builtin(position) p: vec4<f32>) -> @location(0) vec4<f32> {
+        return vec4<f32>(p.y / resolution.y, 0.0, 0.0, 1.0);
+    }"#;
+    let g = graph(
+        r#"[{"id":"p","program":"prog","inputs":{},"outputs":{"color":"global_o0"},"uniforms":{}}]"#,
+        &format!(r#"{{"prog":{{"wgsl":{}}}}}"#, wgsl(source)),
+        "{}",
+    );
+    let device = device();
+    let mut renderer = Renderer::new(&device, g, 2, 3, RendererOptions::default()).unwrap();
+    let faces = renderer
+        .pipeline_mut()
+        .render_cubemap(4.0, "o0", 0.0)
+        .unwrap();
+    assert_eq!(faces.len(), 6);
+    for face in faces {
+        assert_eq!((face.width, face.height), (4, 4));
+        assert_eq!(&face.data[..4], &[223, 0, 0, 255]);
+        assert_eq!(&face.data[48..52], &[32, 0, 0, 255]);
+    }
+    assert_eq!(
+        (renderer.pipeline().width, renderer.pipeline().height),
+        (2.0, 3.0)
+    );
+    assert_eq!(renderer.device_errors(), 0);
+}
+
+#[test]
+fn cubemap_failure_restores_size() {
+    let source = r#"@group(0) @binding(0) var<uniform> aspect: f32;
+    @fragment fn main() -> @location(0) vec4<f32> { return vec4<f32>(aspect); }"#;
+    let g = graph(
+        r#"[{"id":"p","program":"prog","inputs":{},"outputs":{"color":"global_o0"},"uniforms":{}}]"#,
+        &format!(r#"{{"prog":{{"wgsl":{}}}}}"#, wgsl(source)),
+        "{}",
+    );
+    let device = device();
+    let mut renderer = Renderer::new(&device, g, 2, 3, RendererOptions::default()).unwrap();
+    assert!(
+        renderer
+            .pipeline_mut()
+            .render_cubemap(4.0, "absent", 0.0)
+            .is_err()
+    );
+    assert_eq!(
+        (renderer.pipeline().width, renderer.pipeline().height),
+        (2.0, 3.0)
+    );
+    assert_eq!(renderer.device_errors(), 0);
+}
+
+#[test]
+fn single_channel_float_readback_is_opaque_greyscale() {
+    let source = r#"@group(0) @binding(0) var<uniform> level: f32;
+    @fragment fn main() -> @location(0) f32 { return level; }"#;
+    for format in ["r32float", "r16float"] {
+        let g = graph(
+            r#"[{"id":"p","program":"prog","inputs":{},"outputs":{"color":"single"},"uniforms":{"level":0.25}}]"#,
+            &format!(
+                r#"{{"prog":{{"wgsl":{},"outputFormat":"{format}"}}}}"#,
+                wgsl(source)
+            ),
+            &format!(
+                r#"{{"single":{{"width":3,"height":2,"format":"{format}","usage":["render","sample","copySrc","copyDst"]}}}}"#
+            ),
+        );
+        let device = device();
+        let mut renderer = Renderer::new(&device, g, 3, 2, RendererOptions::default()).unwrap();
+        renderer.render(0.0).unwrap();
+        let pixels = renderer
+            .pipeline_mut()
+            .backend
+            .read_pixels("single")
+            .unwrap();
+        assert_eq!(pixels.data, [64, 64, 64, 255].repeat(6), "{format}");
+        assert_eq!(renderer.device_errors(), 0);
+    }
+}
+
+#[test]
+fn differently_sized_mesh_passes_keep_encoded_depth_alive() {
+    let source = r#"@group(0) @binding(0) var<uniform> level: f32;
+        @fragment fn main() -> @location(0) vec4<f32> { return vec4<f32>(level, 0.0, 0.0, 1.0); }"#;
+    let vertex = r#"@vertex fn vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {
+        let p = array<vec2<f32>,3>(vec2<f32>(-1.0,-1.0),vec2<f32>(-1.0,3.0),vec2<f32>(3.0,-1.0));
+        return vec4<f32>(p[i], 0.5, 1.0);
+    }"#;
+    let mut textures = serde_json::Map::new();
+    let mut passes = Vec::new();
+    for size in 2..8 {
+        let id = format!("mesh{size}");
+        textures.insert(id.clone(), serde_json::json!({"width":size,"height":size,"format":"rgba16f","usage":["render","sample","copySrc","copyDst"]}));
+        passes.push(serde_json::json!({"id":id,"program":"prog","drawMode":"triangles","count":3,"inputs":{},"outputs":{"color":id},"uniforms":{"level":0.25}}));
+    }
+    let g = graph(
+        &serde_json::to_string(&passes).unwrap(),
+        &serde_json::json!({"prog":{"wgsl":source,"vertexWGSL":vertex,"vertexEntryPoint":"vs"}})
+            .to_string(),
+        &serde_json::to_string(&textures).unwrap(),
+    );
+    let device = device();
+    let mut renderer = Renderer::new(&device, g, 4, 4, RendererOptions::default()).unwrap();
+    renderer.render(0.0).unwrap();
+    for size in 2..8 {
+        let pixels = renderer
+            .pipeline_mut()
+            .backend
+            .read_pixels(&format!("mesh{size}"))
+            .unwrap();
+        assert_eq!(
+            renderer.device_errors(),
+            0,
+            "{:?}",
+            renderer.pipeline().backend.device_error_log
+        );
+        assert_eq!(pixels.data, [64, 0, 0, 255].repeat(size * size));
+    }
+}
+
+#[test]
+fn triangle_mrt_keeps_depth_until_explicitly_cleared() {
+    let vertex = r#"struct Params { depth: f32, color: f32, }
+        @group(0) @binding(0) var<uniform> params: Params;
+        @vertex fn vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {
+            let p = array<vec2<f32>,3>(vec2<f32>(-1.0,-1.0),vec2<f32>(3.0,-1.0),vec2<f32>(-1.0,3.0));
+            return vec4<f32>(p[i], params.depth, 1.0);
+        }"#;
+    let fragment = r#"struct Params { depth: f32, color: f32, }
+        @group(0) @binding(0) var<uniform> params: Params;
+        struct Outputs { @location(0) first: vec4<f32>, @location(1) second: vec4<f32>, }
+        @fragment fn fs() -> Outputs {
+            return Outputs(vec4<f32>(params.color,0.0,0.0,1.0),vec4<f32>(0.0,params.color,0.0,1.0));
+        }"#;
+    let device = device();
+    for clear in [false, true] {
+        let passes = serde_json::json!([
+            {"id":"near","program":"prog","drawMode":"triangles","drawBuffers":2,"clear":true,"inputs":{},"outputs":{"a":"first","b":"second"},"uniforms":{"depth":0.2,"color":0.25}},
+            {"id":"far","program":"prog","drawMode":"triangles","drawBuffers":2,"clear":clear,"inputs":{},"outputs":{"a":"first","b":"second"},"uniforms":{"depth":0.8,"color":0.75}}
+        ]);
+        let textures = serde_json::json!({"first":{"width":4,"height":4,"format":"rgba16f","usage":["render","sample","copySrc","copyDst"]},"second":{"width":4,"height":4,"format":"rgba16f","usage":["render","sample","copySrc","copyDst"]}});
+        let programs = serde_json::json!({"prog":{"wgsl":fragment,"vertexWGSL":vertex,"vertexEntryPoint":"vs","fragmentEntryPoint":"fs"}});
+        let g = graph(
+            &passes.to_string(),
+            &programs.to_string(),
+            &textures.to_string(),
+        );
+        let mut renderer = Renderer::new(&device, g, 4, 4, RendererOptions::default()).unwrap();
+        renderer.render(0.0).unwrap();
+        let red = renderer
+            .pipeline_mut()
+            .backend
+            .read_pixels("first")
+            .unwrap();
+        let green = renderer
+            .pipeline_mut()
+            .backend
+            .read_pixels("second")
+            .unwrap();
+        assert_eq!(
+            renderer.device_errors(),
+            0,
+            "{:?}",
+            renderer.pipeline().backend.device_error_log
+        );
+        let expected = if clear { 191 } else { 64 };
+        assert_eq!(red.data, [expected, 0, 0, 255].repeat(16));
+        assert_eq!(green.data, [0, expected, 0, 255].repeat(16));
+    }
+}
+
+#[test]
+fn multiple_outputs_without_bindings_reject_legacy_layout() {
+    let source = r#"struct Outputs { @location(0) a: vec4<f32>, @location(1) b: vec4<f32>, }
+    @fragment fn main() -> Outputs { return Outputs(vec4<f32>(0.25),vec4<f32>(0.5)); }"#;
+    let g = graph(
+        r#"[{"id":"p","program":"prog","inputs":{},"outputs":{"a":"a","b":"b"},"uniforms":{}}]"#,
+        &format!(r#"{{"prog":{{"wgsl":{}}}}}"#, wgsl(source)),
+        r#"{"a":{"width":2,"height":2,"format":"rgba16f","usage":["render","sample"]},"b":{"width":2,"height":2,"format":"rgba16f","usage":["render","sample"]}}"#,
+    );
+    let device = device();
+    let mut renderer = Renderer::new(&device, g, 2, 2, RendererOptions::default()).unwrap();
+    let error = renderer
+        .render(0.0)
+        .expect_err("MRT cannot use the legacy layout");
+    assert!(
+        error.to_string().contains("declares 2 @location outputs"),
+        "{error}"
+    );
+    assert_eq!(renderer.device_errors(), 0);
+}
+
+#[test]
 fn byte_layout_rounds_integers_and_skips_padding() {
     let src = r#"
         struct Params { gain: f32, count: i32, _pad: f32, tint: vec3<f32>, }

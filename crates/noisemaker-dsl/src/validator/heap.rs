@@ -67,6 +67,11 @@ pub(crate) struct JsObject {
 }
 
 impl JsObject {
+    pub(crate) fn remove(&mut self, key: &str) {
+        self.props.shift_remove(key);
+        self.hidden.shift_remove(key);
+    }
+
     pub(crate) fn get(&self, key: &str) -> Option<&V> {
         self.props.get(key).or_else(|| self.hidden.get(key))
     }

@@ -18,9 +18,10 @@ use crate::error::{RenderError, ShaderDiagnostic};
 use crate::jsre::{JsRegex, group};
 use crate::reflect::{CompilationMessage, ShaderReflection, Stage};
 use crate::wgsl::{
-    ShaderBinding, UniformLayout, detect_entry_points, has_shader_bindings, inject_defines,
-    normalize_spec_layout, parse_declared_uniform_buffer_size, parse_entry_point_bindings,
-    parse_packed_uniform_layout, parse_sampler_texture_uses, parse_shader_bindings,
+    ShaderBinding, UniformLayout, count_fragment_outputs, detect_entry_points, has_shader_bindings,
+    inject_defines, normalize_spec_layout, parse_declared_uniform_buffer_size,
+    parse_entry_point_bindings, parse_packed_uniform_layout, parse_sampler_texture_uses,
+    parse_shader_bindings,
 };
 
 /// A compiled program (`programInfo`).
@@ -57,12 +58,21 @@ pub struct RenderProgram {
     /// `outputFormat` (resolved WebGPU format name).
     pub output_format: Value,
     /// `pipeline`: the pipeline created at compile time.
-    pub pipeline: wgpu::RenderPipeline,
+    pub pipeline: Option<wgpu::RenderPipeline>,
+    pub fragment_output_count: usize,
     /// `pipelineCache`: key → pipeline.
     pub pipeline_cache: RefCell<HashMap<String, wgpu::RenderPipeline>>,
     /// The group-0 binding indices of every auto layout of this program (the
     /// vertex and fragment entry points' statically used resources).
     pub layout_bindings: BTreeSet<u32>,
+}
+
+impl RenderProgram {
+    pub fn eager_pipeline(&self, id: &str) -> Result<&wgpu::RenderPipeline, RenderError> {
+        self.pipeline.as_ref().ok_or_else(|| RenderError::Js(format!(
+            "Error: Program '{id}' has no eager pipeline to take a bind group layout from: its fragment stage declares {} @location outputs, so it is MRT-only. The legacy bind group path is for shaders with no @binding declarations at all; declare them so the parsed-binding path builds the group instead.", self.fragment_output_count
+        )))
+    }
 }
 
 /// A compute program: its module, entry points and per-entry-point pipelines.
@@ -391,28 +401,34 @@ impl WebGpuBackend {
         )?;
         let blend = Self::resolve_blend_state(spec.get("blend"))?;
         let format = gpu_format_of(&output_format)?;
-        let pipeline = self.create_render_pipeline_from(
-            id,
-            (&vertex_module, &vertex_entry_point),
-            Some((&main_module, &fragment_entry_point)),
-            &[Some(wgpu::ColorTargetState {
-                format,
-                blend,
-                write_mask: wgpu::ColorWrites::ALL,
-            })],
-            wgpu::PrimitiveState {
-                topology,
-                ..Default::default()
-            },
-            None,
-        );
+        let fragment_output_count = count_fragment_outputs(source, &fragment_entry_point);
         let mut cache = HashMap::new();
-        let initial_key = Self::get_pipeline_key(
-            spec.get("blend"),
-            spec.get("topology"),
-            output_format.as_str().unwrap_or("rgba16float"),
-        );
-        cache.insert(initial_key, pipeline.clone());
+        let pipeline = if fragment_output_count <= 1 {
+            let pipeline = self.create_render_pipeline_from(
+                id,
+                (&vertex_module, &vertex_entry_point),
+                Some((&main_module, &fragment_entry_point)),
+                &[Some(wgpu::ColorTargetState {
+                    format,
+                    blend,
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+                wgpu::PrimitiveState {
+                    topology,
+                    ..Default::default()
+                },
+                None,
+            );
+            let initial_key = Self::get_pipeline_key(
+                spec.get("blend"),
+                spec.get("topology"),
+                output_format.as_str().unwrap_or("rgba16float"),
+            );
+            cache.insert(initial_key, pipeline.clone());
+            Some(pipeline)
+        } else {
+            None
+        };
 
         Ok(Program {
             id: id.to_owned(),
@@ -431,6 +447,7 @@ impl WebGpuBackend {
                 fragment_entry_point,
                 output_format,
                 pipeline,
+                fragment_output_count,
                 pipeline_cache: RefCell::new(cache),
                 layout_bindings,
             }),

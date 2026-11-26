@@ -158,13 +158,19 @@ function thrown (err) {
 }
 
 export function normalizeGraph (graph) {
+  // Scene programs are outside the stable catalog contract. Refuse them;
+  // omit only the empty fields the reference attaches to ordinary graphs.
+  if (graph._isScene || graph.sceneIR != null ||
+      (graph.sceneVolumeAtlasScopes != null && Object.keys(graph.sceneVolumeAtlasScopes).length)) {
+    throw new Error('stable oracle cannot compare an experimental scene graph')
+  }
   const programs = {}
   for (const [id, spec] of Object.entries(graph.programs || {})) {
     const out = {}
     for (const [k, v] of Object.entries(spec)) if (!SHADER_SOURCE_KEYS.has(k)) out[k] = v
     programs[id] = out
   }
-  const { compiledAt: _compiledAt, ...rest } = graph
+  const { compiledAt: _compiledAt, _isScene, sceneIR, sceneVolumeAtlasScopes, ...rest } = graph
   return plain({ ...rest, programs })
 }
 

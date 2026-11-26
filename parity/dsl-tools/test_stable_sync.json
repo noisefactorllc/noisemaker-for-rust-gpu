@@ -1,0 +1,342 @@
+{
+  "profile": "stable-sync",
+  "setup": [
+    {
+      "op": "registerOp",
+      "name": "filter.triplet",
+      "spec": {
+        "name": "triplet",
+        "args": [
+          {
+            "name": "r",
+            "type": "float",
+            "default": 0
+          },
+          {
+            "name": "g",
+            "type": "float",
+            "default": 0
+          },
+          {
+            "name": "b",
+            "type": "float",
+            "default": 0
+          }
+        ]
+      }
+    },
+    {
+      "op": "registerOp",
+      "name": "filter.combine",
+      "spec": {
+        "name": "combine",
+        "args": [
+          {
+            "name": "tex",
+            "type": "surface"
+          },
+          {
+            "name": "mode",
+            "type": "int",
+            "default": 0
+          },
+          {
+            "name": "alpha",
+            "type": "float",
+            "default": 1
+          }
+        ]
+      }
+    }
+  ],
+  "cases": [
+    {
+      "id": "element-ids",
+      "op": "unparse",
+      "compiled": {
+        "$compile": "search synth, filter\nnoise(seed: 7, _id: \"Noise_1\").blur(radiusX: 2, _id: \"Blur_1\").write(o0, _id: \"Output_1\")\nread(o0, _id: \"Read_1\").invert(_id: \"Invert_1\").write(o1, _id: \"Output_2\")\nrender(o1)\n"
+      }
+    },
+    {
+      "id": "element-ids/roundtrip",
+      "op": "unparse",
+      "compiled": {
+        "$compile": {
+          "$resultOf": "element-ids"
+        }
+      }
+    },
+    {
+      "id": "invalid-id",
+      "op": "unparse",
+      "compiled": {
+        "$compile": "search synth\nnoise(seed: 7, _id: \"7bad\").write(o0, _id: \"bad-id\")\nrender(o0)"
+      }
+    },
+    {
+      "id": "invalid-id/roundtrip",
+      "op": "unparse",
+      "compiled": {
+        "$compile": {
+          "$resultOf": "invalid-id"
+        }
+      }
+    },
+    {
+      "id": "variable-id",
+      "op": "unparse",
+      "compiled": {
+        "$compile": "search synth\nlet id = \"Named\"\nnoise(seed: 7, _id: id).write(o0)\nrender(o0)"
+      }
+    },
+    {
+      "id": "variable-id/roundtrip",
+      "op": "unparse",
+      "compiled": {
+        "$compile": {
+          "$resultOf": "variable-id"
+        }
+      }
+    },
+    {
+      "id": "let-nested-siblings",
+      "op": "unparse",
+      "compiled": {
+        "$compile": "search synth, filter\nlet n = noise(seed: 7)\nlet blend = combine(tex: n, mode: 1, alpha: 0.25)\nnoise(seed: 3).blend().write(o0)\nrender(o0)"
+      }
+    },
+    {
+      "id": "let-nested-siblings/roundtrip",
+      "op": "unparse",
+      "compiled": {
+        "$compile": {
+          "$resultOf": "let-nested-siblings"
+        }
+      }
+    },
+    {
+      "id": "let-array",
+      "op": "unparse",
+      "compiled": {
+        "$compile": "search synth, filter\nlet c = [0.1, 0.2, 0.3]\nnoise(seed: 7).tint(color: c).write(o0)\nrender(o0)"
+      }
+    },
+    {
+      "id": "let-array/roundtrip",
+      "op": "unparse",
+      "compiled": {
+        "$compile": {
+          "$resultOf": "let-array"
+        }
+      }
+    },
+    {
+      "id": "let-indexed-color",
+      "op": "unparse",
+      "compiled": {
+        "$compile": "search synth, filter\nlet c = triplet(#804020)\nnoise().c(r: 0.25).write(o0)\nrender(o0)"
+      }
+    },
+    {
+      "id": "let-indexed-color/compiled-arguments",
+      "op": "listSteps",
+      "compiled": {
+        "$compile": "search synth, filter\nlet c = triplet(#804020)\nnoise().c(r: 0.25).write(o0)\nrender(o0)"
+      }
+    },
+    {
+      "id": "let-indexed-extra",
+      "op": "unparse",
+      "compiled": {
+        "$compile": "search synth, filter\nlet c = triplet(0.1, 0.2, 0.3, 0.4)\nnoise().c(g: 0.5).write(o0)\nrender(o0)"
+      }
+    },
+    {
+      "id": "let-indexed-extra/roundtrip",
+      "op": "unparse",
+      "compiled": {
+        "$compile": {
+          "$resultOf": "let-indexed-extra"
+        }
+      }
+    },
+    {
+      "id": "element-ids/change",
+      "op": "unparse",
+      "compiled": {
+        "$compile": "search synth, filter\nnoise(seed: 7, _id: \"Noise_1\").blur(radiusX: 2, _id: \"Blur_1\").write(o0, _id: \"Output_1\")\nread(o0, _id: \"Read_1\").invert(_id: \"Invert_1\").write(o1, _id: \"Output_2\")\nrender(o1)\n"
+      },
+      "overrides": {
+        "0": {
+          "_id": "Changed"
+        },
+        "2": {
+          "_id": "Written"
+        }
+      }
+    },
+    {
+      "id": "element-ids/remove",
+      "op": "unparse",
+      "compiled": {
+        "$compile": "search synth, filter\nnoise(seed: 7, _id: \"Noise_1\").blur(radiusX: 2, _id: \"Blur_1\").write(o0, _id: \"Output_1\")\nread(o0, _id: \"Read_1\").invert(_id: \"Invert_1\").write(o1, _id: \"Output_2\")\nrender(o1)\n"
+      },
+      "overrides": {
+        "0": {
+          "_id": null
+        },
+        "2": {
+          "_id": null
+        },
+        "3": {
+          "_id": null
+        }
+      }
+    },
+    {
+      "id": "structural/listSteps",
+      "op": "listSteps",
+      "compiled": {
+        "plans": [
+          {
+            "chain": [
+              {
+                "op": "_write",
+                "temp": 0,
+                "args": {
+                  "tex": "o0"
+                },
+                "from": null
+              }
+            ]
+          }
+        ]
+      },
+      "stepIndex": 0
+    },
+    {
+      "id": "structural/replaceEffect",
+      "op": "replaceEffect",
+      "compiled": {
+        "plans": [
+          {
+            "chain": [
+              {
+                "op": "_write",
+                "temp": 0,
+                "args": {
+                  "tex": "o0"
+                },
+                "from": null
+              }
+            ]
+          }
+        ]
+      },
+      "stepIndex": 0,
+      "newEffectName": "noise",
+      "newArgs": {}
+    },
+    {
+      "id": "structural/getCompatibleReplacements",
+      "op": "getCompatibleReplacements",
+      "compiled": {
+        "plans": [
+          {
+            "chain": [
+              {
+                "op": "_write",
+                "temp": 0,
+                "args": {
+                  "tex": "o0"
+                },
+                "from": null
+              }
+            ]
+          }
+        ]
+      },
+      "stepIndex": 0
+    },
+    {
+      "id": "volume-ids",
+      "op": "unparse",
+      "compiled": {
+        "$compile": "search synth3d, render\nnoise3d().write3d(vol0, geo0, _id: \"VolumeWrite\")\nread3d(vol0, geo0, _id: \"VolumeRead\").render3d().write(o0, _id: \"Frame\")\nrender(o0)"
+      }
+    },
+    {
+      "id": "volume-ids/roundtrip",
+      "op": "unparse",
+      "compiled": {
+        "$compile": {
+          "$resultOf": "volume-ids"
+        }
+      }
+    },
+    {
+      "id": "let-array-expressions",
+      "op": "unparse",
+      "compiled": {
+        "$compile": "search synth\nlet x = [foo(), bar.baz, \"a\\nb\", false, 0.0000000001234567891234, #aabbccdd]\nnoise().write(o0)\nrender(o0)"
+      }
+    },
+    {
+      "id": "let-array-expressions/roundtrip",
+      "op": "unparse",
+      "compiled": {
+        "$compile": {
+          "$resultOf": "let-array-expressions"
+        }
+      }
+    },
+    {
+      "id": "literal-id-after-positional",
+      "op": "unparse",
+      "compiled": {
+        "$compile": "search synth\nnoise(1, _id: \"First\").write(o0)\nrender(o0)"
+      }
+    },
+    {
+      "id": "literal-id-after-positional/roundtrip",
+      "op": "unparse",
+      "compiled": {
+        "$compile": {
+          "$resultOf": "literal-id-after-positional"
+        }
+      }
+    },
+    {
+      "id": "literal-id-before-positional",
+      "op": "unparse",
+      "compiled": {
+        "$compile": "search synth\nnoise(_id: \"First\", 1).write(o0)\nrender(o0)"
+      }
+    },
+    {
+      "id": "literal-id-before-positional/roundtrip",
+      "op": "unparse",
+      "compiled": {
+        "$compile": {
+          "$resultOf": "literal-id-before-positional"
+        }
+      }
+    },
+    {
+      "id": "let-array-decimal-ties",
+      "op": "unparse",
+      "compiled": {
+        "$compile": "search synth\nlet x = [1.0009765625, -1.0009765625, 1.0009765624999998, 1.0009765625000002, 0.00000000011641532182693481, -0.00000000011641532182693481]\nnoise().write(o0)\nrender(o0)"
+      }
+    },
+    {
+      "id": "let-array-decimal-ties/roundtrip",
+      "op": "unparse",
+      "compiled": {
+        "$compile": {
+          "$resultOf": "let-array-decimal-ties"
+        }
+      }
+    }
+  ]
+}

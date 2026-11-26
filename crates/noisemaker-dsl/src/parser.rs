@@ -314,6 +314,13 @@ fn loc_value(line: Option<f64>, col: Option<f64>) -> Value {
     ])
 }
 
+fn with_loc(mut value: Value, loc: Value) -> Value {
+    if let Value::Object(object) = &mut value {
+        object.insert("loc", loc);
+    }
+    value
+}
+
 fn comments_value(comments: Vec<String>) -> Value {
     Value::Array(comments.into_iter().map(Value::from).collect())
 }
@@ -463,6 +470,12 @@ impl<'a> Parser<'a> {
     }
 
     /// `collectComments()`: collect and consume any pending COMMENT tokens.
+    fn skip_comments(&mut self) {
+        while self.type_at(self.current) == Some(TokenType::Comment) {
+            self.advance();
+        }
+    }
+
     fn collect_comments(&mut self) -> Vec<String> {
         let mut comments = Vec::new();
         while self.type_at(self.current) == Some(TokenType::Comment) {
@@ -1365,12 +1378,17 @@ impl<'a> Parser<'a> {
                 ));
             };
             let surface = named_node(surface_type, &self.advance().lexeme);
+            let id = self.parse_write_id()?;
             self.expect(TokenType::RParen, "Expect ')'")?;
-            return Ok(node(vec![
+            let mut node = object(vec![
                 ("type", "Write".into()),
                 ("surface", surface),
                 ("loc", loc_value(token_line, token_col)),
-            ]));
+            ]);
+            if let Some(id) = id {
+                node.insert("_id", id);
+            }
+            return Ok(Value::Object(node));
         } else if token_type == TokenType::Write3d {
             self.advance(); // consume 'write3d'
             self.expect(TokenType::LParen, "Expect '('")?;
@@ -1402,13 +1420,18 @@ impl<'a> Parser<'a> {
                     return Err(self.error_at("P005", "Expected geo reference in write3d()", next));
                 }
             };
+            let id = self.parse_write_id()?;
             self.expect(TokenType::RParen, "Expect ')'")?;
-            return Ok(node(vec![
+            let mut node = object(vec![
                 ("type", "Write3D".into()),
                 ("tex3d", tex3d),
                 ("geo", geo),
                 ("loc", loc_value(token_line, token_col)),
-            ]));
+            ]);
+            if let Some(id) = id {
+                node.insert("_id", id);
+            }
+            return Ok(Value::Object(node));
         }
         Err(self.parser_error(
             "P005",
@@ -1424,6 +1447,22 @@ impl<'a> Parser<'a> {
             }),
             None,
         ))
+    }
+
+    fn parse_write_id(&mut self) -> PResult<Option<Value>> {
+        if self.type_at(self.current) != Some(TokenType::Comma)
+            || !self
+                .tokens
+                .get(self.current + 1)
+                .is_some_and(|t| t.kind == TokenType::Ident && t.lexeme == "_id")
+            || self.type_at(self.current + 2) != Some(TokenType::Colon)
+        {
+            return Ok(None);
+        }
+        self.advance();
+        let mut kwargs = Object::new();
+        self.parse_kwarg(&mut kwargs)?;
+        Ok(Some(kwargs.get_or_undefined("_id").clone()))
     }
 
     /// `reportArgIssue(code, message, token)` of `parseSubchainCall`: throw in
@@ -1685,12 +1724,14 @@ impl<'a> Parser<'a> {
         let mut keyword = false;
         let mut positional = false;
         let allow_mixed = name_token.lexeme == "midi" || name_token.lexeme == "audio";
+        self.skip_comments();
         if self.peek()?.kind != TokenType::RParen {
             loop {
+                self.skip_comments();
                 if self.peek()?.kind == TokenType::Ident
                     && self.type_at(self.current + 1) == Some(TokenType::Colon)
                 {
-                    if positional && !allow_mixed {
+                    if positional && !allow_mixed && self.peek()?.lexeme != "_id" {
                         let t = self.peek()?;
                         return Err(self.error_at(
                             "P007",
@@ -1701,7 +1742,7 @@ impl<'a> Parser<'a> {
                     keyword = true;
                     self.parse_kwarg(&mut kwargs)?;
                 } else {
-                    if keyword && !allow_mixed {
+                    if keyword && !allow_mixed && kwargs.keys().any(|key| key != "_id") {
                         let t = self.peek()?;
                         return Err(self.error_at(
                             "P007",
@@ -1712,10 +1753,12 @@ impl<'a> Parser<'a> {
                     positional = true;
                     args.push(self.parse_arg()?.node);
                 }
+                self.skip_comments();
                 if self.peek()?.kind != TokenType::Comma {
                     break;
                 }
                 self.advance();
+                self.skip_comments();
                 if self.peek()?.kind == TokenType::RParen {
                     break;
                 }
@@ -1726,6 +1769,7 @@ impl<'a> Parser<'a> {
             ("type", "Call".into()),
             ("name", name_token.lexeme.as_str().into()),
             ("args", Value::Array(args.clone())),
+            ("loc", loc_value(name_token.line, name_token.col)),
         ]);
         if keyword {
             call.insert("kwargs", Value::Object(kwargs.clone()));
@@ -1782,6 +1826,9 @@ impl<'a> Parser<'a> {
             if skip {
                 node.insert("_skip", true.into());
             }
+            if let Some(id) = kwargs.get("_id") {
+                node.insert("_id", id.clone());
+            }
             return Ok(Value::Object(node));
         }
         // read3d() reads from tex3d (and optionally geo) surfaces
@@ -1801,6 +1848,9 @@ impl<'a> Parser<'a> {
             // Preserve _skip flag if present (kwargs._skip is a Boolean AST node)
             if skip {
                 node.insert("_skip", true.into());
+            }
+            if let Some(id) = kwargs.get("_id") {
+                node.insert("_id", id.clone());
             }
             return Ok(Value::Object(node));
         }
@@ -1822,11 +1872,10 @@ impl<'a> Parser<'a> {
             let right = self.parse_multiplicative()?;
             let l = self.to_number(&node)?;
             let r = self.to_number(&right)?;
-            node = Expr::plain(number_node(if op == TokenType::Plus {
-                l + r
-            } else {
-                l - r
-            }));
+            node = Expr::plain(with_loc(
+                number_node(if op == TokenType::Plus { l + r } else { l - r }),
+                node.node.get("loc").clone(),
+            ));
         }
         Ok(node)
     }
@@ -1839,11 +1888,10 @@ impl<'a> Parser<'a> {
             let right = self.parse_unary()?;
             let l = self.to_number(&node)?;
             let r = self.to_number(&right)?;
-            node = Expr::plain(number_node(if op == TokenType::Star {
-                l * r
-            } else {
-                l / r
-            }));
+            node = Expr::plain(with_loc(
+                number_node(if op == TokenType::Star { l * r } else { l / r }),
+                node.node.get("loc").clone(),
+            ));
         }
         Ok(node)
     }
@@ -1857,7 +1905,10 @@ impl<'a> Parser<'a> {
         if self.peek()?.kind == TokenType::Minus {
             self.advance();
             let val = self.parse_unary()?;
-            return Ok(Expr::plain(number_node(-self.to_number(&val)?)));
+            return Ok(Expr::plain(with_loc(
+                number_node(-self.to_number(&val)?),
+                val.node.get("loc").clone(),
+            )));
         }
         self.parse_primary()
     }
@@ -1868,15 +1919,24 @@ impl<'a> Parser<'a> {
         match token.kind {
             TokenType::Number => {
                 self.advance();
-                Ok(Expr::plain(number_node(js::parse_float(&token.lexeme))))
+                Ok(Expr::plain(with_loc(
+                    number_node(js::parse_float(&token.lexeme)),
+                    loc_value(token.line, token.col),
+                )))
             }
             TokenType::String => {
                 self.advance();
-                Ok(Expr::plain(string_node(&token.lexeme)))
+                Ok(Expr::plain(with_loc(
+                    string_node(&token.lexeme),
+                    loc_value(token.line, token.col),
+                )))
             }
             TokenType::Hex => {
                 self.advance();
-                Ok(Expr::plain(color_node(&token.lexeme)))
+                Ok(Expr::plain(with_loc(
+                    color_node(&token.lexeme),
+                    loc_value(token.line, token.col),
+                )))
             }
             TokenType::LBracket => {
                 // Array literal — comma-separated arg expressions, used as
@@ -1886,11 +1946,18 @@ impl<'a> Parser<'a> {
                 let bracket_position = token.position;
                 self.advance();
                 let mut elements = Vec::new();
+                self.skip_comments();
                 if self.peek()?.kind != TokenType::RBracket {
                     elements.push(self.parse_arg()?.node);
+                    self.skip_comments();
                     while self.peek()?.kind == TokenType::Comma {
                         self.advance();
+                        self.skip_comments();
+                        if self.peek()?.kind == TokenType::RBracket {
+                            break;
+                        }
                         elements.push(self.parse_arg()?.node);
+                        self.skip_comments();
                     }
                 }
                 if self.peek()?.kind != TokenType::RBracket {
@@ -1922,6 +1989,7 @@ impl<'a> Parser<'a> {
                 Ok(Expr::plain(node(vec![
                     ("type", "Boolean".into()),
                     ("value", true.into()),
+                    ("loc", loc_value(token.line, token.col)),
                 ])))
             }
             TokenType::False => {
@@ -1929,6 +1997,7 @@ impl<'a> Parser<'a> {
                 Ok(Expr::plain(node(vec![
                     ("type", "Boolean".into()),
                     ("value", false.into()),
+                    ("loc", loc_value(token.line, token.col)),
                 ])))
             }
             TokenType::Ident => {
@@ -1940,7 +2009,10 @@ impl<'a> Parser<'a> {
                     self.advance();
                     self.advance();
                     self.advance();
-                    return Ok(Expr::plain(number_node(std::f64::consts::PI)));
+                    return Ok(Expr::plain(with_loc(
+                        number_node(std::f64::consts::PI),
+                        loc_value(token.line, token.col),
+                    )));
                 }
                 if self.type_at(self.current + 1) == Some(TokenType::LParen)
                     || self.has_call_after_dot(self.current)
@@ -2071,6 +2143,7 @@ impl<'a> Parser<'a> {
             .lexeme
             .clone();
         self.expect(TokenType::Colon, "Expect ':'")?;
+        self.skip_comments();
         if !is_expr_start(self.peek()?.kind) {
             let t = self.peek()?;
             return Err(self.error_at("P001", "Expected expression after '='", t));
@@ -2461,7 +2534,7 @@ mod tests {
         );
         assert_eq!(
             ast.get("vars").at(1).get("expr").to_json().unwrap(),
-            r#"{"type":"Midi","channel":{"type":"Number","value":1},"mode":{"type":"Member","path":["midiMode","velocity"]},"min":{"type":"Number","value":0},"max":{"type":"Number","value":1},"sensitivity":{"type":"Number","value":1},"loc":{"line":2,"col":24}}"#
+            r#"{"type":"Midi","channel":{"type":"Number","value":1,"loc":{"line":2,"col":29}},"mode":{"type":"Member","path":["midiMode","velocity"]},"min":{"type":"Number","value":0},"max":{"type":"Number","value":1},"sensitivity":{"type":"Number","value":1},"loc":{"line":2,"col":24}}"#
         );
     }
 
@@ -2665,14 +2738,20 @@ mod tests {
 
     #[test]
     fn number_coercion_diagnostics() {
-        for src in [
-            "search synth\nlet x = 1 + o0",
-            "search synth\nlet x = diagProbe() + 1",
+        for (src, location) in [
+            ("search synth\nlet x = 1 + o0", None),
+            (
+                "search synth\nlet x = diagProbe() + 1",
+                Some(crate::lexer::Location {
+                    line: 2.0,
+                    column: 9.0,
+                }),
+            ),
         ] {
             let err = parse_src(src).unwrap_err();
             assert_eq!(err.error, JsError::syntax("Expected number"));
             let d = err.diagnostic.unwrap();
-            assert_eq!((d.code, d.location, d.span), ("P001", None, None));
+            assert_eq!((d.code, d.location, d.span), ("P001", location, None));
         }
         for (src, line, column) in [
             ("search synth\nlet y = [1] + 1", 2, 9),
@@ -2839,7 +2918,7 @@ mod tests {
         let subchain = ast.get("plans").at(0).get("chain").at(1);
         assert_eq!(
             subchain.to_json().unwrap(),
-            r#"{"type":"Subchain","name":"b","id":"s","body":[{"type":"Call","name":"diagFilter","args":[]}],"loc":{"line":2,"col":10}}"#
+            r#"{"type":"Subchain","name":"b","id":"s","body":[{"type":"Call","name":"diagFilter","args":[],"loc":{"line":2,"col":60}}],"loc":{"line":2,"col":10}}"#
         );
         let w = |l: u32, c: u32| {
             (
@@ -2997,7 +3076,7 @@ mod tests {
         let ast = parse_src("search synth\nlet x = from(synth, probe())").unwrap();
         assert_eq!(
             ast.get("vars").at(0).get("expr").to_json().unwrap(),
-            r#"{"type":"Call","name":"probe","args":[],"namespace":{"name":"synth","path":["synth"],"explicit":true,"source":"from","resolved":"synth","searchOrder":["synth"],"fromOverride":true}}"#
+            r#"{"type":"Call","name":"probe","args":[],"loc":{"line":2,"col":21},"namespace":{"name":"synth","path":["synth"],"explicit":true,"source":"from","resolved":"synth","searchOrder":["synth"],"fromOverride":true}}"#
         );
         let ast = parse_src("search synth\nlet a = midi(1, channel: 2)").unwrap();
         assert_eq!(
@@ -3032,7 +3111,7 @@ mod tests {
         let ast = parse_src("search synth\nlet y = [1, 2]").unwrap();
         assert_eq!(
             ast.get("vars").at(0).get("expr").to_json().unwrap(),
-            r#"{"type":"ArrayLiteral","elements":[{"type":"Number","value":1},{"type":"Number","value":2}],"loc":{"line":2,"col":9}}"#
+            r#"{"type":"ArrayLiteral","elements":[{"type":"Number","value":1,"loc":{"line":2,"col":10}},{"type":"Number","value":2,"loc":{"line":2,"col":13}}],"loc":{"line":2,"col":9}}"#
         );
     }
 

@@ -975,6 +975,7 @@ impl WebGpuBackend {
         let bytes_per_pixel: u32 = match gpu_format {
             Some("rgba16float") => 8,
             Some("rgba32float") => 16,
+            Some("r16float") => 2,
             _ => 4,
         };
         let width =
@@ -1043,6 +1044,23 @@ impl WebGpuBackend {
                                 let f = f32::from_le_bytes(row_bytes[i..i + 4].try_into().unwrap());
                                 out[(row * w + col) * 4 + c] = unit_to_byte(f as f64);
                             }
+                        }
+                    }
+                    Some("r32float" | "r16float") => {
+                        for col in 0..w {
+                            let raw = if gpu_format == Some("r16float") {
+                                let i = col * 2;
+                                float16_to_float32(u16::from_le_bytes([
+                                    row_bytes[i],
+                                    row_bytes[i + 1],
+                                ]))
+                            } else {
+                                let i = col * 4;
+                                f32::from_le_bytes(row_bytes[i..i + 4].try_into().unwrap()) as f64
+                            };
+                            let v = unit_to_byte(raw);
+                            out[(row * w + col) * 4..(row * w + col + 1) * 4]
+                                .copy_from_slice(&[v, v, v, 255]);
                         }
                     }
                     _ => {

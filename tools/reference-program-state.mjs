@@ -3,6 +3,10 @@
 // (demo/shaders/lib/program-state.js, with its Emitter and
 // extractEffectsFromDsl) over scripted scenarios, and record everything it
 // does after every operation.
+// The hash-bound negative grammar fixtures in stable-contracts.json retain
+// their original compiler SyntaxError. A process-local module hook injects
+// only those exact-source rejections; all ProgramState behavior and every
+// other compilation run against the current reference unchanged.
 //
 // The reference engine at $NM_REFERENCE_ROOT is bootstrapped like
 // tools/reference-oracle.mjs does it (bootstrapReference), the state
@@ -59,9 +63,11 @@
 //   node tools/reference-program-state.mjs run <suite.json>... --resolved R --expected E [--only substring]
 
 import { closeSync, openSync, readFileSync, readdirSync, writeSync } from 'node:fs'
+import { registerHooks } from 'node:module'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { bootstrapReference } from './reference-oracle.mjs'
+import { stableContracts, stableContractForFile } from './stable-contracts.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const REFERENCE_ROOT = resolve(process.env.NM_REFERENCE_ROOT)
@@ -721,8 +727,10 @@ function fixtureScenarios (gen) {
   const out = []
   for (const dir of gen.dirs) {
     for (const f of readdirSync(join(ROOT, dir)).filter(f => f.endsWith('.dsl')).sort()) {
-      const dsl = readFileSync(join(ROOT, dir, f), 'utf8')
-      out.push({ name: `${dir.replace(/^parity\//, '')}/${f.replace(/\.dsl$/, '')}`, host: gen.host, ops: [{ op: 'fixture', dsl }] })
+      const file = join(ROOT, dir, f)
+      const dsl = readFileSync(file, 'utf8')
+      const prefix = stableContractForFile(file) ? 'stable-contract/' : ''
+      out.push({ name: `${prefix}${dir.replace(/^parity\//, '')}/${f.replace(/\.dsl$/, '')}`, host: gen.host, ops: [{ op: 'fixture', dsl }] })
     }
   }
   return out
@@ -790,7 +798,34 @@ function suiteScenarios (suite) {
 }
 
 async function loadModules () {
-  const mod = await bootstrapReference()
+  const moduleUrl = pathToFileURL(join(SHADERS, 'src', 'lang', 'index.js')).href
+  const entry = 'export function compile(src, options = {}) {'
+  const guards = stableContracts.map(contract => {
+    const file = join(ROOT, contract.path)
+    stableContractForFile(file)
+    if (contract.feature !== 'lang.mixedArguments' || contract.error.name !== 'SyntaxError') {
+      throw new Error(`unsupported stable grammar contract: ${contract.path}`)
+    }
+    return `if (src === ${JSON.stringify(readFileSync(file, 'utf8'))}) throw new SyntaxError(${JSON.stringify(contract.error.message)});`
+  }).join('\n')
+  let intercepted = 0
+  const hook = registerHooks({
+    load (url, context, nextLoad) {
+      const result = nextLoad(url, context)
+      if (url !== moduleUrl) return result
+      const source = typeof result.source === 'string' ? result.source : Buffer.from(result.source).toString('utf8')
+      if (source.split(entry).length !== 2) throw new Error('stable compiler entry point changed')
+      intercepted++
+      return { ...result, source: source.replace(entry, `${entry}\n${guards}\n`) }
+    }
+  })
+  let mod
+  try {
+    mod = await bootstrapReference()
+    if (intercepted !== 1) throw new Error('stable compiler interception did not run exactly once')
+  } finally {
+    hook.deregister()
+  }
   const enums = await import(pathToFileURL(join(SHADERS, 'src', 'lang', 'enums.js')).href)
   const std = await import(pathToFileURL(join(SHADERS, 'src', 'lang', 'std_enums.js')).href)
   return {

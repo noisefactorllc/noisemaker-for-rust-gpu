@@ -152,7 +152,7 @@ function defaultObjFiles () {
 
 async function cmdObj (opts) {
   if (!opts.out) throw new Error('obj: --out DIR is required')
-  const { parseOBJ, packMeshDataForTextures } = await import(pathToFileURL(join(SHADERS_DIR, 'src', 'runtime', 'obj-parser.js')).href)
+  const { parseOBJ } = await import(pathToFileURL(join(SHADERS_DIR, 'src', 'runtime', 'obj-parser.js')).href)
   mkdirSync(opts.out, { recursive: true })
   const files = opts._.length ? opts._.map(f => resolve(f)) : defaultObjFiles()
   const cases = [
@@ -166,7 +166,7 @@ async function cmdObj (opts) {
     writeFileSync(join(opts.out, `${name}.obj`), bytes)
     const mesh = parseOBJ(decoder.decode(bytes))
     console.warn = () => {} // the truncation warning of the large case
-    const packed = packMeshDataForTextures(mesh.positions, mesh.normals, mesh.uvs, 256, 256)
+    const packed = mesh.toPackedTextures(256, 256)
     console.warn = warn
     const arrays = {
       positions: mesh.positions,
@@ -179,10 +179,39 @@ async function cmdObj (opts) {
     for (const [key, array] of Object.entries(arrays)) {
       writeFileSync(join(opts.out, `${name}.${key}.f32`), Buffer.from(array.buffer, array.byteOffset, array.byteLength))
     }
-    manifest.push({ name, obj: `${name}.obj`, vertexCount: mesh.vertexCount, packedVertexCount: packed.vertexCount })
+    writeFileSync(join(opts.out, `${name}.indices.u32`), Buffer.from(mesh.indices.buffer, mesh.indices.byteOffset, mesh.indices.byteLength))
+    manifest.push({ name, obj: `${name}.obj`, vertexCount: mesh.vertexCount, triangleCount: mesh.triangleCount, packedVertexCount: packed.vertexCount })
   }
   writeFileSync(join(opts.out, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n')
   console.error(`[reference-host] obj: ${manifest.length} cases -> ${opts.out}`)
+}
+
+async function cmdGeometry (opts) {
+  if (!opts.out) throw new Error('geometry: --out DIR is required')
+  const { Geometry, meshTextureSize } = await import(pathToFileURL(join(SHADERS_DIR, 'src', 'geometry', 'geometry.js')).href)
+  mkdirSync(opts.out, { recursive: true })
+  const cases = [
+    { name: 'reordered', positions: [1, 2, 3, 4, 5, 6, 7, 8, 9], normals: [0, 1, 0, 1, 0, 0, 0, 0, 1], uvs: [0, 1, 1, 0, 0.5, 0.5], indices: [2, 0, 2, 1, 0, 1] },
+    { name: 'missing-uvs', positions: [1, 2, 3], normals: [0, 0, 1], indices: [0, 0, 0] },
+    { name: 'out-of-bounds', positions: [1, 2, 3], normals: [], uvs: [0.5], indices: [0, 1, 0] },
+    { name: 'empty', positions: [], normals: [], uvs: [], indices: [] },
+    { name: 'unreferenced', positions: [1, 2, 3, 4, 5, 6], normals: [0, 0, 1, 0, 1, 0], indices: [] }
+  ]
+  const records = []
+  for (const tc of cases) {
+    const mesh = new Geometry(tc)
+    const flat = mesh.deindex()
+    const size = meshTextureSize(flat.vertexCount)
+    for (const [suffix, width, height] of [['grid', size.texWidth, size.texHeight], ['truncated', 1, 1]]) {
+      const packed = mesh.toPackedTextures(width, height)
+      const name = `${tc.name}-${suffix}`
+      for (const [key, array] of Object.entries({ positions: flat.positions, normals: flat.normals, uvs: flat.uvs, positionData: packed.positionData, normalData: packed.normalData, uvData: packed.uvData })) {
+        writeFileSync(join(opts.out, `${name}.${key}.f32`), Buffer.from(array.buffer, array.byteOffset, array.byteLength))
+      }
+      records.push({ ...tc, name, width, height, vertexCount: mesh.vertexCount, triangleCount: mesh.triangleCount, flatCount: flat.vertexCount, packedCount: packed.vertexCount, size })
+    }
+  }
+  writeFileSync(join(opts.out, 'geometry.json'), JSON.stringify(records))
 }
 
 // ---- correctly rounded Math.sin / Math.cos / Math.log -----------------------------
@@ -675,7 +704,7 @@ async function cmdText (opts) {
 // ---- main ------------------------------------------------------------------------
 
 const [command, ...rest] = process.argv.slice(2)
-const commands = { obj: cmdObj, worm: cmdWorm, 'math-check': cmdMathCheck, text: cmdText }
+const commands = { obj: cmdObj, geometry: cmdGeometry, worm: cmdWorm, 'math-check': cmdMathCheck, text: cmdText }
 if (!commands[command]) {
   console.error('usage: node tools/reference-host.mjs obj|worm|math-check [options]  (see the header)')
   process.exit(2)

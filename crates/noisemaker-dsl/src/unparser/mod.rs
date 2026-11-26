@@ -100,6 +100,7 @@ pub struct UnparseOptions<'a> {
     pub schema_specs: Rc<Value>,
     /// `formatTemp`.
     pub format_temp: Option<FormatTemp<'a>>,
+    pub let_arguments: bool,
 }
 
 impl std::fmt::Debug for UnparseOptions<'_> {
@@ -999,27 +1000,39 @@ fn format_object(
     if is_type(value, "Audio") {
         return format_raw_audio_node(value);
     }
-    // Handle Read node (pipeline built-in)
     if is_type(value, "Read") {
         let surface = get_opt(value, "surface");
-        let surface_name = or(get_opt(&surface, "name"), || surface.clone());
-        return Ok(format!("read({})", to_string(&surface_name)?).into());
-    }
-    // Handle Read3D node (pipeline built-in)
-    if is_type(value, "Read3D") {
-        let tex3d = get_opt(value, "tex3d");
-        let tex3d_name = or(get_opt(&tex3d, "name"), || tex3d.clone());
-        let geo = get_opt(value, "geo");
-        if geo.is_truthy() {
-            let geo_name = or(get_opt(&geo, "name"), || geo.clone());
-            return Ok(format!(
-                "read3d({}, {})",
-                to_string(&tex3d_name)?,
-                to_string(&geo_name)?
-            )
-            .into());
+        let name = to_string(&or(get_opt(&surface, "name"), || surface.clone()))?;
+        return Ok(if let Some(id) = element_id_value(&get_opt(value, "_id")) {
+            format!("read(_id: {}, surface: {name})", format_string_literal(&id))
+        } else {
+            format!("read({name})")
         }
-        return Ok(format!("read3d({})", to_string(&tex3d_name)?).into());
+        .into());
+    }
+    if is_type(value, "Read3D") {
+        let tex = get_opt(value, "tex3d");
+        let tex = to_string(&or(get_opt(&tex, "name"), || tex.clone()))?;
+        let geo = get_opt(value, "geo");
+        let id = element_id_value(&get_opt(value, "_id"));
+        let mut parts = Vec::new();
+        if let Some(id) = &id {
+            parts.push(format!("_id: {}", format_string_literal(id)));
+        }
+        parts.push(if id.is_some() {
+            format!("tex3d: {tex}")
+        } else {
+            tex
+        });
+        if geo.is_truthy() {
+            let geo = to_string(&or(get_opt(&geo, "name"), || geo.clone()))?;
+            parts.push(if id.is_some() {
+                format!("geo: {geo}")
+            } else {
+                geo
+            });
+        }
+        return Ok(format!("read3d({})", parts.join(", ")).into());
     }
     for t in ["OutputRef", "SourceRef", "VolRef", "GeoRef"] {
         if is_type(value, t) {
@@ -1223,6 +1236,218 @@ fn format_array_like(value: &Value, spec: &Value) -> Result<Option<Value>, JsErr
     }))
 }
 
+fn element_id_value(value: &Value) -> Option<String> {
+    if let Value::String(id) = value {
+        return Some(id.clone());
+    }
+    if is_type(value, "String")
+        && let Value::String(id) = get_opt(value, "value")
+    {
+        return Some(id);
+    }
+    None
+}
+
+fn builtin_id_part(step: &Value, overrides: &Value) -> Option<String> {
+    let id = if matches!(overrides, Value::Object(o) if o.contains_key("_id")) {
+        get_opt(overrides, "_id")
+    } else {
+        get_opt(&get_opt(step, "args"), "_id")
+    };
+    if let Value::String(id) = id {
+        Some(format!("_id: {}", format_string_literal(&id)))
+    } else {
+        None
+    }
+}
+
+fn format_color_literal(value: &Value) -> Result<Value, JsError> {
+    let components = iterate_anon(value)?;
+    let alpha = components.get(3).cloned().unwrap_or(Value::Number(1.0));
+    hex_color(
+        &components,
+        if to_number(&alpha)? >= 1.0 { 3 } else { 4 },
+        true,
+    )
+}
+
+/// `parseFloat(n.toPrecision(10))` for a finite, nonintegral number. JavaScript
+/// rounds exact decimal ties away from zero; Rust's precision formatter uses
+/// ties to even. Expand the binary fraction exactly before selecting digits so
+/// neither ties nor their adjacent floats undergo double rounding.
+fn literal_number_precision(n: f64) -> f64 {
+    let exponent = ((n.abs().to_bits() >> 52) & 0x7ff) as i32;
+    let fraction_digits = if exponent == 0 {
+        1074
+    } else {
+        (1075 - exponent).max(0) as usize
+    };
+    let exact = format!("{:.*}", fraction_digits, n.abs());
+    let decimal_at = exact.find('.').unwrap_or(exact.len());
+    let digits: String = exact.chars().filter(|c| *c != '.').collect();
+    let significant = digits.trim_start_matches('0').trim_end_matches('0');
+    if significant.len() <= 10 {
+        return n;
+    }
+    let leading_zeros = digits.len() - digits.trim_start_matches('0').len();
+    let mut rounded: u64 = significant[..10].parse().expect("decimal digits");
+    if significant.as_bytes()[10] >= b'5' {
+        rounded += 1;
+    }
+    let power = decimal_at as i32 - leading_zeros as i32 - 10;
+    let sign = if n.is_sign_negative() { "-" } else { "" };
+    format!("{sign}{rounded}e{power}")
+        .parse()
+        .expect("rounded decimal number")
+}
+
+fn format_literal_ast(node: &Value) -> Result<String, JsError> {
+    let _depth = DepthGuard::enter()?;
+    if node.is_nullish() {
+        return Ok("null".into());
+    }
+    if let Value::String(name) = get_opt(node, "_varRef") {
+        return Ok(name);
+    }
+    let ty = get_opt(node, "type");
+    let text = match ty.as_str().unwrap_or("") {
+        "Call" => {
+            let mut parts = Vec::new();
+            if let Value::Array(args) = get_opt(node, "args") {
+                for arg in args {
+                    parts.push(format_literal_ast(&arg)?);
+                }
+            }
+            for (key, value) in entries(&get_opt(node, "kwargs")) {
+                parts.push(format!("{key}: {}", format_literal_ast(&value)?));
+            }
+            format!(
+                "{}({})",
+                to_string(&get_opt(node, "name"))?,
+                parts.join(", ")
+            )
+        }
+        "Chain" | "ArrayLiteral" => {
+            let array = ty.as_str() == Some("ArrayLiteral");
+            let elements = get_opt(node, if array { "elements" } else { "chain" });
+            let mut parts = Vec::new();
+            if let Value::Array(elements) = elements {
+                for element in elements {
+                    parts.push(format_literal_ast(&element)?);
+                }
+            }
+            if array {
+                format!("[{}]", parts.join(", "))
+            } else {
+                parts.join(".")
+            }
+        }
+        "Oscillator" | "Audio" | "Midi" => {
+            let (name, fields): (&str, &[&str]) = match ty.as_str().unwrap() {
+                "Oscillator" => ("osc", &["oscType", "min", "max", "speed", "offset", "seed"]),
+                "Audio" => ("audio", &["band", "min", "max", "channel", "name", "id"]),
+                _ => (
+                    "midi",
+                    &[
+                        "channel",
+                        "mode",
+                        "min",
+                        "max",
+                        "sensitivity",
+                        "cc",
+                        "nrpn",
+                        "zone",
+                        "members",
+                        "name",
+                        "id",
+                    ],
+                ),
+            };
+            let mut parts = Vec::new();
+            for key in fields {
+                let value = get_opt(node, key);
+                if !value.is_undefined() {
+                    parts.push(format!(
+                        "{}: {}",
+                        if *key == "oscType" { "type" } else { key },
+                        format_literal_ast(&value)?
+                    ));
+                }
+            }
+            format!("{name}({})", parts.join(", "))
+        }
+        "Member" => array_join(&get_opt(node, "path"), ".", "node.path")?,
+        "Ident" | "OutputRef" | "VolRef" | "GeoRef" | "SourceRef" | "MeshRef" | "RgbaRef"
+        | "VelRef" | "XyzRef" => to_string(&get_opt(node, "name"))?,
+        "String" => format!("\"{}\"", to_string(&get_opt(node, "value"))?),
+        "Boolean" => if get_opt(node, "value").is_truthy() {
+            "true"
+        } else {
+            "false"
+        }
+        .into(),
+        "Number" => {
+            let n = to_number(&get_opt(node, "value"))?;
+            if !n.is_finite() {
+                "0".into()
+            } else if n.fract() == 0.0 {
+                format_lossless_number(n)
+            } else {
+                format_lossless_number(literal_number_precision(n))
+            }
+        }
+        "Color" => to_string(&format_color_literal(&get_opt(node, "value"))?)?,
+        _ => {
+            return Err(JsError::error(format!(
+                "unparse: no scene emitter for AST node type '{}'",
+                to_string(&ty)?
+            )));
+        }
+    };
+    Ok(text)
+}
+
+fn format_let_binding(expr: &Value, options: &UnparseOptions<'_>) -> Result<Value, JsError> {
+    let calls = if is_type(expr, "Chain") {
+        get_opt(expr, "chain")
+    } else {
+        Value::Array(vec![expr.clone()])
+    };
+    let calls = match &calls {
+        Value::Array(calls) => calls,
+        Value::Undefined | Value::Null => return Err(cannot_read(&calls, "some")),
+        _ => return Err(JsError::type_error("calls.some is not a function")),
+    };
+    let is_expression = |value: &Value| {
+        ["Call", "Chain", "Ident"]
+            .iter()
+            .any(|ty| is_type(value, ty))
+    };
+    let mut has_expression = false;
+    for call in calls {
+        if !is_type(call, "Call") {
+            continue;
+        }
+        let args = get_opt(call, "args");
+        has_expression = match args {
+            Value::Undefined | Value::Null => false,
+            Value::Array(args) => args.iter().any(is_expression),
+            _ => return Err(JsError::type_error("call.args?.some is not a function")),
+        };
+        has_expression |= entries(&get_opt(call, "kwargs"))
+            .iter()
+            .any(|(_, value)| is_expression(value));
+        if has_expression {
+            break;
+        }
+    }
+    let mut options = options.clone();
+    if has_expression {
+        options.let_arguments = true;
+    }
+    format_let_expr(expr, &options)
+}
+
 /// `unparseCall(call, options)`: one `{name, kwargs, args}` call as DSL.
 ///
 /// Keyword arguments equal (after formatting) to their spec's default are
@@ -1247,6 +1472,19 @@ pub fn unparse_call(call: &Value, options: &UnparseOptions<'_>) -> Result<String
 
     // Handle kwargs (named arguments)
     let kwargs = get(call, "kwargs")?;
+    let element_id = element_id_value(&get_opt(&kwargs, "_id"));
+    if let Some(id) = &element_id {
+        parts.push(format!("_id: {}", format_string_literal(id)).into());
+    }
+    let format_argument = |value: &Value, spec: &Value, source_form: &Value| {
+        if options.let_arguments && get_opt(value, "type").is_truthy() {
+            if is_type(value, "Color") {
+                return format_color_literal(&get_opt(value, "value"));
+            }
+            return format_let_expr(value, options);
+        }
+        format_value(value, spec, options, source_form)
+    };
     let kwarg_count = if kwargs.is_truthy() {
         keys(&kwargs).len()
     } else {
@@ -1254,6 +1492,9 @@ pub fn unparse_call(call: &Value, options: &UnparseOptions<'_>) -> Result<String
     };
     if kwarg_count > 0 {
         for (key, value) in entries(&kwargs) {
+            if key == "_id" && (element_id.is_some() || value.is_nullish()) {
+                continue;
+            }
             // Skip _skip: false
             if key == "_skip" && strict_equals(&value, &false.into()) {
                 continue;
@@ -1274,7 +1515,7 @@ pub fn unparse_call(call: &Value, options: &UnparseOptions<'_>) -> Result<String
             if default_spec.is_truthy() {
                 let default = member(&default_spec, "default");
                 if !default.is_undefined() {
-                    let formatted_value = format_value(&value, &spec, options, &source_form)?;
+                    let formatted_value = format_argument(&value, &spec, &source_form)?;
                     let formatted_default =
                         format_value(&default, &spec, options, &Value::Undefined)?;
                     // For surface params, 'none' must always be explicit when set
@@ -1289,7 +1530,7 @@ pub fn unparse_call(call: &Value, options: &UnparseOptions<'_>) -> Result<String
                     }
                 }
             }
-            let formatted = format_value(&value, &spec, options, &source_form)?;
+            let formatted = format_argument(&value, &spec, &source_form)?;
             parts.push(format!("{key}: {}", to_string(&formatted)?).into());
         }
     }
@@ -1298,12 +1539,7 @@ pub fn unparse_call(call: &Value, options: &UnparseOptions<'_>) -> Result<String
     let args = get(call, "args")?;
     if args.is_truthy() && has_length(&args)? {
         for arg in iterate(&args, "call.args")? {
-            parts.push(format_value(
-                &arg,
-                &Value::Null,
-                options,
-                &Value::Undefined,
-            )?);
+            parts.push(format_argument(&arg, &Value::Null, &Value::Undefined)?);
         }
     }
 
@@ -1376,6 +1612,7 @@ pub fn format_let_expr(expr: &Value, options: &UnparseOptions<'_>) -> Result<Val
         .into()),
         "Ident" => Ok(get_opt(expr, "name")),
         "Member" => Ok(array_join(&get_opt(expr, "path"), ".", "expr.path")?.into()),
+        "ArrayLiteral" => Ok(format_literal_ast(expr)?.into()),
         "Oscillator" => format_let_oscillator(expr, options),
         "Midi" => format_let_midi(expr, options),
         "Audio" => format_let_audio(expr, options),
@@ -1841,7 +2078,7 @@ fn unparse_control_flow(
         Some(format!(
             "let {} = {}",
             to_string(&get(plan, "name")?)?,
-            to_string(&format_let_expr(&get(plan, "expr")?, options)?)?
+            to_string(&format_let_binding(&get(plan, "expr")?, options)?)?
         ))
     } else {
         None
@@ -1885,7 +2122,7 @@ fn emit_vars_group(
                 lines.push(join_elem(&c)?);
             }
         }
-        let expr_str = format_let_expr(&get(&v, "expr")?, options)?;
+        let expr_str = format_let_binding(&get(&v, "expr")?, options)?;
         lines.push(format!(
             "let {} = {}",
             to_string(&get(&v, "name")?)?,
@@ -2191,19 +2428,24 @@ pub fn unparse(
                 } else {
                     strict_equals(&get_opt(&args, "_skip"), &true.into())
                 };
-                // Use positional form when no _skip, keyword form when _skip is present
+                let id_part = builtin_id_part(step, &step_override);
+                let id_prefix = id_part
+                    .as_ref()
+                    .map(|id| format!("{id}, "))
+                    .unwrap_or_default();
+                let skip_suffix = if is_skipped { ", _skip: true" } else { "" };
                 let code = if op_is("_read") {
                     let tex_name = to_string(&name_or_self(&get_opt(&args, "tex")))?;
-                    if is_skipped {
-                        format!("read(surface: {tex_name}, _skip: true)")
+                    if is_skipped || id_part.is_some() {
+                        format!("read({id_prefix}surface: {tex_name}{skip_suffix})")
                     } else {
                         format!("read({tex_name})")
                     }
                 } else {
                     let tex3d = to_string(&name_or_self(&get_opt(&args, "tex3d")))?;
                     let geo = to_string(&name_or_self(&get_opt(&args, "geo")))?;
-                    if is_skipped {
-                        format!("read3d(tex3d: {tex3d}, geo: {geo}, _skip: true)")
+                    if is_skipped || id_part.is_some() {
+                        format!("read3d({id_prefix}tex3d: {tex3d}, geo: {geo}{skip_suffix})")
                     } else {
                         format!("read3d({tex3d}, {geo})")
                     }
@@ -2215,7 +2457,10 @@ pub fn unparse(
             // Handle builtin write operations (mid-chain writes)
             if op_is("_write") {
                 let tex_name = to_string(&name_or_self(&get_opt(&args, "tex")))?;
-                current_chain.push(make_chain_element(format!("write({tex_name})"))?);
+                let id = builtin_id_part(step, &override_at(overrides, global_step_index)?)
+                    .map(|id| format!(", {id}"))
+                    .unwrap_or_default();
+                current_chain.push(make_chain_element(format!("write({tex_name}{id})"))?);
                 global_step_index += 1.0;
                 continue;
             }
@@ -2223,7 +2468,10 @@ pub fn unparse(
             if op_is("_write3d") {
                 let tex3d = to_string(&name_or_self(&get_opt(&args, "tex3d")))?;
                 let geo = to_string(&name_or_self(&get_opt(&args, "geo")))?;
-                current_chain.push(make_chain_element(format!("write3d({tex3d}, {geo})"))?);
+                let id = builtin_id_part(step, &override_at(overrides, global_step_index)?)
+                    .map(|id| format!(", {id}"))
+                    .unwrap_or_default();
+                current_chain.push(make_chain_element(format!("write3d({tex3d}, {geo}{id})"))?);
                 global_step_index += 1.0;
                 continue;
             }

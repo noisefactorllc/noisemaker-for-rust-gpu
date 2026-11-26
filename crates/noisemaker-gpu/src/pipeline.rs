@@ -163,6 +163,7 @@ pub struct Pipeline {
     warned_dimension_fallbacks: HashSet<String>,
     pub frame_index: f64,
     pub last_time: f64,
+    has_time_reference: bool,
     /// Global surfaces by name (a `Map`: insertion ordered).
     pub surfaces: IndexMap<String, Surface>,
     mip_targets: Vec<String>,
@@ -293,6 +294,7 @@ impl Pipeline {
             warned_dimension_fallbacks: HashSet::new(),
             frame_index: 0.0,
             last_time: 0.0,
+            has_time_reference: false,
             surfaces: IndexMap::new(),
             mip_targets: Vec::new(),
             global_uniforms: Object::new(),
@@ -1636,25 +1638,36 @@ impl Pipeline {
         if self.width != size || self.height != size {
             self.resize(size, size)?;
         }
-        let mut faces = Vec::with_capacity(6);
-        for basis in CUBE_FACE_BASES.iter() {
-            self.set_uniform(
-                "cubeBasis",
-                Value::Array(basis.iter().map(|v| Value::Number(*v)).collect()),
-            )?;
-            self.render(time)?;
-            let Some(surface) = self.surfaces.get(output_surface) else {
-                return Err(RenderError::Js(format!(
-                    "Error: renderCubemap: output surface \"{output_surface}\" not found — the composition must write its cubemap-renderer result to it (e.g. .renderCubemapSurface().write({output_surface}))"
-                )));
-            };
-            let read = surface.read.clone().unwrap_or_default();
-            faces.push(self.backend.read_pixels(&read)?);
-        }
+        let result = (|| {
+            let mut faces = Vec::with_capacity(6);
+            for basis in CUBE_FACE_BASES.iter() {
+                self.set_uniform(
+                    "cubeBasis",
+                    Value::Array(basis.iter().map(|v| Value::Number(*v)).collect()),
+                )?;
+                self.render(time)?;
+                let Some(surface) = self.surfaces.get(output_surface) else {
+                    return Err(RenderError::Js(format!(
+                        "Error: renderCubemap: output surface \"{output_surface}\" not found — the composition must write its result to it (e.g. .renderCubemapSurface().write({output_surface}))"
+                    )));
+                };
+                let read = surface.read.clone().unwrap_or_default();
+                let mut pixels = self.backend.read_pixels(&read)?;
+                let stride = pixels.width as usize * 4;
+                for row in 0..pixels.height as usize / 2 {
+                    let opposite = pixels.height as usize - 1 - row;
+                    for x in 0..stride {
+                        pixels.data.swap(row * stride + x, opposite * stride + x);
+                    }
+                }
+                faces.push(pixels);
+            }
+            Ok(faces)
+        })();
         if prev_w != size || prev_h != size {
             self.resize(prev_w, prev_h)?;
         }
-        Ok(faces)
+        result
     }
 
     /// `setUniform(name, value)`: set a global uniform, propagate it to every pass
@@ -1964,6 +1977,7 @@ impl Pipeline {
     /// `syncTime(time)`.
     pub fn sync_time(&mut self, time: f64) {
         self.last_time = time;
+        self.has_time_reference = true;
     }
 
     /// `render(time)`: execute one frame at normalized time `time`.
@@ -1973,15 +1987,15 @@ impl Pipeline {
         }
         self.run_due_async_regens()?;
         self.poll_async_effects()?;
-        let mut delta = if self.last_time > 0.0 {
+        let mut delta = if self.has_time_reference {
             time - self.last_time
         } else {
             0.0
         };
         if delta < 0.0 {
-            delta = 1.0 / 60.0 / 10.0;
+            delta += 1.0;
         }
-        self.last_time = time;
+        self.sync_time(time);
         self.update_global_uniforms(time, delta);
         self.invoke_update_hooks(time, delta);
 

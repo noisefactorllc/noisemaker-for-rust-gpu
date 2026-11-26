@@ -1,0 +1,20 @@
+[
+  {
+    "path": "parity/corpus/lexparse_err_mixed_keyword_positional.dsl",
+    "sha256": "6daff297391b62e59bbf4993d443692790c03d453978f832ca4139943ddcb080",
+    "feature": "lang.mixedArguments",
+    "error": {
+      "name": "SyntaxError",
+      "message": "Cannot mix positional and keyword arguments at line 2 col 16"
+    }
+  },
+  {
+    "path": "parity/corpus/lexparse_err_mixed_positional_keyword.dsl",
+    "sha256": "016e8184d2886c72f57d4679567aa2df0cc6fe64ce10e5b4ab9707d0ef5ecf9b",
+    "feature": "lang.mixedArguments",
+    "error": {
+      "name": "SyntaxError",
+      "message": "Cannot mix positional and keyword arguments at line 2 col 10"
+    }
+  }
+]

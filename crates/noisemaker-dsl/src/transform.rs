@@ -698,6 +698,17 @@ fn has_no_predecessor(step: &Value) -> Result<bool, JsError> {
     Ok(get(step, "from")?.is_nullish())
 }
 
+fn is_builtin_op(op: &Value) -> bool {
+    op.as_str().is_some_and(|op| op.starts_with('_'))
+}
+
+fn builtin_replacement_failure(op: &Value) -> Result<Value, JsError> {
+    Ok(failure(format!(
+        "Cannot replace builtin '{}': it is a structural chain node, not an effect.",
+        to_string(op)?
+    )))
+}
+
 /// `replaceEffect(compiled, stepIndex, newEffectName, newArgs, options)`: replace
 /// the effect of the step whose `temp` is `stepIndex`, like for like (a starter
 /// position takes only starters, any other position only non-starters).
@@ -734,6 +745,9 @@ pub fn replace_effect(
         step,
     } = location;
     let old_effect_name = get(&step, "op")?;
+    if is_builtin_op(&old_effect_name) {
+        return builtin_replacement_failure(&old_effect_name);
+    }
 
     // A step is in "starter position" if it is the first step of its chain, or
     // an inline surface producer (a starter without a pipeline predecessor).
@@ -913,7 +927,7 @@ pub fn replace_effect(
     ]))
 }
 
-/// `listSteps(compiled, options)`: every non-builtin step with its position and
+/// `listSteps(compiled, options)`: every chain step with its position and
 /// replacement constraints.
 pub fn list_steps(
     compiled: &Value,
@@ -937,8 +951,9 @@ pub fn list_steps(
             let mut chain_index = 0usize;
             while (chain_index as f64) < chain_len {
                 let step = member(&chain, &chain_index.to_string());
-                if !get(&step, "builtin")?.is_truthy() {
+                {
                     let op = get(&step, "op")?;
+                    let builtin = is_builtin_op(&op);
                     let is_starter = check_is_starter(registry, &op, &search_order)?;
                     let is_starter_position =
                         chain_index == 0 || (is_starter && has_no_predecessor(&step)?);
@@ -947,10 +962,20 @@ pub fn list_steps(
                         ("planIndex", Value::from(plan_index)),
                         ("chainIndex", Value::from(chain_index)),
                         ("effectName", op),
+                        (
+                            "kind",
+                            Value::from(if builtin { "builtin" } else { "effect" }),
+                        ),
                         ("isStarter", is_starter.into()),
                         ("isStarterPosition", is_starter_position.into()),
-                        ("canReplaceWithStarter", is_starter_position.into()),
-                        ("canReplaceWithNonStarter", (!is_starter_position).into()),
+                        (
+                            "canReplaceWithStarter",
+                            (!builtin && is_starter_position).into(),
+                        ),
+                        (
+                            "canReplaceWithNonStarter",
+                            (!builtin && !is_starter_position).into(),
+                        ),
                         (
                             "args",
                             or(get(&step, "args")?, || Value::Object(Object::new())),
@@ -988,6 +1013,9 @@ pub fn get_compatible_replacements(
         )));
     };
     let op = get(&location.step, "op")?;
+    if is_builtin_op(&op) {
+        return builtin_replacement_failure(&op);
+    }
     let current_is_starter = check_is_starter(registry, &op, &search_order)?;
     let is_starter_position =
         location.chain_index == 0 || (current_is_starter && has_no_predecessor(&location.step)?);

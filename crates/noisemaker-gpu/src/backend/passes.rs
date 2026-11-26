@@ -229,6 +229,7 @@ impl WebGpuBackend {
         blend: &Value,
         topology: &str,
         formats: &[Value],
+        depth: bool,
     ) -> Result<wgpu::RenderPipeline, RenderError> {
         let render = program.render().expect("render program");
         let topology = if topology.is_empty() {
@@ -241,7 +242,7 @@ impl WebGpuBackend {
             .map(to_js_string)
             .collect::<Vec<_>>()
             .join("_");
-        let key = format!("mrt_{topology}_{joined}_{}", Self::blend_key(blend));
+        let key = format!("mrt_{topology}_{joined}_{}_{depth}", Self::blend_key(blend));
         if let Some(p) = render.pipeline_cache.borrow().get(&key) {
             return Ok(p.clone());
         }
@@ -264,7 +265,13 @@ impl WebGpuBackend {
                 topology: topology_of(topology)?,
                 ..Default::default()
             },
-            None,
+            depth.then_some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth24Plus,
+                depth_write_enabled: Some(true),
+                depth_compare: Some(wgpu::CompareFunction::Less),
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
         );
         render
             .pipeline_cache
@@ -329,11 +336,9 @@ impl WebGpuBackend {
 
     /// `getDepthTexture(width, height)`.
     fn get_depth_texture(&mut self, width: u32, height: u32) -> wgpu::Texture {
-        if self.depth_texture.is_none() || self.depth_texture_size != (width, height) {
-            if let Some(old) = self.depth_texture.take() {
-                old.destroy();
-            }
-            self.depth_texture = Some(self.device.create_texture(&wgpu::TextureDescriptor {
+        let key = (width, height);
+        let texture = self.depth_textures.shift_remove(&key).unwrap_or_else(|| {
+            self.device.create_texture(&wgpu::TextureDescriptor {
                 label: Some("depth"),
                 size: wgpu::Extent3d {
                     width,
@@ -346,10 +351,15 @@ impl WebGpuBackend {
                 format: wgpu::TextureFormat::Depth24Plus,
                 usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
                 view_formats: &[],
-            }));
-            self.depth_texture_size = (width, height);
+            })
+        });
+        self.depth_textures.insert(key, texture.clone());
+        while self.depth_textures.len() > 4 {
+            // Drop this owner's handle; wgpu retains encoded/submitted uses.
+            // Explicit destroy would invalidate passes in the current frame.
+            self.depth_textures.shift_remove_index(0);
         }
-        self.depth_texture.clone().unwrap()
+        texture
     }
 
     /// `executePass(pass, state)`.
@@ -578,6 +588,7 @@ impl WebGpuBackend {
             pass::get(pass, "blend"),
             topology,
             &formats,
+            draw_mode == Some("triangles"),
         )?;
         let viewport_tex = targets[0].clone();
         let load = if pass::get(pass, "clear").is_truthy() {
@@ -607,6 +618,18 @@ impl WebGpuBackend {
             _ => 3,
         };
 
+        let depth_view = if draw_mode == Some("triangles") {
+            let width = enforce_range_u32(&Value::Number(viewport_tex.width))
+                .map_err(RenderError::type_error)?;
+            let height = enforce_range_u32(&Value::Number(viewport_tex.height))
+                .map_err(RenderError::type_error)?;
+            Some(
+                self.get_depth_texture(width, height)
+                    .create_view(&Default::default()),
+            )
+        } else {
+            None
+        };
         let encoder = self.command_encoder.as_mut().ok_or_else(|| {
             RenderError::type_error("Cannot read properties of null (reading 'beginRenderPass')")
         })?;
@@ -627,7 +650,20 @@ impl WebGpuBackend {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some(&program.id),
             color_attachments: &attachments,
-            depth_stencil_attachment: None,
+            depth_stencil_attachment: depth_view.as_ref().map(|view| {
+                wgpu::RenderPassDepthStencilAttachment {
+                    view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: if matches!(pass::get(pass, "clear"), Value::Bool(false)) {
+                            wgpu::LoadOp::Load
+                        } else {
+                            wgpu::LoadOp::Clear(1.0)
+                        },
+                        store: wgpu::StoreOp::Store,
+                    }),
+                    stencil_ops: None,
+                }
+            }),
             timestamp_writes: None,
             occlusion_query_set: None,
             multiview_mask: None,

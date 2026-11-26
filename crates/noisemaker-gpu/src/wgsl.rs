@@ -592,6 +592,72 @@ pub fn compute_wgsl_struct_size(body: &str) -> u64 {
     offset.div_ceil(max_align) * max_align
 }
 
+fn strip_backend_wgsl_comments(source: &str) -> String {
+    let blocks = JsRegex::new(r"/\*(?:\s|\S)*?\*/", "g").replace_all(source, " ");
+    JsRegex::new(r"//[^\n]*", "g").replace_all(&blocks, "")
+}
+
+pub fn extract_wgsl_struct_body(source: &str, name: &str) -> Option<String> {
+    if source.is_empty() || name.is_empty() {
+        return None;
+    }
+    let cleaned = strip_backend_wgsl_comments(source);
+    let decl = JsRegex::new(&format!(r"\bstruct\s+{name}\s*\{{"), "");
+    let start = decl.exec(&cleaned)?.get(0)?.end();
+    let mut depth = 1usize;
+    for (index, c) in cleaned[start..].char_indices() {
+        if c == '{' {
+            depth += 1;
+        } else if c == '}' {
+            depth -= 1;
+            if depth == 0 {
+                return Some(cleaned[start..start + index].to_owned());
+            }
+        }
+    }
+    None
+}
+
+pub fn count_fragment_outputs(source: &str, entry_point: &str) -> usize {
+    if source.is_empty() || entry_point.is_empty() {
+        return 1;
+    }
+    let cleaned = strip_backend_wgsl_comments(source);
+    let decl = JsRegex::new(&format!(r"@fragment\s*fn\s+{entry_point}\s*\("), "");
+    let Some(m) = decl.exec(&cleaned) else {
+        return 1;
+    };
+    let mut i = m.get(0).unwrap().end();
+    let mut depth = 1usize;
+    while i < cleaned.len() && depth > 0 {
+        match cleaned.as_bytes()[i] {
+            b'(' => depth += 1,
+            b')' => depth -= 1,
+            _ => {}
+        }
+        i += 1;
+    }
+    let Some(end) = cleaned[i..].find('{') else {
+        return 1;
+    };
+    let returned = &cleaned[i..i + end];
+    if !returned.contains("->") {
+        return 1;
+    }
+    let locations = JsRegex::new(r"@location\s*\(", "g");
+    let inline = locations.count(returned);
+    if inline > 0 {
+        return inline;
+    }
+    let type_decl = JsRegex::new(r"->\s*([A-Za-z_]\w*)", "");
+    let Some(ty) = type_decl.exec(returned) else {
+        return 1;
+    };
+    extract_wgsl_struct_body(&cleaned, group(&ty, 1).unwrap())
+        .map(|body| locations.count(&body).max(1))
+        .unwrap_or(1)
+}
+
 /// `parseDeclaredUniformBufferSize`: the largest struct size among the structs
 /// bound as `var<uniform>`, 0 when none is found.
 pub fn parse_declared_uniform_buffer_size(source: &str) -> u64 {
@@ -599,11 +665,10 @@ pub fn parse_declared_uniform_buffer_size(source: &str) -> u64 {
     let mut largest = 0u64;
     for caps in binding_re.exec_all(source) {
         let struct_name = group(&caps, 1).unwrap();
-        let struct_re = JsRegex::new(&format!(r"struct\s+{struct_name}\s*\{{([^}}]+)\}}"), "g");
-        let Some(m) = struct_re.exec(source) else {
+        let Some(body) = extract_wgsl_struct_body(source, struct_name) else {
             continue;
         };
-        let size = compute_wgsl_struct_size(group(&m, 1).unwrap());
+        let size = compute_wgsl_struct_size(&body);
         if size > largest {
             largest = size;
         }
@@ -1034,6 +1099,12 @@ mod tests {
         let src = "struct Uniforms { data: array<vec4<f32>, 3>, };\n\
                    @group(0) @binding(0) var<uniform> uniforms: Uniforms;";
         assert_eq!(parse_declared_uniform_buffer_size(src), 48);
+    }
+
+    #[test]
+    fn uniform_struct_braces_in_comments_do_not_truncate_layout() {
+        let source = "struct Uniforms { first: vec4<f32>, // }\n /* } { */ second: vec4<f32>, }; @group(0) @binding(0) var<uniform> u: Uniforms;";
+        assert_eq!(parse_declared_uniform_buffer_size(source), 32);
     }
 
     #[test]

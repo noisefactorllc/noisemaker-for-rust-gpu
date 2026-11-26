@@ -85,6 +85,52 @@ const SURFACE_PASSTHROUGH_CALLS: &[&str] = &["read"];
 /// `MAX_AUTOMATION_DEPTH`.
 const MAX_AUTOMATION_DEPTH: i64 = 8;
 
+fn keep_element_id(node: &V, args: &V) -> Result<(), JsError> {
+    if node.get_opt("type").is_str("String") && node.get_opt("_varRef").is_undefined() {
+        let value = node.get("value")?;
+        if let Some(id) = value.as_str() {
+            let mut chars = id.chars();
+            if chars.next().is_some_and(|c| c.is_ascii_alphabetic())
+                && chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
+            {
+                args.set("_id", value)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+fn is_written_mixed(call: &V) -> Result<bool, JsError> {
+    if call.get_opt("positionalsByIndex").truthy() {
+        return Ok(false);
+    }
+    let args = call.get("args")?;
+    let kwargs = call.get("kwargs")?;
+    Ok(args.truthy()
+        && args.get("length")?.to_number() > 0.0
+        && kwargs.truthy()
+        && !object_keys(&kwargs)?.is_empty())
+}
+
+fn drop_marks(node: &V) {
+    match node {
+        V::Arr(items) => {
+            for item in items.borrow().iter() {
+                drop_marks(item);
+            }
+        }
+        V::Obj(obj) => {
+            if node.get_opt("type").is_str("Call") {
+                obj.borrow_mut().remove("positionalsByIndex");
+            }
+            for (_, value) in obj.borrow().entries() {
+                drop_marks(&value);
+            }
+        }
+        _ => {}
+    }
+}
+
 /// `AUTOMATION_FIELDS[type]`.
 fn automation_fields(ty: &V) -> Option<&'static [&'static str]> {
     match ty.as_str()? {
@@ -974,6 +1020,39 @@ impl<'r> Validator<'r> {
                     ("name", val.get("name")?),
                     ("args", merged_args),
                 ]);
+                if merged_kw.is_some()
+                    && merged.get("args")?.get("length")?.to_number() > 0.0
+                    && !is_written_mixed(&val)?
+                    && !is_written_mixed(call)?
+                {
+                    let has_bound_keyword = val_kwargs.truthy()
+                        && object_keys(&val_kwargs)?
+                            .iter()
+                            .any(|key| key != "_skip" && key != "_id");
+                    let limit = if has_bound_keyword {
+                        let stored = val.get_opt("positionalsByIndex").get_opt("colorSplatLimit");
+                        if stored.is_nullish() {
+                            val_args.get("length")?
+                        } else {
+                            stored
+                        }
+                    } else {
+                        merged.get("args")?.get("length")?
+                    };
+                    merged.set(
+                        "positionalsByIndex",
+                        V::object_from(vec![("colorSplatLimit", limit)]),
+                    )?;
+                }
+                let loc = call.get("loc")?;
+                let loc = if loc.is_nullish() {
+                    val.get("loc")?
+                } else {
+                    loc
+                };
+                if loc.truthy() {
+                    merged.set("loc", loc)?;
+                }
                 if let Some(kw) = merged_kw {
                     merged.set("kwargs", kw)?;
                 }
@@ -1088,8 +1167,7 @@ impl<'r> Validator<'r> {
         if ty.is_str("Chain") {
             let mut mapped = Vec::new();
             for c in array_for(&node.get("chain")?, "node.chain", "map")? {
-                let mapped_call = self.substitute_call(&c, "c", resolving)?;
-                mapped.push(self.resolve_call(&mapped_call)?);
+                mapped.push(self.substitute(&c, resolving)?);
             }
             return Ok(V::object_from(vec![
                 ("type", V::str("Chain")),
@@ -1115,6 +1193,12 @@ impl<'r> Validator<'r> {
             ("name", c.get("name")?),
             ("args", V::array_from(mapped_args)),
         ]);
+        for key in ["loc", "positionalsByIndex"] {
+            let value = c.get(key)?;
+            if value.truthy() {
+                mapped_call.set(key, value)?;
+            }
+        }
         let kwargs = c.get("kwargs")?;
         if kwargs.truthy() {
             let kw = V::new_object();
@@ -2140,6 +2224,7 @@ impl<'r> Validator<'r> {
                 if original.get("_skip")?.strict_equals(&V::Bool(true)) {
                     step_args.set("_skip", V::Bool(true))?;
                 }
+                keep_element_id(&original.get("_id")?, &step_args)?;
                 current = self.builtin_step(ctx, "_read", step_args, V::Null, &original)?;
                 continue;
             }
@@ -2171,6 +2256,7 @@ impl<'r> Validator<'r> {
                 if original.get("_skip")?.strict_equals(&V::Bool(true)) {
                     step_args.set("_skip", V::Bool(true))?;
                 }
+                keep_element_id(&original.get("_id")?, &step_args)?;
                 current = self.builtin_step(ctx, "_read3d", step_args, V::Null, &original)?;
                 continue;
             }
@@ -2195,6 +2281,7 @@ impl<'r> Validator<'r> {
                     continue;
                 }
                 let args = V::object_from(vec![("tex", surface)]);
+                keep_element_id(&original.get("_id")?, &args)?;
                 current = self.builtin_step(ctx, "_write", args, current, &original)?;
                 continue;
             }
@@ -2220,6 +2307,7 @@ impl<'r> Validator<'r> {
                     continue;
                 }
                 let args = V::object_from(vec![("tex3d", tex3d), ("geo", geo)]);
+                keep_element_id(&original.get("_id")?, &args)?;
                 current = self.builtin_step(ctx, "_write3d", args, current, &original)?;
                 continue;
             }
@@ -2406,55 +2494,90 @@ impl<'r> Validator<'r> {
             _ => &[],
         };
         let call_args = call.get("args")?;
+        let mut pos_cursor = 0usize;
+        let by_index = !kw.truthy() || call.get_opt("positionalsByIndex").truthy();
+        let splat_limit = call
+            .get_opt("positionalsByIndex")
+            .get_opt("colorSplatLimit");
+        let splat_limit = if splat_limit.is_nullish() {
+            f64::INFINITY
+        } else {
+            splat_limit.to_number()
+        };
+        let mut splat_values: HashMap<String, V> = HashMap::new();
         let mut i = 0usize;
         while i < spec_args.len() {
             let def = &spec_args[i];
             let def_name = def.get("name");
             let arg_key = crate::js::value_to_property_key(def_name);
+            if by_index {
+                pos_cursor = i;
+            }
             let kw_value = if kw.truthy() {
                 kw.get(&arg_key)?
             } else {
                 V::Undefined
             };
-            let node = if kw.truthy() && !kw_value.is_undefined() {
-                kw_value.clone()
-            } else {
-                call_args.get(&i.to_string())?
-            };
-            let node = self.substitute(&node, &[])?;
-            let ntype = if node.truthy() {
-                node.get("type")?
-            } else {
-                V::Undefined
-            };
-            let def_type = def.get("type");
-            if !kw.truthy()
-                && node.truthy()
-                && ntype.is_str("Color")
-                && def_type.as_str() != Some("color")
+            let from_keyword = kw.truthy() && !kw_value.is_undefined();
+            if (pos_cursor as f64) < splat_limit
+                && def.get("type").as_str() != Some("color")
                 && def_name.as_str() == Some("r")
                 && spec_args
                     .get(i + 1)
-                    .map(|d| d.get("name").as_str() == Some("g"))
-                    .unwrap_or(false)
+                    .is_some_and(|d| d.get("name").as_str() == Some("g"))
                 && spec_args
                     .get(i + 2)
-                    .map(|d| d.get("name").as_str() == Some("b"))
-                    .unwrap_or(false)
+                    .is_some_and(|d| d.get("name").as_str() == Some("b"))
             {
-                // `const [r, g, b] = node.value`
-                let rgb = iterate(&node.get("value")?, None)?;
-                let component = |k: usize| rgb.get(k).cloned().unwrap_or_default();
-                args.set(&arg_key, component(0))?;
-                let g_key = crate::js::value_to_property_key(spec_args[i + 1].get("name"));
-                args.set(&g_key, component(1))?;
-                let b_key = crate::js::value_to_property_key(spec_args[i + 2].get("name"));
-                args.set(&b_key, component(2))?;
-                i += 3;
+                let positional = self.substitute(&call_args.get(&pos_cursor.to_string())?, &[])?;
+                if positional.get_opt("type").is_str("Color") {
+                    pos_cursor += 1;
+                    let rgb = iterate(&positional.get("value")?, None)?;
+                    for (j, name) in ["r", "g", "b"].iter().enumerate() {
+                        splat_values
+                            .insert((*name).to_owned(), rgb.get(j).cloned().unwrap_or_default());
+                    }
+                }
+            }
+            if !from_keyword
+                && let Some(value) = splat_values.get(&arg_key)
+                && !value.is_undefined()
+            {
+                args.set(&arg_key, value.clone())?;
+                i += 1;
                 continue;
             }
-            if kw.truthy() && !kw_value.is_undefined() {
+            let node = if from_keyword {
+                kw_value.clone()
+            } else if (pos_cursor as f64) < call_args.get("length")?.to_number() {
+                let node = call_args.get(&pos_cursor.to_string())?;
+                pos_cursor += 1;
+                node
+            } else {
+                V::Undefined
+            };
+            let node = self.substitute(&node, &[])?;
+            if from_keyword {
                 seen.insert(arg_key.clone());
+            }
+            if node.get_opt("type").is_str("Chain") {
+                let entries = array_for(&node.get("chain")?, "node.chain", "some")?;
+                if entries
+                    .iter()
+                    .any(|entry| !entry.get_opt("type").is_str("Call"))
+                {
+                    self.push_diag(
+                        "S001",
+                        &entries.first().cloned().unwrap_or_default(),
+                        Some(format!(
+                            "Chain for argument '{arg_key}' in {}() may contain only effect calls",
+                            call_name.to_js_string()
+                        )),
+                    )?;
+                    args.set(&arg_key, V::Null)?;
+                    i += 1;
+                    continue;
+                }
             }
             let resolved = self.resolve_arg(
                 ctx,
@@ -2472,6 +2595,11 @@ impl<'r> Validator<'r> {
                 args.set(&arg_key, value)?;
             }
             i += 1;
+        }
+
+        if kw.truthy() && !kw.get("_id")?.is_undefined() {
+            keep_element_id(&kw.get("_id")?, &args)?;
+            seen.insert("_id".to_owned());
         }
 
         // Handle _skip meta-argument (skip this step in the pipeline).
@@ -2498,6 +2626,23 @@ impl<'r> Validator<'r> {
                     )?;
                 }
             }
+        }
+
+        if by_index {
+            pos_cursor = spec_args.len();
+        }
+        if (pos_cursor as f64) < call_args.get("length")?.to_number() {
+            let extra = call_args.get(&pos_cursor.to_string())?;
+            self.push_diag(
+                "S009",
+                if extra.truthy() { &extra } else { &call },
+                Some(format!(
+                    "Too many positional arguments for {}(): '{}' takes {}",
+                    call_name.to_js_string(),
+                    call_name.to_js_string(),
+                    spec_args.len()
+                )),
+            )?;
         }
 
         let hook = call_name.as_str().and_then(|n| self.hooks.get(n));
@@ -3529,6 +3674,9 @@ impl<'r> Validator<'r> {
             }
         }
         self.declare_vars_before(f64::INFINITY)?;
+        for plan in &plans {
+            drop_marks(plan);
+        }
 
         // Include original variable declarations for unparsing.
         let vars = if vars.truthy() {

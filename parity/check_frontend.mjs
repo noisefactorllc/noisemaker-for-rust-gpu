@@ -26,6 +26,7 @@ import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { stableContracts, stableContractForFile } from '../tools/stable-contracts.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const ALL_STAGES = ['tokens', 'ast', 'validated', 'expanded', 'graph']
@@ -122,6 +123,15 @@ function main () {
     console.error(`nm-render not found at ${NM_RENDER} (cargo build --release -p nm-render, or set NM_RENDER)`)
     process.exit(2)
   }
+  const selectedContracts = new Map()
+  for (const contract of stableContracts) {
+    const path = resolve(ROOT, contract.path)
+    if (!opts.programs.includes(path)) continue
+    stableContractForFile(path)
+    const name = contract.path.split('/').at(-1).replace(/\.dsl$/, '')
+    if (selectedContracts.has(name)) throw new Error(`duplicate stable contract: ${name}`)
+    selectedContracts.set(name, { ...contract, absolutePath: path })
+  }
   const work = mkdtempSync(join(tmpdir(), 'nm-check-frontend-'))
   let failures = 0
   try {
@@ -142,18 +152,36 @@ function main () {
         { stdio: ['ignore', 'inherit', opts.verbose ? 'inherit' : 'ignore'], maxBuffer: 1 << 30 })
       const ref = readJsonl(refOut)
       const cand = readJsonl(candOut)
+      if (opts.isolated && PREVIOUS[stage] && selectedContracts.size) {
+        const contractOut = join(work, `${stage}.stable-candidate.jsonl`)
+        execFileSync(NM_RENDER, ['dump', stage, '--out', contractOut, ...[...selectedContracts.values()].map(c => c.absolutePath)],
+          { stdio: ['ignore', 'inherit', opts.verbose ? 'inherit' : 'ignore'], maxBuffer: 1 << 30 })
+        for (const [name, record] of readJsonl(contractOut)) cand.set(name, record)
+      }
       let ok = 0
+      let total = 0
+      let stableOk = 0
+      let stableTotal = 0
       const bad = []
       for (const [program, r] of ref) {
         const c = cand.get(program)
+        const contract = stage === 'tokens' ? null : selectedContracts.get(program)
         let d
-        if (!c) d = 'no candidate record'
-        else if ('error' in r || 'error' in c) d = diff({ error: r.error ?? null, result: 'error' in r ? null : r.result }, { error: c.error ?? null, result: 'error' in c ? null : c.result })
-        else d = diff(r.result, c.result)
+        if (contract) {
+          stableTotal++
+          d = c ? diff({ program, stage, error: contract.error }, c) : 'no candidate record'
+          if (!d) stableOk++
+        } else {
+          total++
+          if (!c) d = 'no candidate record'
+          else if ('error' in r || 'error' in c) d = diff({ error: r.error ?? null, result: 'error' in r ? null : r.result }, { error: c.error ?? null, result: 'error' in c ? null : c.result })
+          else d = diff(r.result, c.result)
+          if (!d) ok++
+        }
         if (d) bad.push(`  ${program}: ${d}`)
-        else ok++
       }
-      console.log(`STAGE ${stage}: ${ok}/${ref.size} match`)
+      console.log(`STAGE ${stage}: ${ok}/${total} match`)
+      if (stableTotal) console.log(`STABLE CONTRACT ${stage}: ${stableOk}/${stableTotal} exact rejections`)
       if (bad.length) {
         failures += bad.length
         console.log(bad.join('\n'))

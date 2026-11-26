@@ -144,6 +144,12 @@ pub const DIAGNOSTICS: &[DiagnosticInfo] = &[
         message: "Deprecated effect",
     },
     DiagnosticInfo {
+        code: "S009",
+        stage: "semantic",
+        severity: "warning",
+        message: "Too many positional arguments",
+    },
+    DiagnosticInfo {
         code: "R001",
         stage: "runtime",
         severity: "error",

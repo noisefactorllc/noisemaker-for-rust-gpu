@@ -3,10 +3,12 @@
 //! the expanded passes read and write).
 
 use indexmap::IndexMap;
+use std::collections::HashSet;
 
 use crate::error::JsError;
 use crate::expander::{js_values, member, starts_with};
 use crate::js::same_value_zero;
+use crate::unparser::jsv::to_string;
 use crate::value::{Object, Value};
 
 /// The pass interval during which a virtual texture is live:
@@ -15,6 +17,78 @@ use crate::value::{Object, Value};
 pub struct Lifetime {
     pub start: usize,
     pub end: usize,
+}
+
+fn build_input_aliases(passes: &[Value]) -> Result<IndexMap<String, String>, JsError> {
+    let mut written = HashSet::new();
+    for pass in passes {
+        let outputs = member(pass, "outputs")?;
+        if outputs.is_truthy() {
+            for texture in js_values(outputs) {
+                if let Value::String(id) = texture {
+                    written.insert(id);
+                }
+            }
+        }
+    }
+    let mut aliases = IndexMap::new();
+    for (index, pass) in passes.iter().enumerate() {
+        let inputs = member(pass, "inputs")?;
+        let node = member(pass, "nodeId")?;
+        if !inputs.is_truthy() || !node.is_truthy() {
+            continue;
+        }
+        let node = to_string(node)?;
+        let own_output = format!("{node}_out");
+        for texture in js_values(inputs) {
+            let Value::String(id) = texture else { continue };
+            if written.contains(&id)
+                || aliases.contains_key(&id)
+                || !["inputTex", "inputColor"]
+                    .iter()
+                    .any(|name| id == format!("{node}_{name}"))
+            {
+                continue;
+            }
+            let mut upstream = None;
+            for previous in passes[..index].iter().rev() {
+                let outputs = member(previous, "outputs")?;
+                if !outputs.is_truthy() {
+                    continue;
+                }
+                for output in js_values(outputs) {
+                    let Value::String(output) = output else {
+                        continue;
+                    };
+                    if output == own_output {
+                        continue;
+                    }
+                    if output
+                        .strip_prefix("node_")
+                        .and_then(|s| s.strip_suffix("_out"))
+                        .is_some_and(|s| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()))
+                    {
+                        upstream = Some(output);
+                        break;
+                    }
+                }
+                if upstream.is_some() {
+                    break;
+                }
+            }
+            if let Some(upstream) = upstream {
+                aliases.insert(id, upstream);
+            }
+        }
+    }
+    Ok(aliases)
+}
+
+fn resolve_input(aliases: &IndexMap<String, String>, input: Value) -> Value {
+    match input.as_str().and_then(|id| aliases.get(id)) {
+        Some(upstream) => upstream.clone().into(),
+        None => input,
+    }
 }
 
 /// `touch(texId, index)` of `analyzeLiveness`.
@@ -56,11 +130,12 @@ fn touch(
 /// (and empty bindings) are not tracked.
 pub fn analyze_liveness(passes: &[Value]) -> Result<IndexMap<String, Lifetime>, JsError> {
     let mut lifetime = IndexMap::new();
+    let aliases = build_input_aliases(passes)?;
     for (index, pass) in passes.iter().enumerate() {
         let inputs = member(pass, "inputs")?;
         if inputs.is_truthy() {
             for tex in js_values(inputs) {
-                touch(&mut lifetime, &tex, index)?;
+                touch(&mut lifetime, &resolve_input(&aliases, tex), index)?;
             }
         }
         let outputs = member(pass, "outputs")?;
@@ -85,6 +160,7 @@ struct FreeSlot {
 /// releases the inputs whose lifetime ends at this pass.
 pub fn allocate_resources(passes: &[Value]) -> Result<Object, JsError> {
     let lifetime = analyze_liveness(passes)?;
+    let aliases = build_input_aliases(passes)?;
     let mut allocations = Object::new();
     let mut free_list: Vec<FreeSlot> = Vec::new();
     let mut physical_count = 0usize;
@@ -126,6 +202,7 @@ pub fn allocate_resources(passes: &[Value]) -> Result<Object, JsError> {
         if inputs.is_truthy() {
             let mut unique: Vec<Value> = Vec::new();
             for tex_id in js_values(inputs) {
+                let tex_id = resolve_input(&aliases, tex_id);
                 if !unique.iter().any(|seen| same_value_zero(seen, &tex_id)) {
                     unique.push(tex_id);
                 }
@@ -161,6 +238,36 @@ mod tests {
 
     fn pass(inputs: Value, outputs: Value) -> Value {
         js!({"inputs": inputs, "outputs": outputs})
+    }
+
+    #[test]
+    fn unwritten_pipeline_input_alias_keeps_its_upstream_output_live() {
+        for input in ["inputTex", "inputColor"] {
+            let alias = format!("node_1_{input}");
+            let passes = vec![
+                js!({"nodeId": "node_0", "outputs": {"color": "node_0_out"}}),
+                js!({"nodeId": "node_1", "inputs": {"input": (alias.clone())}, "outputs": {"color": "node_1_out"}}),
+                js!({"nodeId": "node_2", "inputs": {"input": "node_1_out"}, "outputs": {"color": "node_2_out"}}),
+            ];
+            let live = analyze_liveness(&passes).unwrap();
+            assert_eq!(live["node_0_out"], Lifetime { start: 0, end: 1 });
+            assert!(!live.contains_key(&alias));
+            let allocated = allocate_resources(&passes).unwrap();
+            assert_eq!(allocated.get("node_0_out"), allocated.get("node_2_out"));
+            assert_ne!(allocated.get("node_0_out"), allocated.get("node_1_out"));
+        }
+    }
+
+    #[test]
+    fn written_node_input_is_a_real_texture() {
+        let passes = vec![
+            js!({"nodeId": "node_0", "outputs": {"color": "node_0_out"}}),
+            js!({"nodeId": "node_1", "outputs": {"color": "node_1_inputColor"}}),
+            js!({"nodeId": "node_1", "inputs": {"inputColor": "node_1_inputColor"}, "outputs": {"color": "node_1_out"}}),
+        ];
+        let live = analyze_liveness(&passes).unwrap();
+        assert_eq!(live["node_0_out"], Lifetime { start: 0, end: 0 });
+        assert_eq!(live["node_1_inputColor"], Lifetime { start: 1, end: 2 });
     }
 
     #[test]

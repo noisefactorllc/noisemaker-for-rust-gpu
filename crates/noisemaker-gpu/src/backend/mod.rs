@@ -147,8 +147,7 @@ pub struct WebGpuBackend {
     retired_storage_buffers: Vec<wgpu::Buffer>,
     command_encoder: Option<wgpu::CommandEncoder>,
     default_vertex_module: Option<DeviceShader>,
-    depth_texture: Option<wgpu::Texture>,
-    depth_texture_size: (u32, u32),
+    depth_textures: IndexMap<(u32, u32), wgpu::Texture>,
     uniform_buffer_pool: Vec<wgpu::Buffer>,
     active_uniform_buffers: Vec<wgpu::Buffer>,
     /// `_mergedUniforms`: reused across calls; keys are cleared to `undefined`, never
@@ -548,8 +547,7 @@ impl WebGpuBackend {
             retired_storage_buffers: Vec::new(),
             command_encoder: None,
             default_vertex_module: None,
-            depth_texture: None,
-            depth_texture_size: (0, 0),
+            depth_textures: IndexMap::new(),
             uniform_buffer_pool: Vec::new(),
             active_uniform_buffers: Vec::new(),
             merged_uniforms: Object::new(),
@@ -807,10 +805,7 @@ impl WebGpuBackend {
             }
             self.textures.clear();
         }
-        if let Some(depth) = self.depth_texture.take() {
-            depth.destroy();
-            self.depth_texture_size = (0, 0);
-        }
+        self.depth_textures.clear();
         self.programs.clear();
         self.samplers.clear();
         for buffer in self.storage_buffers.drain().map(|(_, buffer)| buffer) {

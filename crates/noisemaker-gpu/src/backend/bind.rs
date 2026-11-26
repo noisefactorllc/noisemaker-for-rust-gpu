@@ -294,7 +294,7 @@ impl WebGpuBackend {
             ),
             None => match &program.kind {
                 super::ProgramKind::Render(r) => (
-                    r.pipeline.get_bind_group_layout(0),
+                    r.eager_pipeline(&program.id)?.get_bind_group_layout(0),
                     r.layout_bindings.clone(),
                 ),
                 super::ProgramKind::Compute(c) => (
@@ -610,6 +610,9 @@ impl WebGpuBackend {
         program: &Rc<Program>,
         state: &FrameState,
     ) -> Result<wgpu::BindGroup, RenderError> {
+        if let Some(render) = program.render() {
+            render.eager_pipeline(&program.id)?;
+        }
         let mut entries: Vec<(u32, EntryResource)> = Vec::new();
         let mut binding = 0u32;
         let sampler_types = pass::get(pass, "samplerTypes");
@@ -658,7 +661,7 @@ impl WebGpuBackend {
         }
         let (layout, layout_bindings) = match &program.kind {
             super::ProgramKind::Render(r) => (
-                r.pipeline.get_bind_group_layout(0),
+                r.eager_pipeline(&program.id)?.get_bind_group_layout(0),
                 r.layout_bindings.clone(),
             ),
             super::ProgramKind::Compute(c) => (

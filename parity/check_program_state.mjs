@@ -118,6 +118,7 @@ async function * lines (path) {
 // The category of a record: its operation, with fixture scenarios apart.
 function category (rec) {
   const suite = rec.s.split(':')[0]
+  if (rec.s.startsWith(`${suite}:stable-contract/`)) return `stable-contract/${suite}/${rec.op}`
   return `${suite}/${rec.op}`
 }
 

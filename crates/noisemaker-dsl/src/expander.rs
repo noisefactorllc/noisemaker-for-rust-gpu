@@ -1353,6 +1353,9 @@ pub fn expand(
             // SECOND PASS: non-surface args.
             if step_args.is_truthy() {
                 for (arg_name, arg) in js_entries(step_args) {
+                    if arg_name == "_id" {
+                        continue;
+                    }
                     let is_object_arg = is_object_type(&arg);
                     if is_texture_arg(&arg) {
                         continue;
@@ -1910,6 +1913,9 @@ fn expand_pass(
     // Map uniforms from the step args.
     if step_args.is_truthy() {
         for (arg_name, arg) in js_entries(step_args) {
+            if arg_name == "_id" {
+                continue;
+            }
             let is_object_arg = is_object_type(&arg);
             // Texture arguments are handled as inputs.
             if is_texture_arg(&arg) {

@@ -44,6 +44,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { bootstrapReference } from './reference-oracle.mjs'
+import { stableContractForFile } from './stable-contracts.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const REFERENCE_ROOT = resolve(process.env.NM_REFERENCE_ROOT)
@@ -568,6 +569,18 @@ function * generateFixtureCases (m, gen, resolver) {
   for (const { dir, name, path } of fixtureFiles(gen.dirs)) {
     const src = readFileSync(path, 'utf8')
     const id = `${dir.replace(/^parity\//, '')}/${name}`
+    const contract = stableContractForFile(path)
+    if (contract) {
+      // The stable parser still rejects this frozen experimental grammar.
+      // Its actual rejection is gated by check_frontend; keep the formatter
+      // comparisons here on that same error instead of generating effect edits.
+      const error = { $js: 'error', ...contract.error }
+      for (const contextLines of [undefined, 0, 1, 4]) {
+        yield { id: `${id}#formatDslError${contextLines === undefined ? '' : `:${contextLines}`}`, op: 'formatDslError', source: src, error, ...(contextLines === undefined ? {} : { options: { contextLines } }) }
+      }
+      yield { id: `${id}#isDslSyntaxError`, op: 'isDslSyntaxError', error }
+      continue
+    }
     let compiled
     try {
       compiled = resolver.compile(src)

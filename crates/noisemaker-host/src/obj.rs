@@ -27,8 +27,68 @@ pub struct ObjMesh {
     pub normals: Vec<f32>,
     /// uv per vertex.
     pub uvs: Vec<f32>,
+    /// Triangle-list indices into the attributes.
+    pub indices: Vec<u32>,
     /// Number of vertices (`positions.len() / 3`).
     pub vertex_count: usize,
+}
+
+/// `meshTextureSize`: the grid needed for de-indexed vertex data.
+pub fn mesh_texture_size(vertex_count: usize) -> (usize, usize) {
+    if vertex_count == 0 {
+        return (1, 1);
+    }
+    let width = (vertex_count as f64).sqrt().ceil() as usize;
+    (width, vertex_count.div_ceil(width))
+}
+
+impl ObjMesh {
+    pub fn new(positions: Vec<f32>, normals: Vec<f32>, uvs: Vec<f32>, indices: Vec<u32>) -> Self {
+        let vertex_count = positions.len() / 3;
+        let uvs = if uvs.is_empty() {
+            vec![0.0; vertex_count * 2]
+        } else {
+            uvs
+        };
+        Self {
+            positions,
+            normals,
+            uvs,
+            indices,
+            vertex_count,
+        }
+    }
+
+    pub fn triangle_count(&self) -> f64 {
+        self.indices.len() as f64 / 3.0
+    }
+
+    pub fn deindex(&self) -> Self {
+        let expand = |data: &[f32], stride: usize| {
+            self.indices
+                .iter()
+                .flat_map(|index| {
+                    (0..stride).map(move |axis| {
+                        data.get(*index as usize * stride + axis)
+                            .copied()
+                            .unwrap_or(f32::NAN)
+                    })
+                })
+                .collect()
+        };
+        Self {
+            positions: expand(&self.positions, 3),
+            normals: expand(&self.normals, 3),
+            uvs: expand(&self.uvs, 2),
+            indices: (0..self.indices.len() as u32).collect(),
+            vertex_count: self.indices.len(),
+        }
+    }
+
+    pub fn to_packed_textures(&self, width: usize, height: usize) -> PackedMesh {
+        let flat = self.deindex();
+        pack_mesh_data_for_textures(&flat.positions, &flat.normals, &flat.uvs, width, height)
+    }
 }
 
 /// The reference `packMeshDataForTextures` result: one RGBA32F texel per
@@ -182,6 +242,7 @@ pub fn parse_obj(obj_text: &str) -> ObjMesh {
         positions: to_f32(&positions),
         normals: to_f32(&normals),
         uvs: to_f32(&uvs),
+        indices: (0..vertex_count as u32).collect(),
         vertex_count,
     }
 }
@@ -309,7 +370,7 @@ pub fn pack_mesh_data_for_textures(
     let vertex_count = positions.len() / 3;
     if vertex_count > max_vertices {
         eprintln!(
-            "[OBJ] Mesh has {vertex_count} vertices, but texture can only hold {max_vertices}. Truncating."
+            "[Geometry] Mesh has {vertex_count} vertices, but texture can only hold {max_vertices}. Truncating."
         );
     }
     let used = vertex_count.min(max_vertices);
@@ -346,13 +407,7 @@ pub fn pack_mesh_data_for_textures(
 /// The host's mesh upload (`_packCacheAndUploadMesh`): `mesh` packed into
 /// the 256x256 textures.
 pub fn pack_mesh(mesh: &ObjMesh) -> PackedMesh {
-    pack_mesh_data_for_textures(
-        &mesh.positions,
-        &mesh.normals,
-        &mesh.uvs,
-        MESH_TEXTURE_SIZE,
-        MESH_TEXTURE_SIZE,
-    )
+    mesh.to_packed_textures(MESH_TEXTURE_SIZE, MESH_TEXTURE_SIZE)
 }
 
 /// The host's `loadOBJFromString(objText)`: parse and pack.

@@ -160,14 +160,12 @@
       "viewport": {
         "width": {
           "param": "volumeSize",
-          "default": 32,
-          "inputOverride": "inputTex3d"
+          "default": 32
         },
         "height": {
           "param": "volumeSize",
           "power": 2,
-          "default": 1024,
-          "inputOverride": "inputTex3d"
+          "default": 1024
         }
       },
       "inputs": {
@@ -186,14 +184,12 @@
       "viewport": {
         "width": {
           "param": "volumeSize",
-          "default": 32,
-          "inputOverride": "inputTex3d"
+          "default": 32
         },
         "height": {
           "param": "volumeSize",
           "power": 2,
-          "default": 1024,
-          "inputOverride": "inputTex3d"
+          "default": 1024
         }
       },
       "inputs": {
@@ -212,14 +208,12 @@
       "viewport": {
         "width": {
           "param": "volumeSize",
-          "default": 32,
-          "inputOverride": "inputTex3d"
+          "default": 32
         },
         "height": {
           "param": "volumeSize",
           "power": 2,
-          "default": 1024,
-          "inputOverride": "inputTex3d"
+          "default": 1024
         }
       },
       "inputs": {
@@ -240,14 +234,12 @@
       "viewport": {
         "width": {
           "param": "volumeSize",
-          "default": 32,
-          "inputOverride": "inputTex3d"
+          "default": 32
         },
         "height": {
           "param": "volumeSize",
           "power": 2,
-          "default": 1024,
-          "inputOverride": "inputTex3d"
+          "default": 1024
         }
       },
       "inputs": {

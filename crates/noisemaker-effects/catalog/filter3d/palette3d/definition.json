@@ -95,14 +95,12 @@
       "viewport": {
         "width": {
           "param": "volumeSize",
-          "default": 64,
-          "inputOverride": "inputTex3d"
+          "default": 64
         },
         "height": {
           "param": "volumeSize",
           "power": 2,
-          "default": 4096,
-          "inputOverride": "inputTex3d"
+          "default": 4096
         }
       },
       "inputs": {

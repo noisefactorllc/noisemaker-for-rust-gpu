@@ -252,6 +252,12 @@ fn check_definition(registry: &Registry, definition: &Value) -> Result<String, J
     if !aliases.is_undefined() {
         return Err(fail("paramAliases is no longer supported"));
     }
+    for field in ["outputTex", "outputXyz", "outputVel", "outputRgba"] {
+        let value = member(field);
+        if !value.is_undefined() && !has_source(&value) {
+            return Err(fail(format!("{field} must be a nonempty texture name")));
+        }
+    }
     if registry
         .get_effect(&format!("{PORTABLE_NAMESPACE}.{func}"))
         .is_some()
@@ -388,6 +394,158 @@ mod tests {
             err.to_string(),
             "Error: Portable effect: user.portableParams is already registered"
         );
+    }
+
+    #[test]
+    fn stable_sync_forwards_output_texture_names_and_rejects_blank_names() {
+        for field in ["outputTex", "outputXyz", "outputVel", "outputRgba"] {
+            let mut reg = Registry::with_catalog();
+            let mut def = definition("forwarded", "{}");
+            def.set(field, Value::from("scratch"));
+            let entry = reg.register_portable_effect(&def).unwrap();
+            assert_eq!(entry.def.get(field), &Value::from("scratch"));
+            for invalid in [
+                Value::from(""),
+                Value::from(" \t\n"),
+                Value::Null,
+                Value::Number(7.0),
+            ] {
+                let mut reg = Registry::with_catalog();
+                def.set(field, invalid);
+                let error = reg.register_portable_effect(&def).unwrap_err();
+                assert_eq!(
+                    error.to_string(),
+                    format!("Error: Portable effect: {field} must be a nonempty texture name")
+                );
+                assert!(reg.get_effect("user.forwarded").is_none());
+            }
+        }
+    }
+
+    #[test]
+    fn stable_sync_scopes_storage_outputs_and_allocates_chain_targets() {
+        use crate::compiler::{CompileOptions, compile_graph};
+        let mut reg = Registry::with_catalog();
+        reg.register_portable_effect(&definition(
+            "stored",
+            r#"{
+            "passes": [{"program":"main", "storageTextures":{"dest":"outputTex"}}]
+        }"#,
+        ))
+        .unwrap();
+        reg.register_portable_effect(&definition("copied", r#"{
+            "passes": [{"program":"main", "inputs":{"source":"inputTex"}, "outputs":{"fragColor":"outputTex"}}]
+        }"#)).unwrap();
+        for (chain, target) in [
+            ("stored().write(o0)", "global_o0"),
+            ("stored().copied().write(o0)", "node_0_out"),
+            ("stored().write(o1).copied().write(o0)", "global_o1"),
+        ] {
+            let graph = compile_graph(
+                &format!("search user\n{chain}\nrender(o0)"),
+                &reg,
+                &CompileOptions::default(),
+            )
+            .unwrap();
+            let first = graph.get("passes").at(0);
+            assert_eq!(
+                first.get("storageTextures").get("dest"),
+                &Value::from(target),
+                "{chain}"
+            );
+            assert!(first.get("outputs").is_undefined(), "{chain}");
+            if target == "node_0_out" {
+                let usage = graph
+                    .get("textures")
+                    .get(target)
+                    .get("usage")
+                    .as_array()
+                    .unwrap();
+                assert!(usage.contains(&Value::from("storage")));
+                assert_eq!(
+                    graph.get("passes").at(1).get("inputs").get("source"),
+                    &Value::from(target)
+                );
+            }
+        }
+        reg.register_portable_effect(&definition("localStore", r#"{
+            "textures":{"scratch":{"width":4,"height":2,"format":"rgba16f","usage":["sample","sample","copySrc"]}},
+            "passes":[{"program":"main","storageTextures":{"dest":"scratch"}}],
+            "outputTex":"scratch"
+        }"#)).unwrap();
+        let graph = compile_graph(
+            "search user\nlocalStore().copied().write(o0)\nrender(o0)",
+            &reg,
+            &CompileOptions::default(),
+        )
+        .unwrap();
+        assert_eq!(
+            graph.get("passes").at(0).get("storageTextures").get("dest"),
+            &Value::from("node_0_scratch")
+        );
+        assert_eq!(
+            graph.get("textures").get("node_0_scratch").get("usage"),
+            &crate::js!(["sample", "copySrc", "storage"])
+        );
+        assert_eq!(
+            graph.get("passes").at(1).get("inputs").get("source"),
+            &Value::from("node_0_scratch")
+        );
+    }
+
+    #[test]
+    fn stable_sync_omits_falsy_storage_texture_declarations() {
+        use crate::compiler::{CompileOptions, compile_graph};
+        for value in ["null", "false", "0", "\"\""] {
+            let mut reg = Registry::with_catalog();
+            reg.register_portable_effect(&definition("emptyStorage", &format!(
+                r#"{{"passes":[{{"program":"main","storageTextures":{value},"outputs":{{"fragColor":"outputTex"}}}}]}}"#
+            ))).unwrap();
+            let graph = compile_graph(
+                "search user\nemptyStorage().write(o0)\nrender(o0)",
+                &reg,
+                &CompileOptions::default(),
+            )
+            .unwrap();
+            assert!(
+                graph
+                    .get("passes")
+                    .at(0)
+                    .get("storageTextures")
+                    .is_undefined(),
+                "{value}"
+            );
+        }
+    }
+
+    #[test]
+    fn stable_sync_global_storage_targets_are_scoped_to_their_chain() {
+        use crate::compiler::{CompileOptions, compile_graph};
+        let mut reg = Registry::with_catalog();
+        reg.register_portable_effect(&definition("globalStore", r#"{
+            "textures":{"global_state":{"width":4,"height":2,"format":"rgba16f"}},
+            "passes":[{"program":"main","storageTextures":{"dest":"global_state"},"outputs":{"fragColor":"outputTex"}}]
+        }"#)).unwrap();
+        let graph = compile_graph(
+            "search user\nglobalStore().write(o0)\nglobalStore().write(o1)\nrender(o0)",
+            &reg,
+            &CompileOptions::default(),
+        )
+        .unwrap();
+        let targets: Vec<_> = graph
+            .get("passes")
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|p| p.get("storageTextures").get("dest").as_str())
+            .collect();
+        assert_eq!(targets, ["global_state_chain_0", "global_state_chain_1"]);
+        for target in targets {
+            assert_eq!(
+                graph.get("textures").get(target).get("width"),
+                &Value::Number(4.0)
+            );
+        }
     }
 
     #[test]

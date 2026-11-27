@@ -71,6 +71,13 @@ impl WebGpuBackend {
             let to_factor = |f: &Value| match f {
                 Value::String(s) => {
                     let mapped = s.to_lowercase().replace('_', "-");
+                    let mapped = match mapped.as_str() {
+                        "src-color" => "src".to_owned(),
+                        "dst-color" => "dst".to_owned(),
+                        "one-minus-src-color" => "one-minus-src".to_owned(),
+                        "one-minus-dst-color" => "one-minus-dst".to_owned(),
+                        _ => mapped,
+                    };
                     if mapped.is_empty() {
                         None
                     } else {
@@ -783,7 +790,7 @@ impl WebGpuBackend {
                 return Value::Number(n);
             }
         }
-        let is_auto = matches!(count.as_str(), Some("auto" | "input"))
+        let is_auto = matches!(count.as_str(), Some("auto" | "screen" | "input"))
             || match &count {
                 Value::String(_) => false,
                 other => to_number(other) <= 0.0,

@@ -4,6 +4,33 @@
 use noisemaker_gpu::graph::pass;
 use noisemaker_gpu::{Graph, Value};
 
+#[test]
+fn stable_sync_blend_color_aliases_preserve_zero_in_both_slots() {
+    use noisemaker_gpu::backend::WebGpuBackend;
+    use wgpu::BlendFactor as B;
+    for (name, expected) in [
+        ("SRC_COLOR", B::Src),
+        ("DST_COLOR", B::Dst),
+        ("ONE_MINUS_SRC_COLOR", B::OneMinusSrc),
+        ("ONE_MINUS_DST_COLOR", B::OneMinusDst),
+        ("ZERO", B::Zero),
+    ] {
+        for spelling in [name.to_owned(), name.to_lowercase().replace('_', "-")] {
+            for slot in 0..2 {
+                let mut pair = vec![Value::from("ZERO"), Value::from("ZERO")];
+                pair[slot] = Value::from(spelling.as_str());
+                let blend = WebGpuBackend::resolve_blend_state(&Value::Array(pair))
+                    .unwrap()
+                    .unwrap();
+                let factors = [blend.color.src_factor, blend.color.dst_factor];
+                assert_eq!(factors[slot], expected);
+                assert_eq!(factors[1 - slot], B::Zero);
+                assert_eq!(blend.alpha, blend.color);
+            }
+        }
+    }
+}
+
 const GRAPH: &str = r#"{
   "id": "-ey86km",
   "source": "noise().write(o0)\nrender(o0)\n",

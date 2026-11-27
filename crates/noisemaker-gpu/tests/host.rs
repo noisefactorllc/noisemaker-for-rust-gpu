@@ -917,6 +917,46 @@ fn portable_solid() -> Value {
 }
 
 #[test]
+fn stable_sync_storage_only_portable_output_reaches_the_next_effect() {
+    let device = device();
+    let mut r = renderer(&device, 4);
+    let compute = r#"@group(0) @binding(0) var dest: texture_storage_2d<rgba16float,write>;
+        @compute @workgroup_size(1,1,1) fn main(@builtin(global_invocation_id) id: vec3<u32>) {
+            textureStore(dest,vec2<i32>(id.xy),vec4<f32>(0.5,0.25,0.75,1));
+        }"#;
+    let copy = r#"@group(0) @binding(0) var source: texture_2d<f32>;
+        @fragment fn main(@builtin(position) p: vec4<f32>) -> @location(0) vec4<f32> {
+            return textureLoad(source,vec2<i32>(p.xy),0);
+        }"#;
+    for (func, passes, shader) in [
+        (
+            "stored",
+            serde_json::json!([{"program":"main","workgroups":[4,4,1],"storageTextures":{"dest":"outputTex"}}]),
+            compute,
+        ),
+        (
+            "copied",
+            serde_json::json!([{"program":"main","inputs":{"source":"inputTex"},"outputs":{"fragColor":"outputTex"}}]),
+            copy,
+        ),
+    ] {
+        let definition = serde_json::json!({"func":func,"namespace":"user","globals":{},"passes":passes,"shaders":{"main":{"wgsl":shader}}});
+        r.register_portable_effect(&Value::from_json(&definition.to_string()).unwrap())
+            .unwrap();
+    }
+    for chain in [
+        "stored().write(o0)",
+        "stored().copied().write(o0)",
+        "stored().write(o1).copied().write(o0)",
+    ] {
+        compile(&mut r, &format!("search user\n{chain}\nrender(o0)"));
+        r.render(0.25).unwrap();
+        assert_eq!(output(&mut r), [128, 64, 191, 255].repeat(16), "{chain}");
+        assert_eq!(r.pipeline_mut().unwrap().backend.device_errors(), 0);
+    }
+}
+
+#[test]
 fn portable_effects_register_compile_and_render() {
     let device = device();
     let mut r = renderer(&device, 8);

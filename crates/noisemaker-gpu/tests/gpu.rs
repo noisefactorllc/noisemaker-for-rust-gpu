@@ -39,6 +39,118 @@ fn render(graph: Graph, size: u32, frames: u32) -> (Renderer, Vec<u8>) {
 }
 
 #[test]
+fn stable_sync_blend_color_factors_render_over_existing_color() {
+    let shader = "@group(0) @binding(0) var<uniform> color: vec4<f32>;
+        @fragment fn main() -> @location(0) vec4<f32> { return color; }";
+    for (pair, expected) in [
+        (["ONE", "ZERO"], [64, 128, 191, 128]),
+        (["SRC_COLOR", "ZERO"], [16, 64, 143, 64]),
+        (["zero", "dst-color"], [64, 16, 4, 16]),
+        (["ONE_MINUS_SRC_COLOR", "ZERO"], [48, 64, 48, 64]),
+        (["zero", "one-minus-dst-color"], [64, 48, 28, 48]),
+    ] {
+        let passes = serde_json::json!([
+            {"id":"base","program":"base","uniforms":{"color":[0.5,0.25,0.125,0.25]},"outputs":{"color":"target"}},
+            {"id":"overlay","program":"overlay","uniforms":{"color":[0.25,0.5,0.75,0.5]},"outputs":{"color":"target"},"blend":pair}
+        ]);
+        let programs = serde_json::json!({"base":{"wgsl":shader},"overlay":{"wgsl":shader}});
+        let (mut renderer, _) = render(
+            graph(
+                &passes.to_string(),
+                &programs.to_string(),
+                r#"{"target":{"width":4,"height":4,"format":"rgba16f"}}"#,
+            ),
+            4,
+            1,
+        );
+        let pixels = renderer
+            .pipeline_mut()
+            .backend
+            .read_pixels("target")
+            .unwrap()
+            .data;
+        assert_eq!(pixels, expected.repeat(16), "{pair:?}");
+    }
+}
+
+#[test]
+fn stable_sync_triangle_screen_count_matches_mesh_extent_and_fallback() {
+    let vertex = r#"@vertex fn vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {
+        let p = array<vec2<f32>,6>(vec2<f32>(-1,-1),vec2<f32>(-1,1),vec2<f32>(1,-1),
+            vec2<f32>(1,-1),vec2<f32>(-1,1),vec2<f32>(1,1));
+        return vec4<f32>(p[i],0.5,1);
+    }"#;
+    let fragment = "@group(0) @binding(0) var<uniform> level: f32;
+        @fragment fn main() -> @location(0) vec4<f32> { return vec4<f32>(level,0,0,1); }";
+    let programs =
+        serde_json::json!({"mesh":{"wgsl":fragment,"vertexWGSL":vertex,"vertexEntryPoint":"vs"}});
+    let draw = |count: serde_json::Value, has_mesh: bool| {
+        let passes = serde_json::json!([{"id":"mesh","program":"mesh","drawMode":"triangles",
+            "count":count,"countUniform":"vertices","uniforms":{"vertices":0,"level":1},"clear":true,
+            "inputs":if has_mesh {serde_json::json!({"meshPositions":"vertices"})} else {serde_json::json!({})},
+            "outputs":{"color":"global_o0"}}]);
+        let textures = if has_mesh {
+            r#"{"vertices":{"width":3,"height":2,"format":"rgba16f"}}"#
+        } else {
+            "{}"
+        };
+        render(
+            graph(&passes.to_string(), &programs.to_string(), textures),
+            8,
+            1,
+        )
+        .1
+    };
+    let full = draw(serde_json::json!(6), true);
+    let half = draw(serde_json::json!(3), false);
+    assert_ne!(full, half);
+    assert_eq!(full, [255, 0, 0, 255].repeat(64));
+    for mode in ["auto", "screen", "input"] {
+        assert_eq!(draw(serde_json::json!(mode), true), full, "{mode}");
+        assert_eq!(draw(serde_json::json!(mode), false), half, "{mode}");
+    }
+}
+
+#[test]
+fn stable_sync_recreates_a_texture_when_storage_usage_is_added() {
+    let src = "@group(0) @binding(0) var<uniform> color: vec4<f32>;
+        @fragment fn main() -> @location(0) vec4<f32> { return color; }";
+    let g = graph(
+        r#"[{"id":"fill","program":"fill","uniforms":{"color":[0.5,0.25,0,1]},"outputs":{"color":"target"}}]"#,
+        &serde_json::json!({"fill":{"wgsl":src}}).to_string(),
+        r#"{"target":{"width":4,"height":4,"format":"rgba16f","persistent":true,"usage":["render","sample","copySrc","copyDst"]}}"#,
+    );
+    let (mut renderer, _) = render(g, 4, 1);
+    let pipeline = renderer.pipeline_mut();
+    let before = pipeline.backend.textures["target"].clone();
+    let pixels = pipeline.backend.read_pixels("target").unwrap().data;
+    pipeline
+        .graph
+        .textures
+        .as_mut()
+        .unwrap()
+        .get_mut("target")
+        .unwrap()
+        .insert(
+            "usage",
+            Value::from_json(r#"["render","sample","storage","copySrc","copyDst"]"#).unwrap(),
+        );
+    pipeline
+        .recreate_textures(&noisemaker_gpu::Object::new())
+        .unwrap();
+    let after = &pipeline.backend.textures["target"];
+    assert!(!std::rc::Rc::ptr_eq(&before, after));
+    assert!(
+        after
+            .usage
+            .unwrap()
+            .contains(wgpu::TextureUsages::STORAGE_BINDING)
+    );
+    assert_eq!(pipeline.backend.read_pixels("target").unwrap().data, pixels);
+    assert_eq!(renderer.device_errors(), 0);
+}
+
+#[test]
 fn slot_layout_uniforms_reach_the_shader() {
     let src = r#"
         struct Uniforms { data: array<vec4<f32>, 2> };

@@ -743,6 +743,7 @@ struct StepContext<'a> {
     plan: &'a Value,
     step: &'a Value,
     is_last_step: bool,
+    next_step: Option<&'a Value>,
     effect_name: &'a Value,
     effect_def: &'a Value,
     node_id: &'a str,
@@ -1405,6 +1406,7 @@ pub fn expand(
                 plan,
                 step,
                 is_last_step: step_position + 1 == chain_len,
+                next_step: chain.get(step_position + 1),
                 effect_name,
                 effect_def,
                 node_id: &node_id,
@@ -1435,6 +1437,7 @@ pub fn expand(
                     &mut pipeline_uniforms,
                     &mut programs,
                     &mut texture_map,
+                    &mut texture_specs,
                     &mut media_steps,
                     &mut media_step_ids,
                     &mut last_written_surface,
@@ -1750,6 +1753,7 @@ fn expand_pass(
     pipeline_uniforms: &mut Object,
     programs: &mut Object,
     texture_map: &mut TextureMap,
+    texture_specs: &mut Object,
     media_steps: &mut Vec<Value>,
     media_step_ids: &mut Vec<String>,
     last_written_surface: &mut Value,
@@ -1809,7 +1813,19 @@ fn expand_pass(
         "viewport",
         "samplerTypes",
     ] {
-        pass.insert(key, member(pass_def, key)?.clone());
+        let value = member(pass_def, key)?;
+        pass.insert(
+            key,
+            if key == "storageTextures" {
+                if value.is_truthy() {
+                    Value::object()
+                } else {
+                    Value::Undefined
+                }
+            } else {
+                value.clone()
+            },
+        );
     }
     pass.insert("inputs", Value::object());
     pass.insert("outputs", Value::object());
@@ -2042,6 +2058,67 @@ fn expand_pass(
     // Map outputs.
     let mut outputs = Object::new();
     let pass_outputs = member(pass_def, "outputs")?;
+    let pass_storage = member(pass_def, "storageTextures")?;
+    if pass_storage.is_truthy() {
+        let mut storage = Object::new();
+        for (binding, tex_ref) in js_entries(pass_storage) {
+            let target = if is_str(&tex_ref, "outputTex") {
+                let is_last_pass = i + 1 == pass_count;
+                let inline_write = ctx
+                    .next_step
+                    .filter(|next| {
+                        is_last_pass
+                            && next.get("builtin").is_truthy()
+                            && is_str(next.get("op"), "_write")
+                    })
+                    .map(|next| next.get("args").get("tex"));
+                let write = member(ctx.plan, "write")?;
+                let target = if let Some(inline) = inline_write
+                    .filter(|value| value.is_truthy() && !is_str(value.get("name"), "none"))
+                {
+                    let (name, surface) = write_target_surface(inline)?;
+                    *last_written_surface = name;
+                    surface
+                } else if ctx.is_last_step && is_last_pass && write.is_truthy() {
+                    let (name, surface) = write_target_surface(write)?;
+                    *last_written_surface = name;
+                    surface
+                } else {
+                    format!("{node_id}_out")
+                };
+                texture_map.insert(format!("{node_id}_out"), Value::from(target.as_str()));
+                target
+            } else if starts_with(&tex_ref, "texRef", "global_")? {
+                scope_chain_tex(
+                    &js_string(&tex_ref),
+                    ctx.particle_pipeline_id,
+                    ctx.global_scope(&js_string(&tex_ref)),
+                )
+            } else {
+                let target = format!("{node_id}_{}", js_string(&tex_ref));
+                if let Some(spec) = texture_specs.get_mut(&target) {
+                    let usage = spec.get("usage");
+                    let values = if usage.is_truthy() {
+                        iterate(usage, "storage usage")?.into_owned()
+                    } else {
+                        ["render", "sample", "copySrc", "copyDst"]
+                            .into_iter()
+                            .map(Value::from)
+                            .collect()
+                    };
+                    let mut unique = Vec::new();
+                    for value in values {
+                        set_add(&mut unique, value);
+                    }
+                    set_add(&mut unique, Value::from("storage"));
+                    spec.set("usage", Value::Array(unique));
+                }
+                target
+            };
+            storage.insert(binding, Value::from(target));
+        }
+        pass.insert("storageTextures", Value::Object(storage));
+    }
     if pass_outputs.is_truthy() {
         for (attachment, tex_ref) in js_entries(pass_outputs) {
             let virtual_tex = if is_str(&tex_ref, "outputTex") {
@@ -2117,7 +2194,11 @@ fn expand_pass(
     }
 
     pass.insert("inputs", Value::Object(inputs));
-    pass.insert("outputs", Value::Object(outputs));
+    if pass_storage.is_truthy() && !pass_outputs.is_truthy() {
+        pass.remove("outputs");
+    } else {
+        pass.insert("outputs", Value::Object(outputs));
+    }
     pass.insert("uniforms", Value::Object(uniforms));
 
     // Scoped param mappings for runtime updates (applyStepParameterValues).

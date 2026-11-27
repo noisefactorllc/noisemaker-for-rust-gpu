@@ -344,7 +344,7 @@ function apiCases (R) {
     ['truthy', { name: 'N', hidden: 'yes', deprecatedBy: 5, extra: 1, state: { kept: false }, uniforms: [1] }],
     ['hooks', { func: 'f', onInit: 'init', onUpdate: 1, onDestroy: [], asyncInit: {} }],
     ['all', { name: 'n', namespace: 'ns', func: 'f', description: 'd', tags: ['color'], globals: { a: {} }, passes: [{}], textures: { t: {} },
-      outputTex3d: { width: 8 }, outputGeo: true, uniformLayout: { a: 'float' }, uniformLayouts: { p: {} }, paramAliases: { o: 'a' },
+      outputTex: 'scratch', outputTex3d: { width: 8 }, outputGeo: true, outputXyz: 'positions', outputVel: 'velocity', outputRgba: 'colors', uniformLayout: { a: 'float' }, uniformLayouts: { p: {} }, paramAliases: { o: 'a' },
       openCategories: ['general'], defaultProgram: 'p', hidden: true, deprecatedBy: 'x' }]]) {
     add('newEffect', label, { config })
   }

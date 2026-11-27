@@ -169,8 +169,12 @@ const TOP_LEVEL_KEYS: &[&str] = &[
     "externalTexture",
     "externalMesh",
     "builtinMeshes",
+    "outputTex",
     "outputTex3d",
     "outputGeo",
+    "outputXyz",
+    "outputVel",
+    "outputRgba",
     "state",
     "uniforms",
     "onInit",
@@ -1762,9 +1766,16 @@ pub fn validate_definition(definition: Definition<'_>) -> Result<Vec<String>, Js
             }
         }
     }
-    for field in ["outputTex3d", "outputGeo"] {
+    for field in [
+        "outputTex",
+        "outputTex3d",
+        "outputGeo",
+        "outputXyz",
+        "outputVel",
+        "outputRgba",
+    ] {
         let v = source.get(field);
-        if !v.is_undefined() && !non_empty_string(&v) {
+        if !v.is_undefined() && !matches!(&v, Value::String(s) if !crate::js::trim(s).is_empty()) {
             errors.push(format!("\"{field}\" must be a non-empty string"));
         }
     }
@@ -1891,6 +1902,39 @@ fn errors_value(errors: Result<Vec<String>, JsError>) -> Result<Value, JsError> 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn stable_sync_validates_all_forwarded_texture_fields() {
+        for field in [
+            "outputTex",
+            "outputTex3d",
+            "outputGeo",
+            "outputXyz",
+            "outputVel",
+            "outputRgba",
+        ] {
+            let mut definition = valid_definition();
+            definition.set(field, Value::from("scratch"));
+            assert_eq!(
+                validate_effect_definition(&definition).unwrap(),
+                Value::Array(vec![])
+            );
+            for invalid in [
+                Value::from(""),
+                Value::from(" \t\n"),
+                Value::Null,
+                Value::Number(7.0),
+            ] {
+                definition.set(field, invalid);
+                assert_eq!(
+                    validate_effect_definition(&definition).unwrap(),
+                    Value::Array(vec![Value::from(format!(
+                        "\"{field}\" must be a non-empty string"
+                    ))])
+                );
+            }
+        }
+    }
 
     fn valid_definition() -> Value {
         Value::from_json(

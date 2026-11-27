@@ -172,7 +172,15 @@ pub fn extract_texture_specs(
         spec.insert("height", or_default("height", "screen"));
         spec.insert("format", or_default("format", "rgba16f"));
         // copyDst lets chain handoffs and external uploads write the texture.
-        spec.insert("usage", usage_2d());
+        let usage = effect_spec.get("usage");
+        spec.insert(
+            "usage",
+            if usage.is_truthy() {
+                usage.clone()
+            } else {
+                usage_2d()
+            },
+        );
         if effect_spec.get("is3D").is_truthy() {
             let depth = effect_spec.get("depth");
             let width = effect_spec.get("width");
@@ -234,6 +242,44 @@ pub fn extract_texture_specs(
             spec.insert("format", Value::from("rgba16f"));
             spec.insert("usage", usage_2d());
             textures.insert(key, Value::Object(spec));
+        }
+    }
+    for pass in passes {
+        let storage = member(pass, "storageTextures")?;
+        if !storage.is_truthy() {
+            continue;
+        }
+        for tex_id in js_values(storage) {
+            let Some(id) = tex_id.as_str().filter(|id| !id.starts_with("global_")) else {
+                continue;
+            };
+            if let Some(spec) = textures.get_mut(id) {
+                let usage = spec.get("usage");
+                let (contains_storage, mut values) = match usage {
+                    Value::Array(values) => {
+                        (values.contains(&Value::from("storage")), values.clone())
+                    }
+                    Value::String(value) => (
+                        value.contains("storage"),
+                        value.chars().map(|c| Value::from(c.to_string())).collect(),
+                    ),
+                    _ => return Err(JsError::type_error("spec.usage.includes is not a function")),
+                };
+                if !contains_storage {
+                    values.push(Value::from("storage"));
+                    spec.set("usage", Value::Array(values));
+                }
+            } else {
+                let mut spec = Object::new();
+                spec.insert("width", Value::from("screen"));
+                spec.insert("height", Value::from("screen"));
+                spec.insert("format", Value::from("rgba16f"));
+                spec.insert(
+                    "usage",
+                    crate::js!(["render", "sample", "storage", "copySrc", "copyDst"]),
+                );
+                textures.insert(id, Value::Object(spec));
+            }
         }
     }
     Ok(textures)
@@ -386,6 +432,42 @@ pub fn dump_graph_from_validated(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn stable_sync_storage_usage_keeps_reference_string_and_error_semantics() {
+        let passes = [crate::js!({"storageTextures":{"dest":"node"}})];
+        for (usage, expected) in [
+            (Value::from("storage"), Value::from("storage")),
+            (
+                Value::from("sample"),
+                crate::js!(["s", "a", "m", "p", "l", "e", "storage"]),
+            ),
+        ] {
+            let mut specs = crate::js!({"node":{"usage":[]}});
+            specs.get_mut("node").unwrap().set("usage", usage);
+            let textures = extract_texture_specs(
+                &passes,
+                &CompileOptions::default(),
+                specs.as_object().unwrap(),
+            )
+            .unwrap();
+            assert_eq!(textures.get_or_undefined("node").get("usage"), &expected);
+        }
+        for usage in [Value::Bool(true), Value::object()] {
+            let mut specs = crate::js!({"node":{"usage":[]}});
+            specs.get_mut("node").unwrap().set("usage", usage);
+            let error = extract_texture_specs(
+                &passes,
+                &CompileOptions::default(),
+                specs.as_object().unwrap(),
+            )
+            .unwrap_err();
+            assert_eq!(
+                error.to_string(),
+                "TypeError: spec.usage.includes is not a function"
+            );
+        }
+    }
 
     #[test]
     fn hash_matches_reference_examples() {

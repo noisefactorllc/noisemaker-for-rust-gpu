@@ -1381,6 +1381,12 @@ impl Pipeline {
                     && existing.width == width
                     && existing.height == height
                     && strict_equals(&existing.format, spec.get_or_undefined("format"))
+                    && (!matches!(spec.get_or_undefined("usage"), Value::Array(_))
+                        || existing.usage.is_none_or(|usage| {
+                            usage.contains(crate::backend::resolve_usage(
+                                spec.get_or_undefined("usage"),
+                            ))
+                        }))
                 {
                     if !is_3d {
                         continue;

@@ -2761,20 +2761,27 @@ impl<'r> Validator<'r> {
             return Ok(Some(V::array_from(value)));
         }
 
-        // vec2(x, y) on a vec2 parameter, and vec4(x, y, z, w) on a vec4
-        // parameter. The loader registers vec4 parameters as `color`; their
-        // default keeps its four components. Any other form, including a
-        // wrong component count, takes the branches below.
+        // vec2(x, y) on a vec2 parameter, and vec3()/vec4() on a color
+        // parameter. The loader registers vec4 parameters as `color`. Color
+        // constructors preserve the supplied components, independently of the
+        // parameter's default length. Invalid constructor arity takes the
+        // branches below.
         let def_type = def.get("type").as_str();
         if def_type != Some("surface") && node.truthy() && ntype.is_str("Call") {
             let call_args = node.get("args")?;
             let args_len = call_args.get_opt("length");
             let callee = node.get("name")?.to_js_string();
-            let expected_len = if callee == "vec2" { 2.0 } else { 4.0 };
+            let expected_len = if callee == "vec2" {
+                2.0
+            } else if callee == "vec3" {
+                3.0
+            } else {
+                4.0
+            };
             let paired = (def_type == Some("vec2") && callee == "vec2")
                 || (def_type == Some("color")
-                    && callee == "vec4"
-                    && matches!(def_default, Value::Array(items) if items.len() == 4));
+                    && !node.get("kwargs")?.truthy()
+                    && (callee == "vec3" || callee == "vec4"));
             if paired && args_len.strict_equals(&V::num(expected_len)) {
                 let mut out = Vec::new();
                 for arg in iterate(&call_args, Some("node.args"))? {

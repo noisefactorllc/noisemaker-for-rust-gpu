@@ -161,5 +161,5 @@ fn custom_registry_cases_match_the_reference() {
         }
         checked += 1;
     }
-    assert_eq!(checked, 9);
+    assert_eq!(checked, 14);
 }

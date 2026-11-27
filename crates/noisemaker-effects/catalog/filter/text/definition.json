@@ -1,7 +1,6 @@
 {
   "state": {},
   "uniforms": {},
-  "id": "text",
   "name": "Text",
   "namespace": "filter",
   "func": "text",

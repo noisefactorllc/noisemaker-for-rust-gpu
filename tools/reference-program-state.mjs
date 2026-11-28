@@ -62,7 +62,7 @@
 // Usage:
 //   node tools/reference-program-state.mjs run <suite.json>... --resolved R --expected E [--only substring]
 
-import { closeSync, openSync, readFileSync, readdirSync, writeSync } from 'node:fs'
+import { closeSync, openSync, readFileSync, readdirSync, realpathSync, writeSync } from 'node:fs'
 import { registerHooks } from 'node:module'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -797,8 +797,23 @@ function suiteScenarios (suite) {
   return out
 }
 
+export function canonicalModuleUrl (filePath) {
+  return pathToFileURL(realpathSync(filePath)).href
+}
+
+export function isSameCanonicalModule (url, targetPath, targetUrl = canonicalModuleUrl(targetPath)) {
+  if (url === targetUrl) return true
+  if (!url.startsWith('file:') || !url.endsWith(`/${basename(targetPath)}`)) return false
+  try {
+    return realpathSync(fileURLToPath(url)) === realpathSync(targetPath)
+  } catch {
+    return false
+  }
+}
+
 async function loadModules () {
-  const moduleUrl = pathToFileURL(join(SHADERS, 'src', 'lang', 'index.js')).href
+  const modulePath = realpathSync(join(SHADERS, 'src', 'lang', 'index.js'))
+  const moduleUrl = pathToFileURL(modulePath).href
   const entry = 'export function compile(src, options = {}) {'
   const guards = stableContracts.map(contract => {
     const file = join(ROOT, contract.path)
@@ -812,7 +827,7 @@ async function loadModules () {
   const hook = registerHooks({
     load (url, context, nextLoad) {
       const result = nextLoad(url, context)
-      if (url !== moduleUrl) return result
+      if (!isSameCanonicalModule(url, modulePath, moduleUrl)) return result
       const source = typeof result.source === 'string' ? result.source : Buffer.from(result.source).toString('utf8')
       if (source.split(entry).length !== 2) throw new Error('stable compiler entry point changed')
       intercepted++

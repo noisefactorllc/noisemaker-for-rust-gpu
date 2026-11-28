@@ -194,6 +194,12 @@ if (changedFiles.length > 0) {
       run('node', ['parity/check_portable.mjs'], { env: { ...env, NM_API: join(ROOT, 'target', 'release', 'nm-api') } })
     }
   }
+  if (changedFiles.some(p =>
+    p === 'tools/reference-program-state.mjs' ||
+    p === 'parity/test_reference_program_state.mjs' ||
+    p === 'parity/stable-contracts.json')) {
+    run('node', ['parity/test_reference_program_state.mjs'], { env })
+  }
   console.log('scripts/test: focused checks passed')
   process.exit(0)
 }
@@ -219,6 +225,7 @@ run('node', ['parity/check_frontend.mjs', '--programs', ...programs], {
 run('node', ['parity/check_dsl_tools.mjs', '--rust-frontend'], {
   env: { ...env, NM_DSL: join(ROOT, 'target', 'release', 'nm-dsl') }
 })
+run('node', ['parity/test_reference_program_state.mjs'], { env })
 run('node', ['parity/check_program_state.mjs'], {
   env: { ...env, NM_PROGRAM_STATE: join(ROOT, 'target', 'release', 'nm-program-state') }
 })

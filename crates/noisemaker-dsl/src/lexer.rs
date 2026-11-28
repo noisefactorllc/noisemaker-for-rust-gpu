@@ -955,7 +955,13 @@ mod tests {
     /// lexes as its keyword (test_reserved_choice_names.mjs).
     #[test]
     fn prototype_property_names_lex_as_identifiers() {
-        for name in ["toString", "valueOf", "constructor", "hasOwnProperty", "__proto__"] {
+        for name in [
+            "toString",
+            "valueOf",
+            "constructor",
+            "hasOwnProperty",
+            "__proto__",
+        ] {
             let tokens = lex(name).unwrap();
             assert_eq!(tokens[0].kind, TokenType::Ident, "{name}");
         }
@@ -966,7 +972,12 @@ mod tests {
             .collect();
         assert_eq!(
             member_segment,
-            [TokenType::Ident, TokenType::Dot, TokenType::Ident, TokenType::Eof]
+            [
+                TokenType::Ident,
+                TokenType::Dot,
+                TokenType::Ident,
+                TokenType::Eof
+            ]
         );
         let source = "let render write write3d true false if elif else break continue return search subchain";
         let kinds: Vec<_> = lex(source).unwrap().iter().map(|t| t.kind).collect();

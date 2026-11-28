@@ -600,9 +600,16 @@ process.stdout.write(JSON.stringify({{ hashes: sources.map(hashSource), formatte
     #[test]
     fn prototype_property_names_bind_as_identifiers() {
         let registry = Registry::with_catalog();
-        for name in ["toString", "valueOf", "constructor", "hasOwnProperty", "__proto__"] {
-            let src =
-                format!("search synth\nlet {name} = 2\nnoise(scaleX: {name}).write(o0)\nrender(o0)");
+        for name in [
+            "toString",
+            "valueOf",
+            "constructor",
+            "hasOwnProperty",
+            "__proto__",
+        ] {
+            let src = format!(
+                "search synth\nlet {name} = 2\nnoise(scaleX: {name}).write(o0)\nrender(o0)"
+            );
             let compiled = stage1(&src, &registry);
             let diagnostics = compiled.get("diagnostics");
             assert_eq!(diagnostics, &Value::Array(Vec::new()), "{name}");

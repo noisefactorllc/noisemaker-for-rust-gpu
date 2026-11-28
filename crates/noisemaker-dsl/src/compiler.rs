@@ -572,4 +572,64 @@ process.stdout.write(JSON.stringify({{ hashes: sources.map(hashSource), formatte
             );
         }
     }
+
+    /// The stage-1 result (`compile(source)` of lang/index.js) of `src`:
+    /// lex, parse and validate, without the graph compilation.
+    fn stage1(src: &str, registry: &Registry) -> Value {
+        let ast =
+            crate::parser::parse_with_registry(&crate::lexer::lex(src).unwrap(), registry).unwrap();
+        crate::validator::validate(&ast, registry).unwrap()
+    }
+
+    /// The args of the first `op` step of the compiled plans
+    /// (test_reserved_choice_names.mjs's `stepArgs`).
+    fn step_args<'a>(compiled: &'a Value, op: &str) -> &'a Object {
+        for plan in compiled.get("plans").as_array().unwrap() {
+            for step in plan.get("chain").as_array().unwrap() {
+                if step.get("op").as_str() == Some(op) {
+                    return step.get("args").as_object().unwrap();
+                }
+            }
+        }
+        panic!("no {op} step in the plans")
+    }
+
+    /// test_reserved_choice_names.mjs: after the reference's GAP-088 fix, a name
+    /// inherited from `Object.prototype` lexes as an identifier and binds like
+    /// any other `let` name.
+    #[test]
+    fn prototype_property_names_bind_as_identifiers() {
+        let registry = Registry::with_catalog();
+        for name in ["toString", "valueOf", "constructor", "hasOwnProperty", "__proto__"] {
+            let src =
+                format!("search synth\nlet {name} = 2\nnoise(scaleX: {name}).write(o0)\nrender(o0)");
+            let compiled = stage1(&src, &registry);
+            let diagnostics = compiled.get("diagnostics");
+            assert_eq!(diagnostics, &Value::Array(Vec::new()), "{name}");
+            let expected =
+                Value::from_json(&format!(r#"{{"_varRef":"{name}","value":2}}"#)).unwrap();
+            assert_eq!(
+                step_args(&compiled, "synth.noise").get("scaleX"),
+                Some(&expected),
+                "{name}"
+            );
+        }
+    }
+
+    /// test_reserved_choice_names.mjs: a member segment named like an
+    /// `Object.prototype` member is an unknown enum path in a condition, not a
+    /// lexer artifact.
+    #[test]
+    fn unknown_prototype_member_reaches_condition_validation() {
+        let registry = Registry::with_catalog();
+        let src = "search synth\nnoise().write(o0)\nif (oscKind.toString) { noise().write(o1) }\nrender(o0)";
+        let compiled = stage1(src, &registry);
+        let diagnostics = compiled.get("diagnostics").as_array().unwrap();
+        assert_eq!(diagnostics.len(), 1, "{compiled:?}");
+        assert_eq!(diagnostics[0].get("code").as_str(), Some("S001"));
+        assert_eq!(
+            diagnostics[0].get("message").as_str(),
+            Some("Unknown enum path: 'oscKind.toString'")
+        );
+    }
 }

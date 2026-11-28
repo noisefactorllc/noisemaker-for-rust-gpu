@@ -26,96 +26,6 @@ use crate::value::{Object, Value};
 
 // --- token types --------------------------------------------------------------
 
-/// A member of `Object.prototype` that `keywords[lexeme]` finds by inheritance.
-///
-/// The reference looks keywords up with `keywords[lexeme]` on a plain object
-/// (`RESERVED_KEYWORDS`), so an identifier named like an `Object.prototype`
-/// member reads that inherited, truthy member and the token's `type` becomes it:
-/// a function (`constructor` reads `Object` itself) or, for `__proto__`,
-/// `Object.prototype`. Such tokens match no token type in the parser, serialize
-/// without `type` (functions) or with `type: {}` (`__proto__`), and stringify as
-/// `function <name>() { [native code] }` or `[object Object]`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum InheritedMember {
-    Constructor,
-    DefineGetter,
-    DefineSetter,
-    HasOwnProperty,
-    LookupGetter,
-    LookupSetter,
-    IsPrototypeOf,
-    PropertyIsEnumerable,
-    ToString,
-    ValueOf,
-    Proto,
-    ToLocaleString,
-}
-
-impl InheritedMember {
-    /// `Object.getOwnPropertyNames(Object.prototype)`, with the member each names.
-    pub const ALL: [(&'static str, InheritedMember); 12] = [
-        ("constructor", InheritedMember::Constructor),
-        ("__defineGetter__", InheritedMember::DefineGetter),
-        ("__defineSetter__", InheritedMember::DefineSetter),
-        ("hasOwnProperty", InheritedMember::HasOwnProperty),
-        ("__lookupGetter__", InheritedMember::LookupGetter),
-        ("__lookupSetter__", InheritedMember::LookupSetter),
-        ("isPrototypeOf", InheritedMember::IsPrototypeOf),
-        (
-            "propertyIsEnumerable",
-            InheritedMember::PropertyIsEnumerable,
-        ),
-        ("toString", InheritedMember::ToString),
-        ("valueOf", InheritedMember::ValueOf),
-        ("__proto__", InheritedMember::Proto),
-        ("toLocaleString", InheritedMember::ToLocaleString),
-    ];
-
-    /// The inherited member `keywords[name]` reads, if `name` names one.
-    pub fn lookup(name: &str) -> Option<InheritedMember> {
-        Self::ALL
-            .iter()
-            .find(|(key, _)| *key == name)
-            .map(|(_, member)| *member)
-    }
-
-    /// The name of the function the member holds (`None` for `__proto__`, which
-    /// reads `Object.prototype`, an object).
-    pub fn function_name(self) -> Option<&'static str> {
-        Some(match self {
-            InheritedMember::Constructor => "Object",
-            InheritedMember::DefineGetter => "__defineGetter__",
-            InheritedMember::DefineSetter => "__defineSetter__",
-            InheritedMember::HasOwnProperty => "hasOwnProperty",
-            InheritedMember::LookupGetter => "__lookupGetter__",
-            InheritedMember::LookupSetter => "__lookupSetter__",
-            InheritedMember::IsPrototypeOf => "isPrototypeOf",
-            InheritedMember::PropertyIsEnumerable => "propertyIsEnumerable",
-            InheritedMember::ToString => "toString",
-            InheritedMember::ValueOf => "valueOf",
-            InheritedMember::Proto => return None,
-            InheritedMember::ToLocaleString => "toLocaleString",
-        })
-    }
-
-    /// `String(member)`.
-    pub fn to_js_string(self) -> String {
-        match self.function_name() {
-            Some(name) => format!("function {name}() {{ [native code] }}"),
-            None => "[object Object]".to_owned(),
-        }
-    }
-
-    /// The member as a value: a function, or `Object.prototype` (which has no own
-    /// enumerable members, so it serializes as `{}`).
-    pub fn to_value(self) -> Value {
-        match self.function_name() {
-            Some(_) => Value::Function(self.to_js_string()),
-            None => Value::object(),
-        }
-    }
-}
-
 /// A token's `type`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TokenType {
@@ -163,8 +73,6 @@ pub enum TokenType {
     Search,
     Subchain,
     Eof,
-    /// A `type` read from `Object.prototype` (see [`InheritedMember`]).
-    Inherited(InheritedMember),
 }
 
 impl TokenType {
@@ -216,24 +124,17 @@ impl TokenType {
             TokenType::Search => "SEARCH",
             TokenType::Subchain => "SUBCHAIN",
             TokenType::Eof => "EOF",
-            TokenType::Inherited(_) => return None,
         })
     }
 
     /// `String(token.type)`, as error messages interpolate it.
     pub fn to_js_string(self) -> String {
-        match self {
-            TokenType::Inherited(member) => member.to_js_string(),
-            other => other.name().unwrap_or_default().to_owned(),
-        }
+        self.name().unwrap_or_default().to_owned()
     }
 
     /// `token.type` as a value.
     pub fn to_value(self) -> Value {
-        match self {
-            TokenType::Inherited(member) => member.to_value(),
-            other => Value::from(other.name().unwrap_or_default()),
-        }
+        Value::from(self.name().unwrap_or_default())
     }
 }
 
@@ -267,14 +168,14 @@ pub fn is_reserved_keyword(name: &str) -> bool {
     RESERVED_KEYWORDS.iter().any(|(k, _)| *k == name)
 }
 
-/// `keywords[lexeme]` when truthy: an own keyword, or an inherited
-/// `Object.prototype` member (see [`InheritedMember`]).
+/// `Object.hasOwn(keywords, lexeme)`: only the table's own reserved keywords
+/// match. A name inherited from `Object.prototype` is not a keyword here, so it
+/// lexes as an identifier (the reference's GAP-088 fix).
 fn keyword_lookup(lexeme: &str) -> Option<TokenType> {
     RESERVED_KEYWORDS
         .iter()
         .find(|(k, _)| *k == lexeme)
         .map(|(_, t)| *t)
-        .or_else(|| InheritedMember::lookup(lexeme).map(TokenType::Inherited))
 }
 
 // --- tokens -------------------------------------------------------------------
@@ -1048,25 +949,46 @@ mod tests {
         lex_with_diagnostics(src).expect_err("lexing should fail")
     }
 
-    fn token_json(src: &str) -> String {
-        tokens_to_value(&lex(src).unwrap()).to_json().unwrap()
-    }
-
+    /// The reference looks keywords up with `Object.hasOwn(keywords, lexeme)`
+    /// (GAP-088), so a name inherited from `Object.prototype` lexes as an
+    /// identifier, also as a member segment, while every reserved word still
+    /// lexes as its keyword (test_reserved_choice_names.mjs).
     #[test]
-    fn inherited_keyword_lookups_follow_the_reference() {
+    fn prototype_property_names_lex_as_identifiers() {
+        for name in ["toString", "valueOf", "constructor", "hasOwnProperty", "__proto__"] {
+            let tokens = lex(name).unwrap();
+            assert_eq!(tokens[0].kind, TokenType::Ident, "{name}");
+        }
+        let member_segment: Vec<_> = lex("oscKind.toString")
+            .unwrap()
+            .iter()
+            .map(|t| t.kind)
+            .collect();
         assert_eq!(
-            token_json("constructor __proto__ toString"),
-            r#"[{"lexeme":"constructor","line":1,"col":1},{"type":{},"lexeme":"__proto__","line":1,"col":13},{"lexeme":"toString","line":1,"col":23},{"type":"EOF","lexeme":"","line":1,"col":31}]"#
+            member_segment,
+            [TokenType::Ident, TokenType::Dot, TokenType::Ident, TokenType::Eof]
         );
-        let tokens = lex("constructor __proto__ hasOwnProperty").unwrap();
+        let source = "let render write write3d true false if elif else break continue return search subchain";
+        let kinds: Vec<_> = lex(source).unwrap().iter().map(|t| t.kind).collect();
         assert_eq!(
-            tokens[0].kind.to_js_string(),
-            "function Object() { [native code] }"
-        );
-        assert_eq!(tokens[1].kind.to_js_string(), "[object Object]");
-        assert_eq!(
-            tokens[2].kind.to_js_string(),
-            "function hasOwnProperty() { [native code] }"
+            kinds,
+            [
+                TokenType::Let,
+                TokenType::Render,
+                TokenType::Write,
+                TokenType::Write3d,
+                TokenType::True,
+                TokenType::False,
+                TokenType::If,
+                TokenType::Elif,
+                TokenType::Else,
+                TokenType::Break,
+                TokenType::Continue,
+                TokenType::Return,
+                TokenType::Search,
+                TokenType::Subchain,
+                TokenType::Eof,
+            ]
         );
     }
 
